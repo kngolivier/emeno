@@ -20,63 +20,82 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-md w-full max-w-md">
-      <h2 className="text-lg font-bold mb-4">{driver ? "Modifier le livreur" : "Nouveau livreur"}</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+      {/* Titre avec le vert EMENC */}
+      <h2 className="text-xl font-bold mb-6 text-[#002E1B]">
+        {driver ? "Modifier le livreur" : "Nouveau livreur"}
+      </h2>
+      
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="text-sm font-medium text-blue-700 ">Nom</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-[#002E1B]/70 mb-1 block">
+            Nom complet
+          </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border rounded-xl p-2 mt-1 text-sm bg-white  border border-slate-500"
-            placeholder="Nom complet"
+            className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none transition-all"
+            placeholder="Ex: Jean Dupont"
           />
         </div>
+
         <div>
-          <label className="text-sm font-medium text-slate-700 ">Téléphone</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-[#002E1B]/70 mb-1 block">
+            Téléphone
+          </label>
           <input
             type="text"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full border rounded-xl p-2 mt-1 text-sm bg-white  border border-slate-500"
-            placeholder="Numéro"
+            className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none transition-all"
+            placeholder="+241 ..."
           />
         </div>
-        <div>
-          <label className="text-sm font-medium text-slate-700">Véhicule</label>
-          <input
-            type="text"
-            value={vehicle}
-            onChange={(e) => setVehicle(e.target.value)}
-            className="w-full border rounded-xl p-2 mt-1 text-sm bg-white  border border-slate-500"
-            placeholder="Moto, Voiture..."
-          />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-[#002E1B]/70 mb-1 block">
+              Véhicule
+            </label>
+            <input
+              type="text"
+              value={vehicle}
+              onChange={(e) => setVehicle(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none transition-all"
+              placeholder="Moto, Auto..."
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-[#002E1B]/70 mb-1 block">
+              Statut
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none transition-all bg-white"
+            >
+              <option>Actif</option>
+              <option>Inactif</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label className="text-sm font-medium text-slate-700">Statut</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full border rounded-xl p-2 mt-1 text-sm bg-white  border border-slate-500"
-          >
-            <option>Actif</option>
-            <option>Inactif</option>
-          </select>
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
+
+        <div className="flex justify-end gap-3 mt-8">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-xl border hover:bg-slate-50"
+            className="px-6 py-2.5 rounded-xl text-slate-500 font-medium hover:bg-slate-50 transition-colors"
           >
             Annuler
           </button>
+          
+          {/* Bouton d'action principal en Vert EMENC */}
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+            className="px-6 py-2.5 rounded-xl bg-[#002E1B] text-white font-semibold hover:bg-[#002E1B]/90 shadow-md shadow-[#002E1B]/10 transition-all active:scale-95"
           >
-            {driver ? "Modifier" : "Ajouter"}
+            {driver ? "Mettre à jour" : "Enregistrer"}
           </button>
         </div>
       </form>

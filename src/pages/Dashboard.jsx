@@ -71,7 +71,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-lg font-bold text-slate-800">Flux des commandes</h3>
-            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Total: {orderStats.total}</span>
+              <span className="text-xs font-bold text-white bg-[#B08D3E] px-3 py-1 rounded-full">Total: {orderStats.total}</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
             <ProgressRow label="Livrées avec succès" value={orderStats.livree} total={orderStats.total} colorClass="bg-emerald-500" />
@@ -80,22 +80,21 @@ export default function Dashboard() {
             <ProgressRow label="Annulées / Retours" value={orderStats.annulee} total={orderStats.total} colorClass="bg-rose-500" />
           </div>
         </div>
-
-        {/* État de la flotte et Clients */}
-        <div className="bg-slate-900 p-8 rounded-3xl text-white shadow-xl shadow-slate-200">
-          <h3 className="text-lg font-bold mb-6">Communauté</h3>
+        {/* État de la flotte (Version EMENC Dark) */}
+        <div className="bg-[#002D15] p-8 rounded-3xl text-white shadow-xl shadow-emerald-950/20">
+          <h3 className="text-lg font-bold mb-6 text-[#B08D3E]">Communauté</h3>
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                <Users size={20} className="text-blue-400" />
+                <Users size={20} className="text-[#B08D3E]" />
               </div>
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-slate-400">Clients Actifs</span>
+                  <span className="text-sm font-medium text-slate-300">Clients Actifs</span>
                   <span className="text-sm font-bold">{customers.filter(c => c.status === "actif").length}</span>
                 </div>
                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-400" style={{ width: '85%' }} />
+                  <div className="h-full bg-[#B08D3E]" style={{ width: '85%' }} />
                 </div>
               </div>
             </div>
@@ -106,7 +105,7 @@ export default function Dashboard() {
               </div>
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-slate-400">Livreurs en ligne</span>
+                  <span className="text-sm font-medium text-slate-300">Livreurs en ligne</span>
                   <span className="text-sm font-bold">{drivers.filter(d => d.status === "actif").length}</span>
                 </div>
                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -117,9 +116,9 @@ export default function Dashboard() {
           </div>
 
           <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Alerte Système</p>
-            <div className="flex items-center gap-2 text-xs text-amber-400 font-medium">
-              <AlertCircle size={14} />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#B08D3E] mb-2">Alerte Système</p>
+            <div className="flex items-center gap-2 text-xs text-white font-medium">
+              <AlertCircle size={14} className="text-[#B08D3E]" />
               3 livreurs sont inactifs depuis 1h
             </div>
           </div>

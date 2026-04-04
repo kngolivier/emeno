@@ -2,11 +2,12 @@ import { NavLink } from "react-router-dom";
 import { LayoutDashboard, ShoppingCart, Truck, Users, Settings } from "lucide-react";
 
 export default function Sidebar() {
+  // Mise à jour des couleurs : Vert Sombre (#002D15) pour l'actif, Doré (#B08D3E) pour le hover
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
       isActive
-        ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
-        : "text-slate-500 hover:bg-slate-50 hover:text-blue-600"
+        ? "bg-[#002D15] text-white shadow-lg shadow-emerald-900/20"
+        : "text-slate-500 hover:bg-[#B08D3E]/10 hover:text-[#B08D3E]"
     }`;
 
   const navItems = [
@@ -18,18 +19,21 @@ export default function Sidebar() {
 
   return (
     <aside className="w-72 h-screen bg-white border-r border-slate-100 flex flex-col p-6">
-      {/* Logo / Brand */}
-      <div className="flex items-center gap-3 px-2 mb-10">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold">E</span>
-        </div>
-        <h1 className="text-xl font-bold tracking-tight text-slate-800">Emeno Admin</h1>
+      {/* Logo / Brand - Intégration du logo EMENC */}
+      {/* Conteneur Logo : Hauteur fixe et marge réduite pour ne pas pousser le menu */}
+      <div className="relative h-24 flex items-center justify-center mb-4 px-2">
+        <img 
+          src="/IMG_0338.png" 
+          alt="EMENC LIVRAISON" 
+          className="absolute h-25 w-auto object-contain max-w-full" 
+          /* h-20 agrandit l'image, mb-4 compense pour garder le menu haut */
+        />
       </div>
-
       {/* Navigation */}
       <nav className="flex-1 space-y-1">
         {navItems.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
+            {/* L'icône change aussi de couleur selon l'état actif/hover via linkClass */}
             {item.icon}
             <span className="font-medium">{item.label}</span>
           </NavLink>

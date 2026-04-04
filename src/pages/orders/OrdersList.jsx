@@ -63,7 +63,7 @@ export default function OrdersList() {
           {/* Bouton Nouvelle commande */}
           <button 
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all shadow-md font-medium shrink-0"
+            className="flex items-center justify-center gap-2 bg-[#002E1B]  text-white px-5 py-2.5 rounded-xl hover:bg-[#B08D3E]  transition-all shadow-md font-medium shrink-0"
           >
             <Plus size={18} />
             Nouvelle commande

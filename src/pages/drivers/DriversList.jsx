@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { drivers as mockDrivers } from "../../data/mockDrivers";
-import { Plus, Edit, Trash, Search, X } from "lucide-react";
+import { Plus, Edit, Trash, Ban, Search, X } from "lucide-react";
 import NewDriverForm from "./NewDriverForm";
 
 export default function DriversList() {
@@ -17,15 +17,15 @@ export default function DriversList() {
 
   const [driversList, setDriversList] = useState(drivers);
 
-function toggleDriverStatus(id) {
-  setDriversList(prev =>
-    prev.map(d => 
-      d.id === id 
-        ? { ...d, status: d.status === "actif" ? "inactif" : "actif" } 
-        : d
-    )
-  );
-}
+  function toggleDriverStatus(id) {
+    setDriversList(prev =>
+      prev.map(d => 
+        d.id === id 
+          ? { ...d, status: d.status === "actif" ? "inactif" : "actif" } 
+          : d
+      )
+    );
+  }
 
   const handleSave = (driver) => {
     setDrivers((prev) => {
@@ -44,40 +44,37 @@ function toggleDriverStatus(id) {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm("Bloquer ce livreur ?")) {
-      setDrivers(drivers.filter((d) => d.id !== id));
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Header & Recherche */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-800">Livreurs</h1>
+        {/* Titre avec le vert profond du logo */}
+        <h1 className="text-2xl font-bold text-[#002E1B]">Livreurs</h1>
+        
         <div className="flex gap-3 flex-1 sm:flex-auto">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#B08D3E]" size={18} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher..."
-              className="w-full border rounded-xl p-2 pl-10 text-sm bg-white  border border-slate"
+              className="w-full border rounded-xl p-2 pl-10 text-sm bg-white border-slate-200 focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none transition-all"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#002E1B]"
               >
                 <X size={16} />
               </button>
             )}
           </div>
 
+          {/* Bouton Nouveau : Vert logo avec effet hover doré */}
           <button
             onClick={() => { setShowForm(true); setEditingDriver(null); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-[#002E1B] text-white rounded-xl hover:bg-[#002E1B]/90 transition-colors shadow-sm"
           >
             <Plus size={16} /> Nouveau
           </button>
@@ -98,23 +95,34 @@ function toggleDriverStatus(id) {
           </thead>
           <tbody className="divide-y divide-slate-50">
             {filteredDrivers.map((d) => (
-              <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-medium">{d.name}</td>
-                <td className="px-6 py-4">{d.phone}</td>
-                <td className="px-6 py-4">{d.vehicle}</td>
-                <td className="px-6 py-4">{d.status}</td>
+              <tr key={d.id} className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-6 py-4 font-semibold text-[#002E1B]">{d.name}</td>
+                <td className="px-6 py-4 text-slate-600">{d.phone}</td>
+                <td className="px-6 py-4 text-slate-600">{d.vehicle}</td>
+                <td className="px-6 py-4">
+                  {/* Badge de statut utilisant le doré pour le style actif */}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    d.status === "actif" 
+                      ? "bg-[#B08D3E]/10 text-[#B08D3E]" 
+                      : "bg-slate-100 text-slate-500"
+                  }`}>
+                    {d.status}
+                  </span>
+                </td>
                 <td className="px-6 py-4 text-right flex justify-end gap-2">
                   <button
                     onClick={() => handleEdit(d)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                    className="p-2 text-[#B08D3E] hover:bg-[#B08D3E]/10 rounded-lg transition-colors"
+                    title="Modifier"
                   >
                     <Edit size={16} />
                   </button>
                   <button
                     onClick={() => toggleDriverStatus(d.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Bloquer"
                   >
-                    <Trash size={16} />
+                    <Ban size={16} />
                   </button>
                 </td>
               </tr>
@@ -122,13 +130,13 @@ function toggleDriverStatus(id) {
           </tbody>
         </table>
         {filteredDrivers.length === 0 && (
-          <div className="py-10 text-center text-slate-500">Aucun livreur trouvé</div>
+          <div className="py-10 text-center text-slate-500 italic">Aucun livreur trouvé</div>
         )}
       </div>
 
-      {/* Formulaire en modal / drawer */}
+      {/* Formulaire en modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#002E1B]/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <NewDriverForm
             onSave={handleSave}
             onCancel={() => setShowForm(false)}
