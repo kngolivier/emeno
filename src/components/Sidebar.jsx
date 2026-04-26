@@ -6,8 +6,8 @@ export default function Sidebar() {
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
       isActive
-        ? "bg-[#002D15] text-white shadow-lg shadow-emerald-900/20"
-        : "text-slate-500 hover:bg-[#B08D3E]/10 hover:text-[#B08D3E]"
+        ? "bg-[#B08D3E] text-white shadow-lg shadow-emerald-900/20"
+        : "text-white hover:bg-[#FFF7D6] hover:text-[#000]"
     }`;
 
   const navItems = [
@@ -18,13 +18,13 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-72 h-screen bg-white border-r border-slate-100 flex flex-col p-6">
+    <aside className="w-72 h-screen bg-[#002D15] border-r border-slate-100 flex flex-col p-6">
       {/* Logo / Brand - Intégration du logo EMENC */}
       {/* Conteneur Logo : Hauteur fixe et marge réduite pour ne pas pousser le menu */}
       <div className="relative h-24 flex items-center justify-center mb-4 px-2">
         <img 
-          src="/IMG_0338.png" 
-          alt="EMENC LIVRAISON" 
+          src="/logo.png" 
+          alt="EMENO LIVRAISON" 
           className="absolute h-25 w-auto object-contain max-w-full" 
           /* h-20 agrandit l'image, mb-4 compense pour garder le menu haut */
         />
