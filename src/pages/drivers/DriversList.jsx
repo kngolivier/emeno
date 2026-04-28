@@ -1,42 +1,128 @@
-import { useState } from "react";
-import { drivers as mockDrivers } from "../../data/mockDrivers";
-import { Plus, Edit, Trash, Ban, Search, X } from "lucide-react";
+// FILE: src/pages/drivers/DriversList.jsx
+
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Plus,
+  Edit,
+  Ban,
+  Search,
+  X,
+  Trash
+} from "lucide-react";
+
 import NewDriverForm from "./NewDriverForm";
 
+// API
+import {
+  fetchDrivers,
+  updateUserStatus,
+  createDriver
+} from "../../api/users.api";
+
+import { notifySuccess, notifyError } from "../../utils/notify";
+
 export default function DriversList() {
-  const [drivers, setDrivers] = useState(mockDrivers);
+  const [drivers, setDrivers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const filteredDrivers = drivers.filter(
-    (d) =>
-      d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.phone.includes(searchTerm)
+
+  // ======================
+  // LOAD DRIVERS
+  // ======================
+  const loadDrivers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchDrivers();
+
+      const data = res?.data?.data || res?.data || res;
+      setDrivers(data);
+
+    } catch (err) {
+      console.error("Drivers load error:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDrivers();
+  }, []);
+
+  // ======================
+  // TOGGLE STATUS
+  // ======================
+  const toggleDriverStatus = async (driver) => {
+    try {
+      if (driver.status === "DELETED") return;
+
+      let newStatus = driver.status;
+
+      if (driver.status === "ACTIVE") newStatus = "INACTIVE";
+      else if (driver.status === "INACTIVE") newStatus = "ACTIVE";
+
+      await updateUserStatus(driver._id, newStatus);
+
+      setDrivers((prev) =>
+        prev.map((d) =>
+          d._id === driver._id
+            ? { ...d, status: newStatus }
+            : d
+        )
+      );
+
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // ======================
+  // FILTER
+  // ======================
+  const filteredDrivers = drivers.filter((d) =>
+    `${d.nom} ${d.prenom}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+    d.telephone?.includes(searchTerm)
   );
 
-  const [driversList, setDriversList] = useState(drivers);
+  // ======================
+  // SAVE DRIVER
+  // ======================
+  const handleSave = async (driver) => {
+    try {
+      let savedDriver;
 
-  function toggleDriverStatus(id) {
-    setDriversList(prev =>
-      prev.map(d => 
-        d.id === id 
-          ? { ...d, status: d.status === "actif" ? "inactif" : "actif" } 
-          : d
-      )
-    );
-  }
+      // CREATE
+      if (!driver._id) {
+        const res = await createDriver(driver);
 
-  const handleSave = (driver) => {
-    setDrivers((prev) => {
-      const exists = prev.find((d) => d.id === driver.id);
-      if (exists) {
-        return prev.map((d) => (d.id === driver.id ? driver : d));
+        // FIX API SHAPE
+        savedDriver = res?.data?.data?.user 
+                 || res?.data?.user 
+                 || res?.data;
+
+        notifySuccess("Livreur créé avec succès ");
       }
-      return [...prev, driver];
-    });
-    setShowForm(false);
-    setEditingDriver(null);
+
+      // UPDATE (plus tard)
+      else {
+        savedDriver = driver;
+      }
+
+      setShowForm(false);
+      setEditingDriver(null);
+
+      // IMPORTANT : reload complet (source de vérité)
+      await loadDrivers();
+
+    } catch (err) {
+      console.error("CREATE DRIVER ERROR:", err.message);
+      notifyError(err?.response?.data?.message || err.message);
+    }
   };
 
   const handleEdit = (driver) => {
@@ -44,99 +130,152 @@ export default function DriversList() {
     setShowForm(true);
   };
 
+  if (loading) {
+    return <div className="p-6 text-slate-500">Chargement...</div>;
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header & Recherche */}
+
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Titre avec le vert profond du logo */}
-        <h1 className="text-2xl font-bold text-[#002E1B]">Livreurs</h1>
-        
+
+        <h1 className="text-2xl font-bold text-[#002E1B]">
+          Livreurs
+        </h1>
+
         <div className="flex gap-3 flex-1 sm:flex-auto">
+
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#B08D3E]" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+
             <input
-              type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher..."
-              className="w-full border rounded-xl p-2 pl-10 text-sm bg-white border-slate-200 focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none transition-all"
+              className="w-full border rounded-xl p-2 pl-10 text-sm"
             />
+
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#002E1B]"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
               >
                 <X size={16} />
               </button>
             )}
           </div>
 
-          {/* Bouton Nouveau : Vert logo avec effet hover doré */}
           <button
-            onClick={() => { setShowForm(true); setEditingDriver(null); }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#002E1B] text-white rounded-xl hover:bg-[#002E1B]/90 transition-colors shadow-sm"
+            onClick={() => {
+              setShowForm(true);
+              setEditingDriver(null);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#002E1B] text-white rounded-xl"
           >
             <Plus size={16} /> Nouveau
           </button>
+
         </div>
       </div>
 
-      {/* Tableau des livreurs */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[600px]">
+      {/* TABLE */}
+      <div className="bg-white rounded-2xl border shadow-sm overflow-x-auto">
+
+        <table className="w-full min-w-[600px]">
+
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-100">
-              <th className="px-6 py-3 text-xs font-bold uppercase text-slate-500">Nom</th>
-              <th className="px-6 py-3 text-xs font-bold uppercase text-slate-500">Téléphone</th>
-              <th className="px-6 py-3 text-xs font-bold uppercase text-slate-500">Véhicule</th>
-              <th className="px-6 py-3 text-xs font-bold uppercase text-slate-500">Statut</th>
-              <th className="px-6 py-3 text-xs font-bold uppercase text-slate-500 text-right">Actions</th>
+            <tr className="bg-slate-50 text-left text-slate-500 text-xs">
+              <th className="p-4">Nom</th>
+              <th>Téléphone</th>
+              <th>Statut</th>
+              <th className="text-right p-4">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
-            {filteredDrivers.map((d) => (
-              <tr key={d.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4 font-semibold text-[#002E1B]">{d.name}</td>
-                <td className="px-6 py-4 text-slate-600">{d.phone}</td>
-                <td className="px-6 py-4 text-slate-600">{d.vehicle}</td>
-                <td className="px-6 py-4">
-                  {/* Badge de statut utilisant le doré pour le style actif */}
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    d.status === "actif" 
-                      ? "bg-[#B08D3E]/10 text-[#B08D3E]" 
-                      : "bg-slate-100 text-slate-500"
-                  }`}>
-                    {d.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                  <button
-                    onClick={() => handleEdit(d)}
-                    className="p-2 text-[#B08D3E] hover:bg-[#B08D3E]/10 rounded-lg transition-colors"
-                    title="Modifier"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => toggleDriverStatus(d.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Bloquer"
-                  >
-                    <Ban size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
+
+          <tbody>
+
+            {filteredDrivers.map((d) => {
+              const isDeleted = d.status === "DELETED";
+
+              return (
+                <tr
+                  key={d._id}
+                  className={`border-t hover:bg-slate-50 ${isDeleted ? "opacity-40" : ""}`}
+                >
+
+                  <td className={`p-4 font-semibold text-[#002E1B] ${isDeleted ? "line-through" : ""}`}>
+
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 font-bold border border-white shadow-sm group-hover:scale-105 transition">
+                        {d.nom?.charAt(0)}{d.prenom?.charAt(0)}
+                      </div>
+
+                      <span className={`font-bold text-slate-700 group-hover:text-[#002E1B] ${
+                        isDeleted ? "line-through opacity-60" : ""
+                      }`}>
+                        <Link to={`/drivers/${d._id}`} className="hover:underline text-[#002E1B]">
+                          {d.nom} {d.prenom}
+                        </Link>
+                      </span>
+                    </div>
+                    
+                  </td>
+
+                  <td>{d.telephone}</td>
+
+                  <td>
+                    <span className={`px-3 py-1 rounded-full text-xs ${
+                      d.status === "ACTIVE"
+                        ? "bg-green-50 text-green-600"
+                        : d.status === "INACTIVE"
+                        ? "bg-slate-100 text-slate-500"
+                        : d.status === "BLOCKED"
+                        ? "bg-red-50 text-red-500"
+                        : "bg-black text-white"
+                    }`}>
+                      {d.status}
+                    </span>
+                  </td>
+
+                  <td className="p-4 text-right flex justify-end gap-2">
+
+                    <button
+                      onClick={() => handleEdit(d)}
+                      disabled={isDeleted}
+                      className="text-[#B08D3E] disabled:opacity-30"
+                    >
+                      <Edit size={16} />
+                    </button>
+
+                    <button
+                      onClick={() => toggleDriverStatus(d)}
+                      disabled={isDeleted}
+                      className="text-red-500 disabled:opacity-30"
+                    >
+                      <Ban size={16} />
+                    </button>
+                  </td>
+
+                </tr>
+              );
+            })}
+
           </tbody>
+
         </table>
+
         {filteredDrivers.length === 0 && (
-          <div className="py-10 text-center text-slate-500 italic">Aucun livreur trouvé</div>
+          <div className="p-10 text-center text-slate-500">
+            Aucun livreur trouvé
+          </div>
         )}
+
       </div>
 
-      {/* Formulaire en modal */}
+      {/* FORM MODAL */}
       {showForm && (
-        <div className="fixed inset-0 bg-[#002E1B]/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <NewDriverForm
             onSave={handleSave}
             onCancel={() => setShowForm(false)}
@@ -144,6 +283,7 @@ export default function DriversList() {
           />
         </div>
       )}
+
     </div>
   );
 }

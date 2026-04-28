@@ -1,17 +1,22 @@
-// src/components/drivers/NewDriverForm.jsx
+// FILE: src/components/clients/NewClientForm.jsx
 
 import { useState } from "react";
 
-export default function NewDriverForm({ onSave, onCancel, driver }) {
-  const [nom, setNom] = useState(driver?.nom || "");
-  const [prenom, setPrenom] = useState(driver?.prenom || "");
-  const [telephone, setTelephone] = useState(driver?.telephone || "");
-  const [email, setEmail] = useState(driver?.email || "");
-  const [adresse, setAdresse] = useState(driver?.adresse || "");
-  const [status, setStatus] = useState(driver?.status || "ACTIVE");
+/**
+ * Formulaire de création / édition d'un client
+ * - Validation front
+ * - UX propre
+ * - Compatible API users (CLIENT role)
+ */
+export default function NewClientForm({ onSave, onCancel, client }) {
+  const [nom, setNom] = useState(client?.nom || "");
+  const [prenom, setPrenom] = useState(client?.prenom || "");
+  const [telephone, setTelephone] = useState(client?.telephone || "");
+  const [email, setEmail] = useState(client?.email || "");
+  const [adresse, setAdresse] = useState(client?.adresse || "");
 
-  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // ======================
   // VALIDATION FRONT
@@ -37,7 +42,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
   };
 
   // ======================
-  // SUBMIT
+  // SUBMIT FORM
   // ======================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,20 +58,22 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
         telephone: telephone.trim(),
         email: email.trim(),
         adresse: adresse.trim(),
-        role: "DRIVER",
-        status,
+        role: "CLIENT", // IMPORTANT: forcé côté front
       });
     } finally {
       setLoading(false);
     }
   };
 
+  // ======================
+  // STYLE INPUT
+  // ======================
   const inputClass = (field) =>
-    `w-full border rounded-xl p-3 text-sm outline-none transition-all
+    `w-full border rounded-xl p-3 text-sm outline-none transition
     ${
       errors[field]
         ? "border-red-400 focus:ring-2 focus:ring-red-200"
-        : "border-slate-200 focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E]"
+        : "border-slate-200 focus:ring-2 focus:ring-[#002E1B]/10 focus:border-[#002E1B]"
     }`;
 
   const labelClass =
@@ -75,8 +82,9 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
   return (
     <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
 
+      {/* TITLE */}
       <h2 className="text-xl font-bold mb-6 text-[#002E1B]">
-        {driver ? "Modifier le livreur" : "Nouveau livreur"}
+        {client ? "Modifier le client" : "Nouveau client"}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -162,21 +170,6 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           />
         </div>
 
-        {/* STATUS */}
-        <div>
-          <label className={labelClass}>Statut</label>
-
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none"
-          >
-            <option value="ACTIVE">Actif</option>
-            <option value="INACTIVE">Inactif</option>
-            <option value="BLOCKED">Bloqué</option>
-          </select>
-        </div>
-
         {/* ACTIONS */}
         <div className="flex justify-end gap-3 mt-8">
 
@@ -195,9 +188,9 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           >
             {loading
               ? "Création..."
-              : driver
+              : client
               ? "Mettre à jour"
-              : "Enregistrer"}
+              : "Créer client"}
           </button>
 
         </div>

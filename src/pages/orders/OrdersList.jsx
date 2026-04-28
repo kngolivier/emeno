@@ -1,161 +1,204 @@
-import { useState } from "react";
-import { orders as mockOrders } from "../../data/mockOrders";
+// FILE: src/pages/orders/OrdersList.jsx
+
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, MapPin, Calendar, Search, X, Eye } from "lucide-react";
-import NewOrderForm from "./NewOrderForm";
+import { Search, X, Eye } from "lucide-react";
+
+import { fetchAdminDeliveries } from "../../api/deliveries.api";
 
 export default function OrdersList() {
-  const [orders, setOrders] = useState(mockOrders); // ← état dynamique
-  const [filter, setFilter] = useState("Tous");
+  const [orders, setOrders] = useState([]);
+  const [filter, setFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showForm, setShowForm] = useState(false); // ← contrôle du formulaire
+  const [loading, setLoading] = useState(true);
 
-  const statusStyles = {
-    "En attente": "bg-amber-50 text-amber-700 border-amber-100",
-    "En cours": "bg-blue-50 text-blue-700 border-blue-100",
-    "Livrée": "bg-emerald-50 text-emerald-700 border-emerald-100",
-    "Annulée": "bg-red-50 text-red-600 border-red-100",
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      const res = await fetchAdminDeliveries();
+      const data = res?.data?.data || res?.data || res;
+      setOrders(data);
+    } catch (error) {
+      console.error("Orders load error:", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Filtrage et recherche
-  const filteredOrders = orders.filter(order => {
-    const matchesStatus = filter === "Tous" || order.status === filter;
+  const getName = (user) => {
+    if (!user) return "Inconnu";
+    if (typeof user === "object") return `${user.nom || ""} ${user.prenom || ""}`;
+    return "Client";
+  };
+
+  const statusStyles = {
+    PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+    ASSIGNED: "bg-blue-50 text-blue-700 border-blue-200",
+    PICKED_UP: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    IN_PROGRESS: "bg-cyan-50 text-cyan-700 border-cyan-200",
+    DELIVERED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    CANCELLED: "bg-red-50 text-red-600 border-red-200",
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    const matchesStatus = filter === "ALL" || order.status === filter;
+
+    const search = searchTerm.toLowerCase();
+
     const matchesSearch =
-      order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.driver.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(order.id).includes(searchTerm);
+      order.orderNumber?.toString().includes(search) ||
+      order.creatorId?.nom?.toLowerCase().includes(search) ||
+      order.driverId?.nom?.toLowerCase().includes(search);
+
     return matchesStatus && matchesSearch;
   });
 
-  // Ajout d'une nouvelle commande
-  const handleAddOrder = (newOrder) => {
-    setOrders([newOrder, ...orders]); // ajout en haut du tableau
-    setShowForm(false); // ferme le formulaire après ajout
-  };
+  if (loading) {
+    return (
+      <div className="p-6 text-slate-500">
+        Chargement des livraisons...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* 1. Header & Recherche */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+
+      {/* HEADER */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Commandes</h1>
-          <p className="text-slate-500 text-sm">Suivi des livraisons en temps réel.</p>
+          <h1 className="text-2xl font-bold text-slate-800">
+            Livraisons
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Suivi et gestion des commandes
+          </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-          {/* Recherche */}
-          <div className="relative flex-1 sm:w-80 group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
-            <input 
-              type="text" 
-              placeholder="Client, livreur ou ID..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-10 text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-400 transition-all outline-none shadow-sm"
-            />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                <X size={16} />
-              </button>
-            )}
-          </div>
+        {/* SEARCH */}
+        <div className="relative w-full lg:w-80">
+          <Search className="absolute left-3 top-3 text-slate-400" size={16} />
 
-          {/* Bouton Nouvelle commande */}
-          <button 
-            onClick={() => setShowForm(!showForm)}
-            className="flex items-center justify-center gap-2 bg-[#002E1B]  text-white px-5 py-2.5 rounded-xl hover:bg-[#B08D3E]  transition-all shadow-md font-medium shrink-0"
-          >
-            <Plus size={18} />
-            Nouvelle commande
-          </button>
+          <input
+            className="w-full border border-slate-200 rounded-xl pl-10 pr-10 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+            placeholder="ID, client, livreur..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 2. Formulaire */}
-      {showForm && <NewOrderForm onAdd={handleAddOrder} />}
+      {/* FILTERS */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
 
-      {/* 3. Filtres */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {["Tous", "En attente", "En cours", "Livrée", "Annulée"].map(s => (
+        {["ALL", "PENDING", "ASSIGNED", "IN_PROGRESS", "DELIVERED", "CANCELLED"].map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
-              filter === s
-                ? "bg-slate-800 text-white border-slate-800 shadow-sm"
-                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
-            }`}
+            className={`px-4 py-2 rounded-full text-sm border transition whitespace-nowrap
+              ${filter === s
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-600 hover:bg-slate-50 border-slate-200"
+              }`}
           >
             {s}
           </button>
         ))}
+
       </div>
 
-      {/* 4. Tableau */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      {/* TABLE CARD */}
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
-            <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider">Client / ID</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider">Livreur</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider">Total</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider text-center">Statut</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 tracking-wider text-right">Actions</th>
+
+          <table className="w-full text-sm">
+
+            <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+              <tr>
+                <th className="p-4 text-left">Commande</th>
+                <th className="text-left">Client</th>
+                <th className="text-left">Livreur</th>
+                <th className="text-left">Statut</th>
+                <th className="text-left">Date</th>
+                <th className="text-right p-4">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredOrders.map(order => (
-                <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-slate-800">{order.customer}</div>
-                    <div className="text-[11px] text-slate-400 font-mono">#{String(order.id).slice(0, 8)}</div>
+
+            <tbody>
+
+              {filteredOrders.map((order) => (
+                <tr
+                  key={order._id}
+                  className="border-t border-slate-100 hover:bg-slate-50 transition"
+                >
+
+                  <td className="p-4 font-semibold text-slate-800">
+                    #{order.orderNumber}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-bold">
-                        {order.driver.charAt(0)}
-                      </div>
-                      <span className="text-sm text-slate-600 font-medium">{order.driver}</span>
-                    </div>
+
+                  <td className="text-slate-700">
+                    {getName(order.creatorId)}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-slate-800">{(order.total * 655).toLocaleString()} <span className="text-[10px] text-slate-400 font-normal">FCFA</span></div>
-                    <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                      <Calendar size={12} /> {order.date}
-                    </div>
+
+                  <td className="text-slate-700">
+                    {getName(order.driverId)}
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold border ${statusStyles[order.status]}`}>
+
+                  <td>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs border font-medium
+                      ${statusStyles[order.status]}`}
+                    >
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        to={`/orders/${order.id}`}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs font-bold"
-                      >
-                        <MapPin size={14} />
-                        Suivre
-                      </Link>
-                      <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Eye size={18} />
-                      </button>
-                    </div>
+
+                  <td className="text-slate-500">
+                    {new Date(order.createdAt).toLocaleDateString()}
                   </td>
+
+                  <td className="text-right p-4">
+                    <Link
+                      to={`/deliveries/${order._id}`}
+                      className="inline-flex items-center gap-1 px-3 py-1.5
+                                 rounded-lg bg-blue-50 text-blue-600
+                                 hover:bg-blue-100 transition text-xs font-medium"
+                    >
+                      <Eye size={14} />
+                      Voir
+                    </Link>
+                  </td>
+
                 </tr>
               ))}
+
             </tbody>
+
           </table>
+
         </div>
 
         {filteredOrders.length === 0 && (
-          <div className="py-20 text-center flex flex-col items-center">
-            <Search size={40} className="text-slate-200 mb-3" />
-            <p className="text-slate-500 font-medium italic">Aucun résultat trouvé</p>
+          <div className="p-10 text-center text-slate-500">
+            Aucune livraison trouvée
           </div>
         )}
+
       </div>
     </div>
   );

@@ -1,51 +1,88 @@
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Truck, Users, Settings } from "lucide-react";
+// FILE: src/components/Sidebar.jsx
+
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Truck,
+  Users,
+  Settings,
+  LogOut
+} from "lucide-react";
+
+import { THEME } from "../utils/theme";
+import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar() {
-  // Mise à jour des couleurs : Vert Sombre (#002D15) pour l'actif, Doré (#B08D3E) pour le hover
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
       isActive
-        ? "bg-[#002D15] text-white shadow-lg shadow-emerald-900/20"
-        : "text-slate-500 hover:bg-[#B08D3E]/10 hover:text-[#B08D3E]"
+        ? "bg-[#B08D3E] text-white shadow-lg"
+        : "text-white hover:bg-[#FFF7D6] hover:text-[#000]"
     }`;
 
   const navItems = [
     { to: "/", label: "Dashboard", icon: <LayoutDashboard size={20} />, end: true },
-    { to: "/orders", label: "Commandes", icon: <ShoppingCart size={20} /> },
+    { to: "/deliveries", label: "Livraisons", icon: <ShoppingCart size={20} /> },
     { to: "/drivers", label: "Livreurs", icon: <Truck size={20} /> },
-    { to: "/customers", label: "Clients", icon: <Users size={20} /> },
+    { to: "/clients", label: "Clients", icon: <Users size={20} /> },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
-    <aside className="w-72 h-screen bg-white border-r border-slate-100 flex flex-col p-6">
-      {/* Logo / Brand - Intégration du logo EMENC */}
-      {/* Conteneur Logo : Hauteur fixe et marge réduite pour ne pas pousser le menu */}
+    <aside
+      className="w-72 h-screen flex flex-col p-6 border-r border-slate-100 bg-[#002D15]"
+      style={{ backgroundColor: THEME.colors.primary }}
+    >
+      {/* LOGO */}
       <div className="relative h-24 flex items-center justify-center mb-4 px-2">
-        <img 
-          src="/IMG_0338.png" 
-          alt="EMENC LIVRAISON" 
-          className="absolute h-25 w-auto object-contain max-w-full" 
-          /* h-20 agrandit l'image, mb-4 compense pour garder le menu haut */
+        <img
+          src="/logo.png"
+          alt="EMENC LIVRAISON"
+          className="absolute h-25 w-auto object-contain max-w-full"
         />
       </div>
-      {/* Navigation */}
+
+      {/* NAVIGATION */}
       <nav className="flex-1 space-y-1">
         {navItems.map((item) => (
-          <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
-            {/* L'icône change aussi de couleur selon l'état actif/hover via linkClass */}
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={linkClass}
+          >
             {item.icon}
             <span className="font-medium">{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
-      {/* Footer / Settings */}
-      <div className="pt-6 border-t border-slate-100">
+      {/* SETTINGS (AJOUT REPO CONSERVÉ) */}
+      {/* <div className="pt-6 border-t border-white/10">
         <NavLink to="/settings" className={linkClass}>
           <Settings size={20} />
           <span className="font-medium">Paramètres</span>
         </NavLink>
+      </div> */}
+
+      {/* LOGOUT (TON LOGIQUE CONSERVÉE) */}
+      <div className="pt-4">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 w-full
+                     text-red-300 hover:bg-red-500/10 hover:text-red-200"
+        >
+          <LogOut size={20} />
+          <span className="font-medium">Déconnexion</span>
+        </button>
       </div>
     </aside>
   );

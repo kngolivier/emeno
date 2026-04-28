@@ -1,8 +1,11 @@
 import { Bell, Search, ChevronDown } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
+
+  const { user } = useAuth();
   return (
-    <header className="h-20 bg-white border-b border-slate-100 px-8 flex justify-between items-center sticky top-0 z-10">
+    <header className="h-20 bg-[#002D15] border-b border-slate-100 px-8 flex justify-between items-center sticky top-0 z-10">
       {/* Barre de recherche (facultatif mais pro) */}
       <div className="relative w-96 group">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#002E1B] transition-colors" size={18} />
@@ -13,9 +16,9 @@ export default function Header() {
         />
       </div>
 
-      <div className="flex items-center gap-6">
-        {/* Notifications */}
-        <button className="relative p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors">
+      <div className="flex items-center gap-6 text-white">
+        Notifications
+        <button className="relative p-2 text-white hover:bg-[#B08D3E] rounded-full transition-colors">
           <Bell size={20} />
           {/* Badge de notification aux couleurs du logo */}
           <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#B08D3E] border-2 border-white rounded-full"></span>
@@ -24,20 +27,20 @@ export default function Header() {
         {/* Profil Utilisateur */}
         <div className="flex items-center gap-3 pl-6 border-l border-slate-100 cursor-pointer group">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-[#002E1B] leading-none">Admin Emeno</p>
-            <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-medium">Super Administrateur</p>
+            <p className="text-sm font-semibold text-white leading-none">{user.nom} {user.prenom}</p>
+            <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-medium">{user.role}</p>
           </div>
           
           <div className="relative">
             {/* Avatar avec le dégradé de votre logo (Vert vers Doré) */}
-            <div className="w-11 h-11 bg-gradient-to-tr from-[#002E1B] to-[#B08D3E] text-white flex items-center justify-center rounded-xl shadow-md font-bold text-lg">
-              E
+            <div className="w-11 h-11 bg-white text-[#002D15] flex items-center justify-center rounded-xl shadow-md font-bold text-lg">
+              {user.nom?.charAt(0)}{user.prenom?.charAt(0)}
             </div>
             {/* Indicateur de statut en ligne (Vert) */}
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#002E1B] border-2 border-white rounded-full"></div>
           </div>
           
-          <ChevronDown size={16} className="text-slate-400 group-hover:text-[#002E1B] transition-transform group-hover:translate-y-0.5" />
+          {/* <ChevronDown size={16} className="text-slate-400 group-hover:text-[#002E1B] transition-transform group-hover:translate-y-0.5" /> */}
         </div>
       </div>
     </header>
