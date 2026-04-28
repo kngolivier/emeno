@@ -6,6 +6,7 @@ export default function Header() {
   const { user } = useAuth();
   return (
     <header className="h-20 bg-[#002D15] border-b border-slate-100 px-8 flex justify-between items-center sticky top-0 z-10">
+    <header className="h-20 bg-[#002D15] border-b border-slate-100 px-8 flex justify-between items-center sticky top-0 z-10">
       {/* Barre de recherche (facultatif mais pro) */}
       <div className="relative w-96 group">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#002E1B] transition-colors" size={18} />
