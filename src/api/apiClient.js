@@ -39,8 +39,7 @@ API.interceptors.response.use(
       error.response?.data?.message || "Erreur serveur";
 
     console.error("[API ERROR]", message);
-
-    // 🔥 cas token expiré
+    // cas token expiré
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");

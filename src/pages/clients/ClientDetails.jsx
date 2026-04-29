@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, Mail, Activity } from "lucide-react";
 
-import { fetchClientById } from "../../api/users.api";
+import { fetchClientById, deleteUser, updateUserStatus } from "../../api/users.api";
 import { notifyError } from "../../utils/notify";
 
-import { updateUserStatus } from "../../api/users.api";
 import { notifySuccess } from "../../utils/notify";
 import { ShieldOff, Trash2 } from "lucide-react";
 
@@ -57,16 +56,9 @@ export default function ClientDetails() {
         try {
             setDeleting(true);
 
-            await updateUserStatus(client._id, "DELETED");
-
-            setClient((prev) => ({
-            ...prev,
-            status: "DELETED"
-            }));
-
+            await deleteUser(client._id);
             notifySuccess("Client supprimé");
             setShowDeleteModal(false);
-
         } catch (err) {
             notifyError("Erreur lors de la suppression");
         } finally {

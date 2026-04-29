@@ -7,7 +7,9 @@ import {
   Truck,
   Users,
   Settings,
-  LogOut
+  LogOut,
+  DollarSign,
+  Shield
 } from "lucide-react";
 
 import { THEME } from "../utils/theme";
@@ -26,9 +28,11 @@ export default function Sidebar() {
 
   const navItems = [
     { to: "/", label: "Dashboard", icon: <LayoutDashboard size={20} />, end: true },
+    { to: "/admins", label: "Administrateurs", icon: <Shield size={20} /> },
     { to: "/deliveries", label: "Livraisons", icon: <ShoppingCart size={20} /> },
     { to: "/drivers", label: "Livreurs", icon: <Truck size={20} /> },
     { to: "/clients", label: "Clients", icon: <Users size={20} /> },
+    { to: "/pricing", label: "Tarifs de livraison", icon: <DollarSign size={20} />},
   ];
 
   const handleLogout = () => {

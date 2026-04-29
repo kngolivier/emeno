@@ -4,17 +4,36 @@ import API from "./apiClient";
 import { ENDPOINTS } from "./endpoints";
 
 /**
- * GET all drivers
+ * GET all users
  */
-export const fetchDrivers = (page = 1, limit = 10) => {
-  return API.get(`${ENDPOINTS.DRIVERS}?page=${page}&limit=${limit}`);
+export const fetchUsers = (params = {}) => {
+  const { page = 1, limit = 10, role, status } = params;
+
+  let url = `${ENDPOINTS.USERS}?page=${page}&limit=${limit}`;
+
+  if (role) url += `&role=${role}`;
+  if (status && status !== "ALL") url += `&status=${status}`;
+
+  return API.get(url);
 };
 
 /**
+ * GET all admins
+ */
+export const fetchAdmins = (params = {}) => {
+  return fetchUsers({ ...params, role: "ADMIN" });
+};
+/**
+ * GET all drivers
+ */
+export const fetchDrivers = (params = {}) => {
+  return fetchUsers({ ...params, role: "DRIVER" });
+};
+/**
  * GET all customers
  */
-export const fetchClients = (page = 1, limit = 10) => {
-  return API.get(`${ENDPOINTS.CLIENTS}?page=${page}&limit=${limit}`);
+export const fetchClients = (params = {}) => {
+  return fetchUsers({ ...params, role: "CLIENT" });
 };
 
 /**
@@ -32,6 +51,17 @@ export const createClient = (payload) => {
   return API.post(ENDPOINTS.USERS, {
     ...payload,
     role: "CLIENT"
+  });
+};
+
+/**
+ * CREATE client
+ */
+
+export const createAdmin = (payload) => {
+  return API.post(ENDPOINTS.USERS, {
+    ...payload,
+    role: "ADMIN"
   });
 };
 
@@ -61,4 +91,11 @@ export const fetchDriverById = (id) => {
  */
 export const updateUserStatus = (id, status) => {
   return API.patch(`${ENDPOINTS.USERS}/${id}/status`, { status });
+};
+
+/**
+ * DELETE user
+ */
+export const deleteUser = (id) => {
+  return API.delete(`${ENDPOINTS.USERS}/${id}`);
 };

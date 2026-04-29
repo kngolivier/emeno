@@ -1,76 +1,60 @@
 // FILE: src/pages/clients/ClientsList.jsx
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// API
+import { Pagination } from "../../components/Pagination";
+
 import {
-  fetchClients,
   createClient,
-  updateUserStatus
+  updateUserStatus,
+  fetchClients
 } from "../../api/users.api";
 
-// Notifications
-import { notifySuccess, notifyError } from "../../utils/notify";
+import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 
-// Form
+import { notifySuccess, notifyError } from "../../utils/notify";
 import NewClientForm from "./NewClientForm";
 
 export default function ClientsList() {
 
   // ======================
+  // HOOK
+  // ======================
+  const {
+    data: clients = [],
+    meta,
+    loading,
+    setPage,
+    refresh,
+    status,
+    setStatus
+  } = usePaginatedFetch(fetchClients, 10);
+
+  // ======================
   // STATE
   // ======================
-  const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-
-  // ======================
-  // LOAD CLIENTS
-  // ======================
-  const loadClients = async () => {
-    try {
-      setLoading(true);
-
-      const res = await fetchClients();
-      const data = res?.data?.data || res?.data || res;
-
-      setClients(data);
-
-    } catch (err) {
-      notifyError("Erreur chargement clients");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadClients();
-  }, []);
+  // const [search, setSearch] = useState("");
+  // const [statusFilter, setStatusFilter] = useState("ALL");
 
   // ======================
-  // CREATE CLIENT
+  // CREATE
   // ======================
   const handleSave = async (client) => {
     try {
       await createClient(client);
-
       notifySuccess("Client créé avec succès");
-
       setShowForm(false);
-      await loadClients();
-
+      refresh();
     } catch (err) {
       notifyError(err?.response?.data?.message || err.message);
     }
   };
 
   // ======================
-  // TOGGLE STATUS
+  // STATUS
   // ======================
   const toggleClientStatus = async (client) => {
     try {
@@ -78,19 +62,12 @@ export default function ClientsList() {
 
       let newStatus = client.status;
 
-      if (client.status === "ACTIVE") newStatus = "INACTIVE";
-      else if (client.status === "INACTIVE") newStatus = "ACTIVE";
+      if (newStatus === "ACTIVE") newStatus = "INACTIVE";
+      else if (newStatus === "INACTIVE") newStatus = "ACTIVE";
 
       await updateUserStatus(client._id, newStatus);
 
-      setClients((prev) =>
-        prev.map((c) =>
-          c._id === client._id
-            ? { ...c, status: newStatus }
-            : c
-        )
-      );
-
+      refresh();
       notifySuccess("Statut mis à jour");
 
     } catch (err) {
@@ -101,20 +78,10 @@ export default function ClientsList() {
   // ======================
   // FILTERS
   // ======================
-  const filteredClients = clients
-    .filter((c) => {
-      if (statusFilter === "ALL") return true;
-      return c.status === statusFilter;
-    })
-    .filter((c) =>
-      `${c.nom} ${c.prenom}`
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-      c.telephone?.includes(search)
-    );
+  const filteredClients = clients;
 
   // ======================
-  // STATUS STYLE
+  // STATUS STYLE (FULL UI RESTORED)
   // ======================
   const getStatusStyle = (status) => {
     switch (status) {
@@ -126,6 +93,8 @@ export default function ClientsList() {
         return "bg-red-50 text-red-500 border-red-100/50";
       case "DELETED":
         return "bg-black text-white border-black";
+      case "PENDING":
+        return "bg-amber-50 text-amber-700 border-amber-200";
       default:
         return "bg-slate-100 text-slate-500";
     }
@@ -141,6 +110,8 @@ export default function ClientsList() {
         return "bg-red-500";
       case "DELETED":
         return "bg-black";
+      case "PENDING":
+        return "bg-amber-500";
       default:
         return "bg-slate-400";
     }
@@ -153,7 +124,7 @@ export default function ClientsList() {
   return (
     <div className="max-w-6xl mx-auto p-8 space-y-8 bg-slate-50/50 min-h-screen">
 
-      {/* HEADER */}
+      {/* HEADER (RESTORED STYLE) */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
         <div>
@@ -168,7 +139,7 @@ export default function ClientsList() {
         <div className="flex items-center gap-3">
 
           <span className="px-4 py-2 bg-white border rounded-xl text-sm font-semibold text-slate-700 shadow-sm">
-            Total : {clients.length}
+            Total : {meta?.total || 0}
           </span>
 
           <button
@@ -180,27 +151,26 @@ export default function ClientsList() {
           </button>
 
         </div>
-
       </div>
 
       {/* FILTERS */}
       <div className="flex flex-wrap gap-2">
-        {["ALL", "ACTIVE", "INACTIVE", "BLOCKED", "DELETED"].map((s) => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
-              statusFilter === s
-                ? "bg-[#002E1B] text-white border-[#002E1B]"
-                : "bg-white text-slate-600 border-slate-200"
-            }`}
-          >
-            {s}
-          </button>
-        ))}
+        {["ALL", "ACTIVE", "INACTIVE", "BLOCKED"].map((s) => (
+        <button
+          key={s}
+          onClick={() => setStatus(s)}
+          className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
+            status === s
+              ? "bg-[#002E1B] text-white border-[#002E1B]"
+              : "bg-white text-slate-600 border-slate-200"
+          }`}
+        >
+          {s}
+        </button>
+      ))}
       </div>
 
-      {/* TABLE */}
+      {/* TABLE (FULL DESIGN RESTORED) */}
       <div className="bg-white rounded-3xl border shadow-xl overflow-hidden">
 
         <table className="w-full text-left border-separate border-spacing-0">
@@ -215,9 +185,7 @@ export default function ClientsList() {
           </thead>
 
           <tbody>
-
             {filteredClients.map((c) => {
-
               const isDeleted = c.status === "DELETED";
 
               return (
@@ -228,7 +196,6 @@ export default function ClientsList() {
                   }`}
                 >
 
-                  {/* CLIENT */}
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
 
@@ -236,21 +203,17 @@ export default function ClientsList() {
                         {c.nom?.charAt(0)}{c.prenom?.charAt(0)}
                       </div>
 
-                      <span className={`font-bold text-slate-700 group-hover:text-[#002E1B] ${
-                        isDeleted ? "line-through opacity-60" : ""
-                      }`}>
+                      <span className="font-bold text-slate-700 group-hover:text-[#002E1B]">
                         {c.nom} {c.prenom}
                       </span>
 
                     </div>
                   </td>
 
-                  {/* CONTACT */}
                   <td className="px-6 py-5 text-sm text-slate-600">
                     {c.telephone}
                   </td>
 
-                  {/* STATUS */}
                   <td className="px-6 py-5 text-center">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase border ${getStatusStyle(c.status)}`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${getStatusDot(c.status)}`}></span>
@@ -258,10 +221,8 @@ export default function ClientsList() {
                     </span>
                   </td>
 
-                  {/* ACTIONS */}
                   <td className="px-6 py-5 text-right flex justify-end gap-2">
 
-                    {/* LINK (LIKE ORDERS) */}
                     <Link
                       to={`client-details/${c._id}`}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-xs font-medium"
@@ -283,18 +244,16 @@ export default function ClientsList() {
                     </button>
 
                   </td>
-
                 </tr>
               );
             })}
-
           </tbody>
 
         </table>
 
       </div>
 
-      {/* EMPTY */}
+      {/* EMPTY STATE RESTORED */}
       {filteredClients.length === 0 && (
         <div className="text-center text-slate-500 py-10">
           Aucun client trouvé
@@ -303,13 +262,15 @@ export default function ClientsList() {
 
       {/* MODAL */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fadeIn">
           <NewClientForm
             onSave={handleSave}
             onCancel={() => setShowForm(false)}
           />
         </div>
       )}
+
+      <Pagination meta={meta} setPage={setPage} />
 
     </div>
   );

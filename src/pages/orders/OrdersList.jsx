@@ -1,32 +1,29 @@
 // FILE: src/pages/orders/OrdersList.jsx
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, X, Eye } from "lucide-react";
+import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
+import { Pagination } from "../../components/Pagination";
 
 import { fetchAdminDeliveries } from "../../api/deliveries.api";
 
 export default function OrdersList() {
-  const [orders, setOrders] = useState([]);
+
+    // ======================
+    // HOOK (SOURCE UNIQUE)
+    // ======================
+    const {
+      data: orders = [],
+      meta,
+      loading,
+      setPage,
+      // refresh
+    } = usePaginatedFetch(fetchAdminDeliveries, 10);
+  
   const [filter, setFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  const loadOrders = async () => {
-    try {
-      const res = await fetchAdminDeliveries();
-      const data = res?.data?.data || res?.data || res;
-      setOrders(data);
-    } catch (error) {
-      console.error("Orders load error:", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getName = (user) => {
     if (!user) return "Inconnu";
@@ -200,6 +197,7 @@ export default function OrdersList() {
         )}
 
       </div>
+      <Pagination meta={meta} setPage={setPage} />
     </div>
   );
 }

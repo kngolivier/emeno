@@ -18,9 +18,9 @@ export default function Login() {
     try {
       const res = await loginApi({ identifier, password });
 
-      const token = res?.token;
-      const user = res?.user;
-      const mustChangePassword = res?.mustChangePassword;
+      const token = res?.data.token;
+      const user = res?.data.user;
+      const mustChangePassword = res?.data.mustChangePassword;
 
       if (!token) {
         throw new Error("Token manquant dans la réponse API");

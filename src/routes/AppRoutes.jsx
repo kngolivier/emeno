@@ -15,6 +15,9 @@ import ClientDetails from "../pages/clients/ClientDetails";
 
 import ProtectedRoute from "./ProtectedRoutes";
 import DriverDetails from "../pages/drivers/DriverDetails";
+import PricingList from "../pages/pricing/PricingList";
+import AdminList from "../pages/admins/AdminList";
+import AdminDetails from "../pages/admins/AdminDetails";
 
 export default function AppRoutes() {
   return (
@@ -45,6 +48,9 @@ export default function AppRoutes() {
           <Route path="clients" element={<ClientsList />} />
           <Route path="clients/client-details/:id" element={<ClientDetails />} />
           <Route path="/drivers/:id" element={<DriverDetails />} />
+          <Route path="pricing" element={<PricingList />} />
+          <Route path="admins" element={<AdminList />} />
+          <Route path="admins/:id" element={<AdminDetails />} />
         </Route>
 
         {/* fallback */}

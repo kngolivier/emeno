@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, Activity, Truck, Package, ShieldOff, Trash2, Mail } from "lucide-react";
 
-import { fetchDriverById, updateUserStatus } from "../../api/users.api";
+import { fetchDriverById, updateUserStatus, deleteUser } from "../../api/users.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
 
 export default function DriverDetails() {
@@ -46,12 +46,7 @@ export default function DriverDetails() {
         try {
             setDeleting(true);
 
-            await updateUserStatus(driver._id, "DELETED");
-
-            setDriver((prev) => ({
-            ...prev,
-            status: "DELETED"
-            }));
+            await deleteUser(driver._id);
 
             notifySuccess("Livreur supprimé");
             setShowDeleteModal(false);

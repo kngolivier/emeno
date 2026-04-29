@@ -29,4 +29,9 @@ export const ENDPOINTS = {
   CLIENTS: "/api/users/clients",
   AVAILABLE_DRIVERS: "/api/users/drivers/available",
 
+  // ======================
+  // PRICING
+  // ======================
+  PRICING: "/api/pricing",
+
 };
