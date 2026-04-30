@@ -1,4 +1,4 @@
-// FILE: src/api/apiClients.js
+// FILE: src/api/apiClient.js
 
 import axios from "axios";
 

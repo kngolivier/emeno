@@ -18,6 +18,7 @@ import {
 } from "../../api/deliveries.api";
 
 import { fetchAvailableDrivers } from "../../api/users.api";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function OrderTracking() {
   const { id } = useParams();
@@ -112,9 +113,7 @@ export default function OrderTracking() {
   // ======================
   if (loading) {
     return (
-      <div className="text-center py-20 text-slate-500">
-        Chargement...
-      </div>
+      <PageLoader />
     );
   }
 

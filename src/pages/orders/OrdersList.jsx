@@ -7,6 +7,7 @@ import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { Pagination } from "../../components/Pagination";
 
 import { fetchAdminDeliveries } from "../../api/deliveries.api";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function OrdersList() {
 
@@ -55,9 +56,7 @@ export default function OrdersList() {
 
   if (loading) {
     return (
-      <div className="p-6 text-slate-500">
-        Chargement des livraisons...
-      </div>
+      <PageLoader />
     );
   }
 

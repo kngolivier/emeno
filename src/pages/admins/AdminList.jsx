@@ -13,6 +13,7 @@ import {
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import AdminForm from "./NewAdminForm";
+import PageLoader from "../../components/ui/PageLoader";
 
 
 export default function AdminList() {
@@ -110,7 +111,7 @@ export default function AdminList() {
   };
 
   if (loading) {
-    return <div className="p-6 text-slate-500">Chargement...</div>;
+    return <PageLoader />;
   }
 
   return (

@@ -11,6 +11,7 @@ import {
 } from "../../api/users.api";
 
 import { notifyError, notifySuccess } from "../../utils/notify";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function AdminDetails() {
   const { id } = useParams();
@@ -68,7 +69,7 @@ export default function AdminDetails() {
     }
   };
 
-  if (loading) return <div className="p-6 text-slate-500">Chargement...</div>;
+  if (loading) return <PageLoader />;
   if (!admin) return <div className="p-6 text-red-500">Admin introuvable</div>;
 
   const getStatusStyle = (status) => {

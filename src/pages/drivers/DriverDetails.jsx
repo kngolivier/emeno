@@ -6,6 +6,7 @@ import { ArrowLeft, Phone, Activity, Truck, Package, ShieldOff, Trash2, Mail } f
 
 import { fetchDriverById, updateUserStatus, deleteUser } from "../../api/users.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function DriverDetails() {
   const { id } = useParams();
@@ -96,7 +97,7 @@ export default function DriverDetails() {
   };
 
   if (loading) {
-    return <div className="p-6 text-slate-500">Chargement...</div>;
+    return <PageLoader />;
   }
 
   if (!driver) {

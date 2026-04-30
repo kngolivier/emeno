@@ -16,6 +16,7 @@ import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 
 import { notifySuccess, notifyError } from "../../utils/notify";
 import NewClientForm from "./NewClientForm";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function ClientsList() {
 
@@ -118,7 +119,7 @@ export default function ClientsList() {
   };
 
   if (loading) {
-    return <div className="p-6 text-slate-500">Chargement...</div>;
+    return <PageLoader />;
   }
 
   return (

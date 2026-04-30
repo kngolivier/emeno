@@ -34,4 +34,9 @@ export const ENDPOINTS = {
   // ======================
   PRICING: "/api/pricing",
 
+  // ======================
+  // STATS
+  // ======================
+  ADMIN_STATS: "/api/admin/stats",
+
 };

@@ -3,7 +3,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AdminLayout from "../layout/AdminLayout";
-import Dashboard from "../pages/Dashboard";
+import AdminDashboard from "../pages/dashbaord/AdminDashboard";
 import OrdersList from "../pages/orders/OrdersList";
 import OrderTracking from "../pages/orders/OrderTracking";
 import Drivers from "../pages/drivers/DriversList";
@@ -18,6 +18,7 @@ import DriverDetails from "../pages/drivers/DriverDetails";
 import PricingList from "../pages/pricing/PricingList";
 import AdminList from "../pages/admins/AdminList";
 import AdminDetails from "../pages/admins/AdminDetails";
+import Unauthorized from "../pages/Unauthorized";
 
 export default function AppRoutes() {
   return (
@@ -36,12 +37,12 @@ export default function AppRoutes() {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<AdminDashboard />} />
           <Route path="deliveries" element={<OrdersList />} />
           <Route path="deliveries/:id" element={<OrderTracking />} />
           <Route path="drivers" element={<Drivers />} />
@@ -55,6 +56,9 @@ export default function AppRoutes() {
 
         {/* fallback */}
         <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/driver" element={<div>Driver Dashboard</div>} />
+        <Route path="/client" element={<div>Client Dashboard</div>} />
       </Routes>
     </BrowserRouter>
   );

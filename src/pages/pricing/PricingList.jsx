@@ -17,6 +17,7 @@ import {
 import { notifySuccess, notifyError } from "../../utils/notify";
 
 import PricingForm from "./PricingForm";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function PricingList() {
 
@@ -96,7 +97,7 @@ export default function PricingList() {
   };
 
   if (loading) {
-    return <div className="p-6 text-slate-500">Chargement...</div>;
+    return <PageLoader />;
   }
 
   return (

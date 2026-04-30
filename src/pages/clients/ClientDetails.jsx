@@ -9,6 +9,7 @@ import { notifyError } from "../../utils/notify";
 
 import { notifySuccess } from "../../utils/notify";
 import { ShieldOff, Trash2 } from "lucide-react";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function ClientDetails() {
   const { id } = useParams();
@@ -71,7 +72,7 @@ export default function ClientDetails() {
   }, [id]);
 
   if (loading) {
-    return <div className="p-6 text-slate-500">Chargement...</div>;
+    return <PageLoader />;
   }
 
   if (!client) {

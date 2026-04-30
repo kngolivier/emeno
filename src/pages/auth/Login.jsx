@@ -26,18 +26,37 @@ export default function Login() {
         throw new Error("Token manquant dans la réponse API");
       }
 
-      // ======================
-      // 🔥 IMPORTANT : SOURCE UNIQUE DE VÉRITÉ = CONTEXT
-      // ======================
+      //  SOURCE UNIQUE
       login({ user, token });
 
       // ======================
-      // REDIRECTION
+      // PRIORITÉ 1 → CHANGE PASSWORD
       // ======================
       if (mustChangePassword) {
-        navigate("/change-password", { replace: true });
-      } else {
-        navigate("/", { replace: true });
+        return navigate("/change-password", { replace: true });
+      }
+
+      if (!user?.role) {
+        throw new Error("Rôle utilisateur manquant");
+      }
+      // ======================
+      // PRIORITÉ 2 → ROLE
+      // ======================
+      switch (user?.role) {
+        case "ADMIN":
+          navigate("/", { replace: true });
+          break;
+
+        case "DRIVER":
+          navigate("/driver", { replace: true });
+          break;
+
+        case "CLIENT":
+          navigate("/client", { replace: true });
+          break;
+
+        default:
+          navigate("/unauthorized", { replace: true });
       }
 
     } catch (err) {
