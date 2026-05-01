@@ -66,16 +66,16 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
     ${
       errors[field]
         ? "border-red-400 focus:ring-2 focus:ring-red-200"
-        : "border-slate-200 focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E]"
+        : "border-slate-200 focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
     }`;
 
   const labelClass =
-    "text-xs font-bold uppercase tracking-wider text-[#002E1B]/70 mb-1 block";
+    "text-xs font-bold uppercase tracking-wider text-primary/70 mb-1 block";
 
   return (
     <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
 
-      <h2 className="text-xl font-bold mb-6 text-[#002E1B]">
+      <h2 className="text-xl font-bold mb-6 text-primary">
         {driver ? "Modifier le livreur" : "Nouveau livreur"}
       </h2>
 
@@ -169,7 +169,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-[#B08D3E]/20 focus:border-[#B08D3E] outline-none"
+            className="w-full border border-slate-200 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none"
           >
             <option value="ACTIVE">Actif</option>
             <option value="INACTIVE">Inactif</option>
@@ -191,7 +191,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2.5 rounded-xl bg-[#002E1B] text-white font-semibold hover:bg-[#002E1B]/90 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-50"
           >
             {loading
               ? "Création..."

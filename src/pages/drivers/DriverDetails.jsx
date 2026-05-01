@@ -112,7 +112,7 @@ export default function DriverDetails() {
 
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-[#002E1B]"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-primary"
         >
           <ArrowLeft size={16} />
           Retour
@@ -221,7 +221,7 @@ export default function DriverDetails() {
             <Truck size={16} />
             Livraisons
           </div>
-          <p className="text-3xl font-bold text-[#002E1B] mt-2">0</p>
+          <p className="text-3xl font-bold text-primary mt-2">0</p>
         </div>
 
         <div className="bg-white border rounded-2xl p-6">
@@ -229,7 +229,7 @@ export default function DriverDetails() {
             <Package size={16} />
             Livraisons réussies
           </div>
-          <p className="text-3xl font-bold text-[#B08D3E] mt-2">0</p>
+          <p className="text-3xl font-bold text-secondary mt-2">0</p>
         </div>
 
         <div className="bg-white border rounded-2xl p-6">

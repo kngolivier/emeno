@@ -5,23 +5,23 @@ export default function Header() {
 
   const { user } = useAuth();
   return (
-    <header className="h-20 bg-[#002D15] border-b border-slate-100 px-8 flex justify-between items-center sticky top-0 z-10">
+    <header className="h-20 bg-primary border-b border-slate-100 px-8 flex justify-between items-center sticky top-0 z-10">
       {/* Barre de recherche (facultatif mais pro) */}
       <div className="relative w-96 group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#002E1B] transition-colors" size={18} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
         <input 
           type="text" 
           placeholder="Rechercher une commande, un livreur..." 
-          className="w-full bg-slate-50 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#B08D3E]/20 transition-all outline-none"
+          className="w-full bg-slate-50 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-secondary/20 transition-all outline-none"
         />
       </div>
 
       <div className="flex items-center gap-6 text-white">
         Notifications
-        <button className="relative p-2 text-white hover:bg-[#B08D3E] rounded-full transition-colors">
+        <button className="relative p-2 text-white hover:bg-secondary rounded-full transition-colors">
           <Bell size={20} />
           {/* Badge de notification aux couleurs du logo */}
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#B08D3E] border-2 border-white rounded-full"></span>
+          <span className="absolute top-2 right-2.5 w-2 h-2 bg-secondary border-2 border-white rounded-full"></span>
         </button>
 
         {/* Profil Utilisateur */}
@@ -33,14 +33,14 @@ export default function Header() {
           
           <div className="relative">
             {/* Avatar avec le dégradé de votre logo (Vert vers Doré) */}
-            <div className="w-11 h-11 bg-white text-[#002D15] flex items-center justify-center rounded-xl shadow-md font-bold text-lg">
+            <div className="w-11 h-11 bg-white text-primary flex items-center justify-center rounded-xl shadow-md font-bold text-lg">
               {user.nom?.charAt(0)}{user.prenom?.charAt(0)}
             </div>
             {/* Indicateur de statut en ligne (Vert) */}
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#002E1B] border-2 border-white rounded-full"></div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary border-2 border-white rounded-full"></div>
           </div>
           
-          {/* <ChevronDown size={16} className="text-slate-400 group-hover:text-[#002E1B] transition-transform group-hover:translate-y-0.5" /> */}
+          {/* <ChevronDown size={16} className="text-slate-400 group-hover:text-primary transition-transform group-hover:translate-y-0.5" /> */}
         </div>
       </div>
     </header>

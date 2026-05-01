@@ -188,7 +188,7 @@ export default function PricingForm({ onSave, onCancel, pricing }) {
 
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-[#002E1B] text-white"
+            className="px-4 py-2 rounded-xl bg-primary text-white"
           >
             {pricing ? "Mettre à jour" : "Créer"}
           </button>

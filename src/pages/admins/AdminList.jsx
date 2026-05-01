@@ -1,3 +1,5 @@
+// FILE: src/pages/admins/AdminList.jsx
+
 import { useState } from "react";
 import { Plus, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -14,6 +16,8 @@ import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import AdminForm from "./NewAdminForm";
 import PageLoader from "../../components/ui/PageLoader";
+import Button from "../../components/ui/Button";
+import TotalCard from "../../components/dashbord/TotalCard";
 
 
 export default function AdminList() {
@@ -131,17 +135,16 @@ export default function AdminList() {
 
         <div className="flex items-center gap-3">
 
-          <span className="px-4 py-2 bg-white border rounded-xl text-sm font-semibold text-slate-700 shadow-sm">
-            Total : {meta?.total || 0}
-          </span>
+          <TotalCard
+            title="Total administrateurs"
+            value={meta?.total || 0}
+            subtitle="Comptes enregistrés"
+          />
 
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#002E1B] text-white rounded-xl"
-          >
+          <Button onClick={() => setShowForm(true)}>
             <Plus size={16} />
             Nouvel admin
-          </button>
+          </Button>
 
         </div>
       </div>
@@ -149,17 +152,14 @@ export default function AdminList() {
       {/* FILTERS */}
       <div className="flex flex-wrap gap-2">
         {["ALL", "ACTIVE", "INACTIVE", "BLOCKED"].map((s) => (
-          <button
+          <Button
             key={s}
+            size="sm"
+            variant={statusFilter === s ? "primary" : "outline"}
             onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
-              statusFilter === s
-                ? "bg-[#002E1B] text-white border-[#002E1B]"
-                : "bg-white text-slate-600 border-slate-200"
-            }`}
           >
             {s}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -223,25 +223,38 @@ export default function AdminList() {
 
                     <Link
                       to={`/admins/${a._id}`}
-                      className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-medium"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition text-xs font-medium"
+
                     >
-                      <Eye size={14} />
-                      Voir
+                      {/* <Button size="sm" variant="outline"> */}
+                        <Eye size={14} />
+                        Voir
+                      {/* </Button> */}
                     </Link>
 
-                    <button
-                      onClick={() => handleStatusChange(a._id, "BLOCKED")}
-                      className="px-3 py-1 rounded-xl text-xs font-bold border text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"
+                    {a.status == "ACTIVE" ? <button
+                      onClick={() => handleStatusChange(a._id, "INACTIVE")}
+                      disabled={isDeleted}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
+                        isDeleted
+                          ? "opacity-30 cursor-not-allowed"
+                          : "text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"
+                      }`}
                     >
-                      Bloquer
+                      Suspendre
                     </button>
-
+                        :
                     <button
                       onClick={() => handleStatusChange(a._id, "ACTIVE")}
-                      className="px-3 py-1 rounded-xl text-xs font-bold border text-green-600 border-green-100 hover:bg-green-600 hover:text-white"
+                      disabled={isDeleted}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
+                        isDeleted
+                          ? "opacity-30 cursor-not-allowed"
+                          : "text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"
+                      }`}
                     >
                       Activer
-                    </button>
+                    </button>}
 
                   </td>
                 </tr>

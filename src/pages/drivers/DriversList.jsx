@@ -15,6 +15,7 @@ import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
+import TotalCard from "../../components/dashbord/TotalCard";
 
 export default function DriversList() {
 
@@ -147,13 +148,15 @@ export default function DriversList() {
 
         <div className="flex items-center gap-3">
 
-          <span className="px-4 py-2 bg-white border rounded-xl text-sm font-semibold text-slate-700 shadow-sm">
-            Total : {meta?.total || 0}
-          </span>
+          <TotalCard
+            title="Total Livreurs"
+            value={meta?.total || 0}
+            subtitle="Comptes enregistrés"
+          />
 
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#002E1B] text-white rounded-xl"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl"
           >
             <Plus size={16} />
             Nouveau livreur
@@ -171,7 +174,7 @@ export default function DriversList() {
           onClick={() => setStatus(s)}
           className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
             status === s
-              ? "bg-[#002E1B] text-white border-[#002E1B]"
+              ? "bg-primary text-white border-primary"
               : "bg-white text-slate-600 border-slate-200"
           }`}
         >
@@ -214,7 +217,7 @@ export default function DriversList() {
                         {d.nom?.charAt(0)}{d.prenom?.charAt(0)}
                       </div>
 
-                      <span className="font-bold text-slate-700 group-hover:text-[#002E1B]">
+                      <span className="font-bold text-slate-700 group-hover:text-primary">
                         <Link to={`/drivers/${d._id}`}>
                           {d.nom} {d.prenom}
                         </Link>
@@ -242,7 +245,7 @@ export default function DriversList() {
                     <button
                       onClick={() => handleEdit(d)}
                       disabled={isDeleted}
-                      className="text-[#B08D3E] disabled:opacity-30"
+                      className="text-secondary disabled:opacity-30"
                     >
                       <Edit size={16} />
                     </button>

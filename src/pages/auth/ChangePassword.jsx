@@ -9,30 +9,35 @@ export default function ChangePassword() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!oldPassword || !newPassword) {
-      return alert("Tous les champs sont obligatoires");
+    setError("");
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return setError("Tous les champs sont obligatoires");
     }
 
     if (newPassword !== confirmPassword) {
-      return alert("Les mots de passe ne correspondent pas");
+      return setError("Les mots de passe ne correspondent pas");
     }
 
     if (newPassword.length < 6) {
-      return alert("Minimum 6 caractères");
+      return setError("Minimum 6 caractères");
     }
+
+    setLoading(true);
 
     try {
       await changePassword({
         oldPassword,
         newPassword,
       });
-
-      alert("Mot de passe modifié avec succès");
 
       // sécurité
       localStorage.removeItem("token");
@@ -41,48 +46,114 @@ export default function ChangePassword() {
       navigate("/login", { replace: true });
 
     } catch (err) {
-      alert(err.message);
+      setError(err.message || "Erreur lors du changement");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const inputClass = (hasError) =>
+    `w-full border rounded-xl p-3 text-sm outline-none transition
+    ${
+      hasError
+        ? "border-danger focus:ring-2 focus:ring-danger/20"
+        : "border-slate-200 focus:ring-2 focus:ring-primary/10 focus:border-primary"
+    }`;
+
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-96 p-6 bg-white shadow rounded-xl"
-      >
-        <h1 className="text-xl font-bold mb-4">
-          Changer le mot de passe
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
 
-        <input
-          type="password"
-          className="w-full border p-2 mb-3"
-          placeholder="Ancien mot de passe"
-          value={oldPassword}
-          onChange={(e) => setOldPassword(e.target.value)}
-        />
+      {/* CARD */}
+      <div className="w-full max-w-md bg-card p-8 rounded-3xl shadow-soft border border-slate-100">
 
-        <input
-          type="password"
-          className="w-full border p-2 mb-3"
-          placeholder="Nouveau mot de passe"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
+        {/* LOGO */}
+        <div className="flex flex-col items-center mb-6">
+          <img src="./logo.png" alt="logo" className="h-14 mb-3" />
 
-        <input
-          type="password"
-          className="w-full border p-2 mb-4"
-          placeholder="Confirmer mot de passe"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+          <h1 className="text-2xl font-black text-primary">
+            Changer mot de passe
+          </h1>
 
-        <button className="w-full bg-black text-white p-2 rounded">
-          Valider
-        </button>
-      </form>
+          <p className="text-sm text-muted mt-1 text-center">
+            Sécurisez votre compte en mettant à jour votre mot de passe
+          </p>
+        </div>
+
+        {/* ERROR */}
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-danger/10 text-danger text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          <div>
+            <label className="text-xs font-bold uppercase text-primary/70 mb-1 block">
+              Ancien mot de passe
+            </label>
+            <input
+              type="password"
+              className={inputClass(error && !oldPassword)}
+              placeholder="******"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase text-primary/70 mb-1 block">
+              Nouveau mot de passe
+            </label>
+            <input
+              type="password"
+              className={inputClass(error && !newPassword)}
+              placeholder="******"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase text-primary/70 mb-1 block">
+              Confirmer mot de passe
+            </label>
+            <input
+              type="password"
+              className={inputClass(error && !confirmPassword)}
+              placeholder="******"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+
+          {/* ACTIONS */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+          >
+            {loading ? "Modification..." : "Valider"}
+          </button>
+
+          {/* BACK */}
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="w-full text-sm text-muted hover:text-primary transition"
+          >
+            Retour
+          </button>
+
+        </form>
+
+        {/* FOOTER */}
+        <div className="mt-6 text-center text-xs text-muted">
+          EMENO • Sécurité compte
+        </div>
+
+      </div>
     </div>
   );
 }

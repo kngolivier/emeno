@@ -8,6 +8,7 @@ import { Pagination } from "../../components/Pagination";
 
 import { fetchAdminDeliveries } from "../../api/deliveries.api";
 import PageLoader from "../../components/ui/PageLoader";
+import TotalCard from "../../components/dashbord/TotalCard";
 
 export default function OrdersList() {
 
@@ -75,8 +76,14 @@ export default function OrdersList() {
           </p>
         </div>
 
+        <TotalCard
+          title="Total Commandes"
+          value={meta?.total || 0}
+          subtitle="Commandes créées"
+        />
+
         {/* SEARCH */}
-        <div className="relative w-full lg:w-80">
+        {/* <div className="relative w-full lg:w-80">
           <Search className="absolute left-3 top-3 text-slate-400" size={16} />
 
           <input
@@ -95,7 +102,7 @@ export default function OrdersList() {
               <X size={16} />
             </button>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* FILTERS */}

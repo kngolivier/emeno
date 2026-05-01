@@ -73,17 +73,17 @@ export default function NewClientForm({ onSave, onCancel, client }) {
     ${
       errors[field]
         ? "border-red-400 focus:ring-2 focus:ring-red-200"
-        : "border-slate-200 focus:ring-2 focus:ring-[#002E1B]/10 focus:border-[#002E1B]"
+        : "border-slate-200 focus:ring-2 focus:ring-primary/10 focus:border-primary"
     }`;
 
   const labelClass =
-    "text-xs font-bold uppercase tracking-wider text-[#002E1B]/70 mb-1 block";
+    "text-xs font-bold uppercase tracking-wider text-primary/70 mb-1 block";
 
   return (
     <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
 
       {/* TITLE */}
-      <h2 className="text-xl font-bold mb-6 text-[#002E1B]">
+      <h2 className="text-xl font-bold mb-6 text-primary">
         {client ? "Modifier le client" : "Nouveau client"}
       </h2>
 
@@ -184,7 +184,7 @@ export default function NewClientForm({ onSave, onCancel, client }) {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2.5 rounded-xl bg-[#002E1B] text-white font-semibold hover:bg-[#002E1B]/90 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-50"
           >
             {loading
               ? "Création..."

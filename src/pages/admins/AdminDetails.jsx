@@ -99,7 +99,7 @@ export default function AdminDetails() {
 
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-[#002E1B]"
+            className="flex items-center gap-2 text-sm text-slate-500 hover:text-primary"
           >
             <ArrowLeft size={16} />
             Retour
@@ -241,13 +241,13 @@ export default function AdminDetails() {
 
         <div className="bg-white border rounded-2xl p-6">
           <p className="text-slate-500 text-sm">Actions effectuées</p>
-          <p className="text-3xl font-bold text-[#002E1B]">0</p>
+          <p className="text-3xl font-bold text-primary">0</p>
           <p className="text-xs text-slate-400">à brancher logs</p>
         </div>
 
         <div className="bg-white border rounded-2xl p-6">
           <p className="text-slate-500 text-sm">Connexions</p>
-          <p className="text-3xl font-bold text-[#B08D3E]">0</p>
+          <p className="text-3xl font-bold text-secondary">0</p>
           <p className="text-xs text-slate-400">historique login</p>
         </div>
 

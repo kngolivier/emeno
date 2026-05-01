@@ -104,7 +104,7 @@ export default function ClientDetails() {
 
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-[#002E1B] transition"
+            className="flex items-center gap-2 text-sm text-slate-500 hover:text-primary transition"
           >
             <ArrowLeft size={16} />
             Retour
@@ -216,13 +216,13 @@ export default function ClientDetails() {
 
         <div className="bg-white border rounded-2xl p-6 hover:shadow-md transition">
           <p className="text-slate-500 text-sm">Commandes</p>
-          <p className="text-3xl font-bold text-[#002E1B]">0</p>
+          <p className="text-3xl font-bold text-primary">0</p>
           <p className="text-xs text-slate-400 mt-1">Total des livraisons</p>
         </div>
 
         <div className="bg-white border rounded-2xl p-6 hover:shadow-md transition">
           <p className="text-slate-500 text-sm">Dépenses</p>
-          <p className="text-3xl font-bold text-[#B08D3E]">0 FCFA</p>
+          <p className="text-3xl font-bold text-secondary">0 FCFA</p>
           <p className="text-xs text-slate-400 mt-1">Montant total payé</p>
         </div>
 

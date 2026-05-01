@@ -6,7 +6,7 @@ export default function Loader({ size = 40, text = "Chargement..." }) {
       
       {/* Spinner */}
       <div
-        className="animate-spin rounded-full border-4 border-slate-200 border-t-[#002E1B]"
+        className="animate-spin rounded-full border-4 border-slate-200 border-t-primary"
         style={{
           width: size,
           height: size,

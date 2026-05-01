@@ -29,7 +29,7 @@ export const Pagination = ({ meta, setPage }) => {
     "px-3 py-1.5 text-sm rounded-xl border transition font-medium";
 
   const activeBtn =
-    "bg-[#002E1B] text-white border-[#002E1B] shadow-sm";
+    "bg-primary text-white border-primary shadow-sm";
 
   const inactiveBtn =
     "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";

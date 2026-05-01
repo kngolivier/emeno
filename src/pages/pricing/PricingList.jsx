@@ -117,7 +117,7 @@ export default function PricingList() {
 
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#002E1B] text-white rounded-xl"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl"
         >
           <Plus size={16} />
           Nouveau tarif
@@ -133,7 +133,7 @@ export default function PricingList() {
             onClick={() => setFilter(f)}
             className={`px-3 py-1 rounded-xl text-xs font-bold border ${
               filter === f
-                ? "bg-[#002E1B] text-white"
+                ? "bg-primary text-white"
                 : "bg-white text-slate-600"
             }`}
           >

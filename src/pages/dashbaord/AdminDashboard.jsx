@@ -113,7 +113,7 @@ export default function AdminDashboard() {
               onClick={() => setPeriod(p)}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
                 period === p
-                  ? "bg-[#002E1B] text-white"
+                  ? "bg-primary text-white"
                   : "bg-white border text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2 bg-white p-6 rounded-3xl border shadow-sm">
           <div className="flex justify-between mb-6">
             <h3 className="font-bold">Performance livraisons</h3>
-            <span className="text-xs bg-[#B08D3E] text-white px-2 py-1 rounded">
+            <span className="text-xs bg-secondary text-white px-2 py-1 rounded">
               Total: {total}
             </span>
           </div>

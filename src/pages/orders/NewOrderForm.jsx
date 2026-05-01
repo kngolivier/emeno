@@ -121,7 +121,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
             </div>
           </div>
           <div className="flex items-end pt-5">
-            <button type="submit" className="w-full md:w-auto bg-[#002E1B]  text-white px-10 py-3 rounded-2xl hover:bg-[#B08D3E]   transition-all shadow-lg shadow-blue-200 font-bold flex items-center gap-2">
+            <button type="submit" className="w-full md:w-auto bg-primary  text-white px-10 py-3 rounded-2xl hover:bg-secondary   transition-all shadow-lg shadow-blue-200 font-bold flex items-center gap-2">
               <Plus size={20} />
               Créer la commande
             </button>
