@@ -6,7 +6,13 @@ import { useAuth } from "../context/AuthContext";
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, loading, user } = useAuth();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Chargement...
+      </div>
+    );
+  }
 
   // pas connecté
   if (!isAuthenticated) {

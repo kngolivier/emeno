@@ -94,6 +94,13 @@ export const updateUserStatus = (id, status) => {
 };
 
 /**
+ * UPDATE current user profile (/me)
+ */
+export const updateMyProfile = (payload) => {
+  return API.patch(`${ENDPOINTS.USERS}/me`, payload);
+};
+
+/**
  * DELETE user
  */
 export const deleteUser = (id) => {

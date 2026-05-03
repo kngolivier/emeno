@@ -1,9 +1,9 @@
 // FILE: src/context/AuthProvider.jsx
-
 import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 
 export default function AuthProvider({ children }) {
+
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,6 +12,7 @@ export default function AuthProvider({ children }) {
   // INIT (refresh page)
   // ======================
   useEffect(() => {
+
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
 
@@ -35,12 +36,14 @@ export default function AuthProvider({ children }) {
     }
 
     setLoading(false);
+
   }, []);
 
   // ======================
-  // LOGIN (source unique)
+  // LOGIN
   // ======================
   const login = ({ user, token }) => {
+
     if (!token) return;
 
     setToken(token);
@@ -49,21 +52,32 @@ export default function AuthProvider({ children }) {
     if (user) {
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      setUser(null);
-      localStorage.removeItem("user");
     }
+
+  };
+
+  // ======================
+  // UPDATE USER (IMPORTANT 🔥)
+  // utilisé après PATCH /users/me
+  // ======================
+  const updateUser = (updatedUser) => {
+
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+
   };
 
   // ======================
   // LOGOUT
   // ======================
   const logout = () => {
+
     setUser(null);
     setToken(null);
 
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+
   };
 
   const isAuthenticated = !!token;
@@ -75,6 +89,7 @@ export default function AuthProvider({ children }) {
         token,
         login,
         logout,
+        updateUser, // 👈 ajouté
         isAuthenticated,
         loading,
       }}

@@ -19,6 +19,12 @@ import PricingList from "../pages/pricing/PricingList";
 import AdminList from "../pages/admins/AdminList";
 import AdminDetails from "../pages/admins/AdminDetails";
 import Unauthorized from "../pages/Unauthorized";
+import ClientLayout from "../layout/ClientLayout";
+import ClientDashboard from "../pages/client-portal/ClientDashboard";
+import ClientOrders from "../pages/client-portal/ClientOrders";
+import ClientOrderDetails from "../pages/client-portal/ClientOrderDetails";
+import ClientProfile from "../pages/client-portal/ClientProfile";
+import ClientCreateOrder from "../pages/client-portal/ClientCreateOrder";
 
 export default function AppRoutes() {
   return (
@@ -32,7 +38,7 @@ export default function AppRoutes() {
         <Route path="/change-password" element={<ChangePassword />} />
 
         {/* ===================== */}
-        {/* PROTECTED ROUTES */}
+        {/* PROTECTED ROUTES ADMIN*/}
         {/* ===================== */}
         <Route
           path="/"
@@ -54,11 +60,29 @@ export default function AppRoutes() {
           <Route path="admins/:id" element={<AdminDetails />} />
         </Route>
 
+        {/* ===================== */}
+        {/* PROTECTED ROUTES CLIENT */}
+        {/* ===================== */}
+
+        <Route
+          path="/client"
+          element={
+            <ProtectedRoute allowedRoles={["CLIENT"]}>
+              <ClientLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<ClientDashboard />} />
+          <Route path="orders" element={<ClientOrders />} />
+          <Route path="orders/:id" element={<ClientOrderDetails />} />
+          <Route path="profile" element={<ClientProfile />} />
+          <Route path="new-order" element={<ClientCreateOrder />} />
+        </Route>
+
         {/* fallback */}
         <Route path="*" element={<Navigate to="/login" />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/driver" element={<div>Driver Dashboard</div>} />
-        <Route path="/client" element={<div>Client Dashboard</div>} />
       </Routes>
     </BrowserRouter>
   );

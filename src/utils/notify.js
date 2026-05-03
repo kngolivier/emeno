@@ -7,7 +7,7 @@ import React from "react";
 // SUCCESS
 export const notifySuccess = (message) => {
   toast.success(message, {
-    duration: 20000,
+    duration: 10000,
     style: {
       background: "#16a34a",
       color: "white",
@@ -22,7 +22,7 @@ export const notifySuccess = (message) => {
 // ERROR
 export const notifyError = (message) => {
   toast.error(message, {
-    duration: 20000,
+    duration: 10000,
     style: {
       background: "#dc2626",
       color: "white",

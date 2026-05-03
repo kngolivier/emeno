@@ -4,24 +4,30 @@ import API from "./apiClient";
 import { ENDPOINTS } from "./endpoints";
 
 /**
+ * ADMIN - create delivery
+ */
+export const createDelivery = (data) => {
+  return API.post("/api/deliveries", data);
+};
+
+/**
  * ADMIN - toutes les livraisons
  */
-export const fetchAdminDeliveries = () => {
-  return API.get(ENDPOINTS.DELIVERIES_ADMIN);
+export const fetchAdminDeliveries = (params) => {
+  return API.get(ENDPOINTS.DELIVERIES_ADMIN, { params });
 };
 
 /**
  * CLIENT - ses livraisons
  */
-export const fetchClientDeliveries = () => {
-  return API.get(ENDPOINTS.DELIVERIES_CLIENT);
+export const fetchClientDeliveries = (params) => {
+  return API.get(ENDPOINTS.DELIVERIES_CLIENT, { params });
 };
-
 /**
  * DRIVER - ses livraisons
  */
-export const fetchDriverDeliveries = () => {
-  return API.get(ENDPOINTS.DELIVERIES_DRIVER);
+export const fetchDriverDeliveries = (params) => {
+  return API.get(ENDPOINTS.DELIVERIES_DRIVER, { params });
 };
 
 /**

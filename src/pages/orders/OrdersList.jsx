@@ -6,11 +6,15 @@ import { Search, X, Eye } from "lucide-react";
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { Pagination } from "../../components/Pagination";
 
-import { fetchAdminDeliveries } from "../../api/deliveries.api";
+import { fetchAdminDeliveries, createDelivery } from "../../api/deliveries.api";
 import PageLoader from "../../components/ui/PageLoader";
 import TotalCard from "../../components/dashbord/TotalCard";
+import { Plus } from "lucide-react";
+import NewOrderForm from "./NewOrderForm";
+import { notifySuccess, notifyError } from "../../utils/notify";
 
 export default function OrdersList() {
+  const [showForm, setShowForm] = useState(false);
 
     // ======================
     // HOOK (SOURCE UNIQUE)
@@ -55,6 +59,16 @@ export default function OrdersList() {
     return matchesStatus && matchesSearch;
   });
 
+  const handleCreateOrder = async (data) => {
+    try {
+      await createDelivery(data);
+      notifySuccess("Commande créée avec succès");
+      setShowForm(false);
+    } catch (err) {
+      notifyError(err?.response?.data?.message || err.message);
+    }
+  };
+
   if (loading) {
     return (
       <PageLoader />
@@ -81,6 +95,13 @@ export default function OrdersList() {
           value={meta?.total || 0}
           subtitle="Commandes créées"
         />
+        <button
+          onClick={() => setShowForm(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white hover:bg-secondary transition text-sm font-semibold"
+        >
+          <Plus size={16} />
+          Nouvelle commande
+        </button>
 
         {/* SEARCH */}
         {/* <div className="relative w-full lg:w-80">
@@ -201,7 +222,14 @@ export default function OrdersList() {
             Aucune livraison trouvée
           </div>
         )}
-
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <NewOrderForm
+                onAdd={handleCreateOrder}
+                onClose={() => setShowForm(false)}
+              />
+          </div>
+        )}
       </div>
       <Pagination meta={meta} setPage={setPage} />
     </div>

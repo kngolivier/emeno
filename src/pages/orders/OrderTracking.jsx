@@ -8,7 +8,12 @@ import {
   Truck,
   CreditCard,
   Clock,
-  PackageCheck
+  PackageCheck,
+  MapPin,
+  CheckCircle,
+  Circle,
+  Package,
+  Send
 } from "lucide-react";
 
 import {
@@ -288,11 +293,14 @@ export default function OrderTracking() {
       {/* CONTENT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* INFOS */}
+        {/* ======================
+            INFOS GÉNÉRALES
+        ====================== */}
         <div className="space-y-6">
 
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
 
+            {/* CLIENT */}
             <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
               <div className="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center shadow-md">
                 <User size={20} />
@@ -305,6 +313,7 @@ export default function OrderTracking() {
               </div>
             </div>
 
+            {/* LIVREUR */}
             <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
               <div className="w-10 h-10 bg-emerald-600 text-white rounded-lg flex items-center justify-center shadow-md">
                 <Truck size={20} />
@@ -317,49 +326,194 @@ export default function OrderTracking() {
               </div>
             </div>
 
+            {/* Paiement */}
             <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
-              <div className="w-10 h-10 bg-amber-500 text-white rounded-lg flex items-center justify-center shadow-md">
-                <CreditCard size={20} />
+              <div className="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center shadow-md">
+                <Send size={20} />
               </div>
               <div>
-                <p className="text-xs text-slate-400 font-bold uppercase">Total</p>
-                <p className="font-bold text-slate-800">
-                  {formatPrice(order.totalAmount)}
+                <p className="text-xs text-slate-400 font-bold uppercase">Paiement</p>
+                <p className="font-semibold text-slate-800">
+                  {order.payerType === "SENDER" ? "Expéditeur" : "Receveur payeur"}
                 </p>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl">
-              <p className="text-xs text-slate-400 font-bold uppercase">Statut</p>
-              <p className="font-bold text-blue-600">{order.status}</p>
+            {/* STATUT */}
+            <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
+              <div className="w-10 h-10 bg-amber-500 text-white rounded-lg flex items-center justify-center shadow-md">
+                <PackageCheck size={20} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase">Statut</p>
+                <p className="font-bold text-blue-600">{order.status}</p>
+              </div>
+            </div>
+
+            {/* PRIX */}
+            <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
+              <div className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center shadow-md">
+                <CreditCard size={20} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase">Prix livraison</p>
+                <p className="font-bold text-slate-800">
+                  {formatPrice(order.price)}
+                </p>
+              </div>
             </div>
 
           </div>
 
-        </div>
+          {/* 📦 COLIS */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+              <Package size={18} className="text-slate-600" />
+              Colis
+            </h3>
 
-        {/* TIMELINE */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <PackageCheck size={18} className="text-blue-600" />
-            Suivi de la livraison
-          </h3>
+            <div className="space-y-2 text-sm">
 
-          <div className="space-y-6">
-            {steps.map((step, i) => (
-              <div key={i} className="flex justify-between items-center">
-                <span className={step.done ? "text-slate-800 font-semibold" : "text-slate-400"}>
-                  {step.label}
-                </span>
-
-                <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded border">
-                  {step.time
-                    ? new Date(step.time).toLocaleTimeString()
-                    : "--"}
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Catégorie</span>
+                <span className="font-medium text-slate-800">
+                  {order.packageDetails?.category}
                 </span>
               </div>
-            ))}
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Fragile</span>
+                <span className="font-medium text-slate-800">
+                  {order.packageDetails?.isFragile ? "Oui" : "Non"}
+                </span>
+              </div>
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Poids</span>
+                <span className="font-medium text-slate-800">
+                  {order.packageDetails?.weight || "-"} kg
+                </span>
+              </div>
+
+              <div className="text-xs text-slate-500 mt-2">
+                {order.packageDetails?.description || "Aucune description"}
+              </div>
+
+            </div>
           </div>
+
+        </div>
+
+        {/* ======================
+            ADRESSES
+        ====================== */}
+        <div className="space-y-6">
+
+          {/* PICKUP */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+              <MapPin size={18} className="text-blue-600" />
+              Pickup
+            </h3>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Nom</span>
+                <span className="font-medium">{order.pickupContact?.name}</span>
+              </div>
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Téléphone</span>
+                <span className="font-medium">{order.pickupContact?.phone}</span>
+              </div>
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Adresse</span>
+                <span className="font-medium">{order.pickupLocation}</span>
+              </div>
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Commune</span>
+                <span className="font-medium">{order.pickupCommune}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* DROPOFF */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+              <MapPin size={18} className="text-emerald-600" />
+              Dropoff
+            </h3>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Nom</span>
+                <span className="font-medium">{order.dropoffContact?.name}</span>
+              </div>
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Téléphone</span>
+                <span className="font-medium">{order.dropoffContact?.phone}</span>
+              </div>
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Adresse</span>
+                <span className="font-medium">{order.dropoffLocation}</span>
+              </div>
+
+              <div className="flex justify-between bg-slate-50 p-2 rounded-lg">
+                <span className="text-slate-500">Commune</span>
+                <span className="font-medium">{order.dropoffCommune}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* ======================
+            TIMELINE COMPACTE
+        ====================== */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+
+          <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4">
+            <Clock size={18} className="text-blue-600" />
+            Suivi
+          </h3>
+
+          <div className="space-y-3">
+
+            {steps.map((step, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg"
+              >
+
+                {/* LEFT SIDE (ICON + LABEL) */}
+                <div className="flex items-center gap-2">
+
+                  {step.done ? (
+                    <CheckCircle size={18} className="text-emerald-600" />
+                  ) : (
+                    <Circle size={18} className="text-slate-400" />
+                  )}
+
+                  <span className={`text-sm ${step.done ? "text-slate-800 font-medium" : "text-slate-400"}`}>
+                    {step.label}
+                  </span>
+
+                </div>
+
+                {/* TIME */}
+                <span className="text-xs text-slate-400">
+                  {step.time ? new Date(step.time).toLocaleTimeString() : "--"}
+                </span>
+
+              </div>
+            ))}
+
+          </div>
+
         </div>
 
       </div>
