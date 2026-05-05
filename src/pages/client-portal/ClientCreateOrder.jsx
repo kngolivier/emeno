@@ -1,310 +1,285 @@
 // FILE: src/pages/client-portal/ClientCreateOrder.jsx
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createDelivery } from "../../api/deliveries.api";
+import { calculatePrice } from "../../api/pricing.api"; 
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
-
+import { 
+  ArrowRight, ArrowLeft, Loader2, User, MapPin, 
+  Package, UserCircle, Truck, CheckCircle2, Eye, Banknote, Info
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import PhoneInput from "../../components/forms/PhoneInput";
 import CommuneSelect from "../../components/forms/CommuneSelect";
 import { notifySuccess, notifyError } from "../../utils/notify";
 
 export default function ClientCreateOrder() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [loadingPrice, setLoadingPrice] = useState(false);
   const [step, setStep] = useState(1);
+  const [clientPosition, setClientPosition] = useState('SENDER');
+  const [priceData, setPriceData] = useState(null);
 
   const [form, setForm] = useState({
+    isForSomeoneElse: false,
     pickupContact: { name: "", phone: "" },
     dropoffContact: { name: "", phone: "" },
-
     pickupLocation: "",
     dropoffLocation: "",
-
     pickupCommune: "",
     dropoffCommune: "",
-
     payerType: "SENDER",
-
-    packageDetails: {
-      category: "OTHER",
-      description: "",
-      isFragile: false,
-      weight: ""
-    },
-
+    packageDetails: { category: "OTHER", description: "", isFragile: false, weight: "" },
     notes: ""
   });
 
-  // ======================
-  // SAFE HANDLERS (LIKE NEWORDERFORM)
-  // ======================
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  // Gestion intelligente des rôles (Expéditeur / Destinataire / Tiers)
+  useEffect(() => {
+    const userInfo = { name: `${user?.nom} ${user?.prenom}`, phone: user?.telephone || "" };
+    setForm(prev => {
+      let newForm = { ...prev };
+      if (clientPosition === 'SENDER') {
+        newForm.pickupContact = userInfo;
+        newForm.pickupLocation = user?.adresse || prev.pickupLocation;
+        newForm.isForSomeoneElse = false;
+      } else if (clientPosition === 'RECEIVER') {
+        newForm.dropoffContact = userInfo;
+        newForm.dropoffLocation = user?.adresse || prev.dropoffLocation;
+        newForm.isForSomeoneElse = false;
+      } else {
+        newForm.isForSomeoneElse = true;
+      }
+      return newForm;
+    });
+  }, [clientPosition, user]);
 
   const handleNested = (section, field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
+    setForm(prev => ({ ...prev, [section]: { ...prev[section], [field]: value } }));
   };
 
-  // ======================
-  // STEP VALIDATION
-  // ======================
-  const canGoStep2 =
-    form.pickupContact.name?.trim() &&
-    form.pickupContact.phone?.trim() &&
-    form.dropoffContact.name?.trim() &&
-    form.dropoffContact.phone?.trim();
-
-  // ======================
-  // CLEAN PAYLOAD (IMPORTANT FIX 500)
-  // ======================
-  const buildPayload = () => {
-    return {
-      ...form,
-      packageDetails: {
-        ...form.packageDetails,
-        weight: form.packageDetails.weight
-          ? Number(form.packageDetails.weight)
-          : undefined
-      }
-    };
-  };
-
-  // ======================
-  // SUBMIT
-  // ======================
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // RÉCUPÉRATION DU PRIX AVEC GESTION DES ZONES NON DESSERVIES
+  const handleFetchPrice = async () => {
+    if (!form.pickupCommune || !form.dropoffCommune) {
+      return notifyError("Veuillez sélectionner les deux communes.");
+    }
 
     try {
-      setLoading(true);
+      setLoadingPrice(true);
+      const res = await calculatePrice(form.pickupCommune, form.dropoffCommune, null);
+      
+      const data = res.data?.data || res.data;
 
-      const payload = buildPayload();
+      // Vérification si le prix existe et est valide
+      if (!data || data.price === undefined || data.price === null) {
+        return notifyError("Désolé, ce trajet n'est pas encore desservi par nos services.");
+      }
 
-      const res = await createDelivery(payload);
-
-      notifySuccess("Commande créée avec succès");
-
-      navigate(`/client/orders/${res?.data?.data?._id}`);
+      setPriceData(data); 
+      setStep(3); // On avance au résumé uniquement si un prix est trouvé
     } catch (err) {
-      notifyError(
-        err?.response?.data?.message || "Erreur lors de la création"
-      );
+      const status = err?.response?.status;
+      const errorMsg = status === 404 
+        ? "Ce trajet n'est pas encore répertorié dans nos tarifs." 
+        : "Erreur lors du calcul du prix. Veuillez réessayer.";
+      
+      notifyError(errorMsg);
+    } finally {
+      setLoadingPrice(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const payload = { 
+        ...form, 
+        packageDetails: { ...form.packageDetails, weight: Number(form.packageDetails.weight) } 
+      };
+      const res = await createDelivery(payload);
+      notifySuccess("Commande confirmée avec succès !");
+      navigate(`/client/orders/${res?.data?._id}`);
+    } catch (err) {
+      notifyError(err?.response?.data?.message || "Erreur lors de la validation");
     } finally {
       setLoading(false);
     }
   };
 
-  // ======================
-  // STYLE (aligned NewOrderForm)
-  // ======================
-  const inputClass =
-    "w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none";
+  const inputClass = "w-full bg-slate-50/50 border-2 border-slate-50 rounded-2xl p-4 text-sm font-bold text-primary outline-none focus:border-secondary/20 focus:bg-white transition-all shadow-inner";
+  const labelClass = "text-[10px] font-black uppercase tracking-widest text-slate-300 mb-2 block";
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-
-      {/* HEADER */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">
-          Nouvelle commande
-        </h1>
-        <p className="text-sm text-slate-500">
-          Créez une demande de livraison
-        </p>
+    <div className="p-6 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="flex justify-between items-center">
+        <div>
+            <h1 className="text-3xl font-black text-primary tracking-tight">Nouvelle commande</h1>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Étape {step} sur 3</p>
+        </div>
+        <div className="flex gap-2">
+            {[1, 2, 3].map(i => (
+                <div key={i} className={`h-2 w-8 rounded-full transition-all duration-500 ${step >= i ? 'bg-secondary shadow-lg shadow-secondary/20' : 'bg-slate-200'}`} />
+            ))}
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* ======================
-            STEP 1
-        ====================== */}
+      <form onSubmit={handleSubmit}>
+        {/* ÉTAPE 1 : IDENTIFICATION CONTACTS */}
         {step === 1 && (
-          <div className="bg-white p-5 rounded-xl border space-y-6">
-
-            {/* PICKUP */}
-            <div>
-              <h2 className="font-semibold mb-3">Expéditeur</h2>
-
-              <div className="grid grid-cols-2 gap-3">
-
-                <input
-                  placeholder="Nom"
-                  className={inputClass}
-                  onChange={(e) =>
-                    handleNested("pickupContact", "name", e.target.value)
-                  }
-                />
-
-                <PhoneInput
-                  label="Téléphone"
-                  value={form.pickupContact.phone}
-                  onChange={(val) =>
-                    handleNested("pickupContact", "phone", val)
-                  }
-                />
-              </div>
+          <div className="bg-white p-8 rounded-[2.5rem] shadow-soft space-y-8 animate-in fade-in zoom-in-95">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <RoleOption active={clientPosition === 'SENDER'} onClick={() => setClientPosition('SENDER')} icon={<UserCircle />} title="Expéditeur" desc="Je donne le colis" />
+                <RoleOption active={clientPosition === 'RECEIVER'} onClick={() => setClientPosition('RECEIVER')} icon={<Truck />} title="Destinataire" desc="Je reçois le colis" />
+                <RoleOption active={clientPosition === 'NONE'} onClick={() => setClientPosition('NONE')} icon={<CheckCircle2 />} title="Envoi tiers" desc="Je commande pour autrui" />
             </div>
-
-            {/* DROPOFF */}
-            <div>
-              <h2 className="font-semibold mb-3">Destinataire</h2>
-
-              <div className="grid grid-cols-2 gap-3">
-
-                <input
-                  placeholder="Nom"
-                  className={inputClass}
-                  onChange={(e) =>
-                    handleNested("dropoffContact", "name", e.target.value)
-                  }
-                />
-
-                <PhoneInput
-                  label="Téléphone"
-                  value={form.dropoffContact.phone}
-                  onChange={(val) =>
-                    handleNested("dropoffContact", "phone", val)
-                  }
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-6 border-t border-slate-50">
+                <div className="space-y-6">
+                    <SectionTitle icon={<User />} title="Expéditeur" />
+                    <input placeholder="Nom complet" className={inputClass} value={form.pickupContact.name} onChange={(e) => handleNested("pickupContact", "name", e.target.value)} disabled={clientPosition === 'SENDER'} />
+                    <PhoneInput label="TÉLÉPHONE" value={form.pickupContact.phone} onChange={(v) => handleNested("pickupContact", "phone", v)} disabled={clientPosition === 'SENDER'} />
+                </div>
+                <div className="space-y-6">
+                    <SectionTitle icon={<User className="text-secondary" />} title="Destinataire" />
+                    <input placeholder="Nom complet" className={inputClass} value={form.dropoffContact.name} onChange={(e) => handleNested("dropoffContact", "name", e.target.value)} disabled={clientPosition === 'RECEIVER'} />
+                    <PhoneInput label="TÉLÉPHONE" value={form.dropoffContact.phone} onChange={(v) => handleNested("dropoffContact", "phone", v)} disabled={clientPosition === 'RECEIVER'} />
+                </div>
             </div>
-
-            {/* PAYER */}
-            <select
-              name="payerType"
-              onChange={handleChange}
-              className={inputClass}
-            >
-              <option value="SENDER">Expéditeur</option>
-              <option value="RECEIVER">Destinataire</option>
-            </select>
-
-            {/* NEXT */}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                disabled={!canGoStep2}
-                onClick={() => setStep(2)}
-                className="bg-primary text-white px-5 py-2 rounded-xl flex items-center gap-2 disabled:opacity-40"
-              >
-                Suivant <ArrowRight size={16} />
-              </button>
+            <div className="flex justify-end pt-4">
+                <button type="button" disabled={!form.pickupContact.name || !form.dropoffContact.name} onClick={() => setStep(2)} className="bg-primary text-white px-10 py-4 rounded-2xl font-black flex items-center gap-3 disabled:opacity-20 hover:gap-5 transition-all">Suivant <ArrowRight size={18} /></button>
             </div>
           </div>
         )}
 
-        {/* ======================
-            STEP 2
-        ====================== */}
+        {/* ÉTAPE 2 : LOCALISATION & COLIS */}
         {step === 2 && (
-          <div className="bg-white p-5 rounded-xl border space-y-5">
+          <div className="bg-white p-8 rounded-[2.5rem] shadow-soft space-y-8 animate-in slide-in-from-right-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                    <SectionTitle icon={<MapPin />} title="Itinéraire" />
+                    <input placeholder="Lieu précis de ramassage" className={inputClass} value={form.pickupLocation} onChange={(e) => setForm({...form, pickupLocation: e.target.value})} />
+                    <CommuneSelect label="COMMUNE DÉPART" value={form.pickupCommune} onChange={(v) => setForm({...form, pickupCommune: v})} />
+                    <div className="h-4" />
+                    <input placeholder="Lieu précis de livraison" className={inputClass} value={form.dropoffLocation} onChange={(e) => setForm({...form, dropoffLocation: e.target.value})} />
+                    <CommuneSelect label="COMMUNE ARRIVÉE" value={form.dropoffCommune} onChange={(v) => setForm({...form, dropoffCommune: v})} />
+                </div>
+                <div className="space-y-6">
+                    <SectionTitle icon={<Package className="text-secondary" />} title="Le Colis" />
+                    <select className={inputClass} value={form.packageDetails.category} onChange={(e) => handleNested("packageDetails", "category", e.target.value)}>
+                        <option value="OTHER">Autre catégorie</option>
+                        <option value="FOOD">Alimentaire</option>
+                        <option value="ELECTRONICS">Électronique / Fragile</option>
+                        <option value="DOCUMENT">Plis / Documents</option>
+                    </select>
+                    <textarea placeholder="Que transportons-nous ? (ex: Un sac de vêtements...)" className={inputClass + " h-32 resize-none"} value={form.packageDetails.description} onChange={(e) => handleNested("packageDetails", "description", e.target.value)} />
+                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
+                        <Info size={18} className="text-amber-500 shrink-0" />
+                        <p className="text-[10px] text-amber-700 font-bold leading-relaxed uppercase">
+                            Le prix est calculé automatiquement selon les communes. Si aucun prix ne s'affiche, la zone n'est pas couverte.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div className="flex justify-between pt-6 border-t border-slate-50">
+                <button type="button" onClick={() => setStep(1)} className="text-slate-400 font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:text-primary transition-colors"><ArrowLeft size={16} /> Retour</button>
+                <button 
+                  type="button" 
+                  disabled={!form.pickupCommune || !form.dropoffCommune || loadingPrice} 
+                  onClick={handleFetchPrice} 
+                  className="bg-primary text-white px-10 py-4 rounded-2xl font-black flex items-center gap-3 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+                >
+                  {loadingPrice ? <Loader2 className="animate-spin" /> : <><Eye size={18} /> Calculer le tarif</>}
+                </button>
+            </div>
+          </div>
+        )}
 
-            <input
-              placeholder="Point de départ"
-              name="pickupLocation"
-              onChange={handleChange}
-              className={inputClass}
-            />
-
-            <input
-              placeholder="Destination"
-              name="dropoffLocation"
-              onChange={handleChange}
-              className={inputClass}
-            />
-
-            <div className="grid grid-cols-2 gap-3">
-              <CommuneSelect
-                label="Commune départ"
-                value={form.pickupCommune}
-                onChange={(val) =>
-                  setForm((prev) => ({ ...prev, pickupCommune: val }))
-                }
-              />
-
-              <CommuneSelect
-                label="Commune arrivée"
-                value={form.dropoffCommune}
-                onChange={(val) =>
-                  setForm((prev) => ({ ...prev, dropoffCommune: val }))
-                }
-              />
+        {/* ÉTAPE 3 : RÉSUMÉ FINAL & PRIX */}
+        {step === 3 && (
+          <div className="bg-white p-8 rounded-[2.5rem] shadow-soft space-y-8 animate-in zoom-in-95">
+            <div className="bg-primary text-white p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl shadow-primary/30 relative overflow-hidden">
+                <div className="relative z-10 text-center md:text-left">
+                    <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.3em] mb-2">Total de la course</p>
+                    <p className="text-6xl font-black tracking-tighter">
+                        {priceData?.price?.toLocaleString()} <span className="text-2xl text-secondary">FCFA</span>
+                    </p>
+                </div>
+                <div className="bg-white/10 p-6 rounded-[2rem] border border-white/10 backdrop-blur-xl z-10">
+                    <Banknote size={40} className="text-secondary" />
+                </div>
+                <div className="absolute -right-10 -top-10 w-48 h-48 bg-secondary/20 rounded-full blur-[80px]"></div>
             </div>
 
-            <select
-              className={inputClass}
-              onChange={(e) =>
-                handleNested("packageDetails", "category", e.target.value)
-              }
-            >
-              <option value="FOOD">Food</option>
-              <option value="MEDICINE">Medicine</option>
-              <option value="ELECTRONICS">Electronics</option>
-              <option value="DOCUMENT">Document</option>
-              <option value="OTHER">Other</option>
-            </select>
-
-            <textarea
-              placeholder="Description du colis"
-              className={inputClass}
-              onChange={(e) =>
-                handleNested("packageDetails", "description", e.target.value)
-              }
-            />
-
-            <input
-              placeholder="Poids (kg)"
-              className={inputClass}
-              onChange={(e) =>
-                handleNested("packageDetails", "weight", e.target.value)
-              }
-            />
-
-            <textarea
-              placeholder="Notes"
-              name="notes"
-              className={inputClass}
-              onChange={handleChange}
-            />
-
-            {/* ACTIONS */}
-            <div className="flex justify-between">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="flex items-center gap-2 text-slate-600"
-              >
-                <ArrowLeft size={16} /> Retour
-              </button>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-primary text-white px-6 py-2 rounded-xl flex items-center gap-2"
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  "Créer la commande"
-                )}
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <SummaryCard title="Départ" icon={<MapPin size={14}/>}>
+                    <p className="font-bold text-primary">{form.pickupContact.name}</p>
+                    <p className="text-xs text-slate-500 leading-snug">{form.pickupLocation}</p>
+                    <p className="text-[10px] font-black text-secondary uppercase mt-1">{form.pickupCommune}</p>
+                </SummaryCard>
+                <SummaryCard title="Destination" icon={<Truck size={14}/>}>
+                    <p className="font-bold text-primary">{form.dropoffContact.name}</p>
+                    <p className="text-xs text-slate-500 leading-snug">{form.dropoffLocation}</p>
+                    <p className="text-[10px] font-black text-secondary uppercase mt-1">{form.dropoffCommune}</p>
+                </SummaryCard>
+                <SummaryCard title="Objet" icon={<Package size={14}/>}>
+                    <p className="font-bold text-primary capitalize">{form.packageDetails.category.toLowerCase()}</p>
+                    <p className="text-xs text-slate-500 italic mt-1">"{form.packageDetails.description || "Aucun détail"}"</p>
+                </SummaryCard>
+                <SummaryCard title="Paiement" icon={<CheckCircle2 size={14}/>}>
+                    <p className="font-bold text-primary">Frais à la charge du {form.payerType === 'SENDER' ? "Client" : "Destinataire"}</p>
+                    <p className="text-[9px] bg-secondary text-white font-black px-2 py-1 rounded mt-2 inline-block">PAIEMENT CASH À LA LIVRAISON</p>
+                </SummaryCard>
             </div>
 
+            <div className="flex justify-between items-center pt-6">
+                <button type="button" onClick={() => setStep(2)} className="text-slate-300 font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:text-primary transition-colors">
+                  <ArrowLeft size={16} /> Modifier les infos
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="bg-secondary text-white px-12 py-5 rounded-2xl font-black uppercase tracking-[0.1em] text-xs flex items-center gap-3 shadow-xl shadow-secondary/40 hover:scale-105 active:scale-95 transition-all"
+                >
+                    {loading ? <Loader2 className="animate-spin" /> : "Valider la commande"}
+                </button>
+            </div>
           </div>
         )}
       </form>
+    </div>
+  );
+}
+
+// COMPOSANTS INTERNES UTILITAIRES
+function SummaryCard({ title, icon, children }) {
+    return (
+        <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+            <div className="flex items-center gap-2 mb-4 text-slate-300">
+                <div className="p-2 bg-white rounded-xl shadow-sm">{icon}</div>
+                <span className="text-[9px] font-black uppercase tracking-widest">{title}</span>
+            </div>
+            {children}
+        </div>
+    );
+}
+
+function RoleOption({ active, onClick, icon, title, desc }) {
+  return (
+    <button type="button" onClick={onClick} className={`p-5 rounded-[2rem] border-2 transition-all text-left flex items-center gap-4 ${active ? 'border-secondary bg-white shadow-xl shadow-secondary/10 scale-[1.02]' : 'border-slate-50 bg-slate-50/50 opacity-60 hover:opacity-100'}`}>
+      <div className={`p-3 rounded-2xl transition-all ${active ? 'bg-secondary text-white shadow-lg' : 'bg-white text-slate-400 shadow-sm'}`}>{icon}</div>
+      <div>
+        <p className="text-xs font-black text-primary uppercase leading-tight">{title}</p>
+        <p className="text-[10px] font-bold text-slate-400 mt-1">{desc}</p>
+      </div>
+    </button>
+  );
+}
+
+function SectionTitle({ icon, title }) {
+  return (
+    <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
+      <div className="p-2 bg-primary/5 rounded-xl text-primary">{icon}</div>
+      <h2 className="font-black text-primary uppercase tracking-tighter italic text-xs">{title}</h2>
     </div>
   );
 }

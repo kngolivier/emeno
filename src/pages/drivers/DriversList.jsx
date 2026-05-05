@@ -1,301 +1,153 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Edit, Search, X } from "lucide-react";
-
+import { Plus, Edit, UserX } from "lucide-react";
 import NewDriverForm from "./NewDriverForm";
 import { Pagination } from "../../components/Pagination";
-
-import {
-  fetchDrivers,
-  updateUserStatus,
-  createDriver
-} from "../../api/users.api";
-
+import { fetchDrivers, updateUserStatus, createDriver } from "../../api/users.api";
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
-
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
 import TotalCard from "../../components/dashbord/TotalCard";
 
 export default function DriversList() {
-
-  // ======================
-  // HOOK (SOURCE UNIQUE)
-  // ======================
-  const {
-    data: drivers = [],
-    meta,
-    loading,
-    setPage,
-    setStatus,
-    status,
-    refresh
-  } = usePaginatedFetch(fetchDrivers, 10);
-
-  // ======================
-  // STATE UI
-  // ======================
+  const { data: drivers = [], meta, loading, setPage, setStatus, status, refresh } = usePaginatedFetch(fetchDrivers, 10);
   const [showForm, setShowForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
 
-  // ======================
-  // CREATE / UPDATE
-  // ======================
+  const getStatusStyle = (s) => {
+    switch (s) {
+      case "ACTIVE": return "bg-emerald-500/10 text-emerald-600 border-emerald-100";
+      case "INACTIVE": return "bg-slate-100 text-slate-500 border-slate-200";
+      case "BLOCKED": return "bg-primary/10 text-primary border-primary/10";
+      case "DELETED": return "bg-black text-white border-black";
+      default: return "bg-slate-50 text-slate-400 border-slate-100";
+    }
+  };
+
   const handleSave = async (driver) => {
     try {
-      if (!driver._id) {
-        await createDriver(driver);
-        notifySuccess("Livreur créé avec succès");
-      }
-
+      if (!driver._id) await createDriver(driver);
+      notifySuccess("Livreur enregistré");
       setShowForm(false);
       setEditingDriver(null);
-
       refresh();
-
     } catch (err) {
       notifyError(err?.response?.data?.message || err.message);
     }
   };
 
-  const handleEdit = (driver) => {
-    setEditingDriver(driver);
-    setShowForm(true);
-  };
-
-  // ======================
-  // STATUS UPDATE
-  // ======================
   const toggleDriverStatus = async (driver) => {
+    if (driver.status === "DELETED") return;
     try {
-      if (driver.status === "DELETED") return;
-
-      let newStatus = driver.status;
-
-      if (newStatus === "ACTIVE") newStatus = "INACTIVE";
-      else if (newStatus === "INACTIVE") newStatus = "ACTIVE";
-
+      const newStatus = driver.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
       await updateUserStatus(driver._id, newStatus);
-
       refresh();
       notifySuccess("Statut mis à jour");
-
     } catch (err) {
-      notifyError(err?.response?.data?.message || err.message);
+      notifyError(err.message);
     }
   };
 
-  // ======================
-  // FILTERS
-  // ======================
-  const filteredDrivers = drivers;
-
-  // ======================
-  // STATUS UI
-  // ======================
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case "ACTIVE":
-        return "bg-green-50 text-green-600 border-green-100/50";
-      case "INACTIVE":
-        return "bg-slate-100 text-slate-500 border-slate-200";
-      case "BLOCKED":
-        return "bg-red-50 text-red-500 border-red-100/50";
-      case "DELETED":
-        return "bg-black text-white border-black";
-      case "PENDING":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      default:
-        return "bg-slate-100 text-slate-500";
-    }
-  };
-
-  const getStatusDot = (status) => {
-    switch (status) {
-      case "ACTIVE":
-        return "bg-emerald-500";
-      case "INACTIVE":
-        return "bg-slate-400";
-      case "BLOCKED":
-        return "bg-red-500";
-      case "DELETED":
-        return "bg-black";
-      case "PENDING":
-        return "bg-amber-500";
-      default:
-        return "bg-slate-400";
-    }
-  };
-
-  if (loading) {
-    return <PageLoader />;
-  }
+  if (loading) return <PageLoader />;
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8 bg-slate-50/50 min-h-screen">
-
-      {/* HEADER (STYLE RESTAURÉ) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
+    <div className="space-y-8 font-sans">
+      {/* HEADER */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Annuaire Livreurs
+          <h1 className="text-4xl font-black text-primary font-display italic tracking-tighter">
+            Livreurs
           </h1>
-          <p className="mt-1 text-slate-500 font-medium">
-            Gestion des comptes livreurs
+          <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-[0.1em]">
+            Gestion de la flotte logistique
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-
-          <TotalCard
-            title="Total Livreurs"
-            value={meta?.total || 0}
-            subtitle="Comptes enregistrés"
-          />
-
+        <div className="flex flex-wrap items-center gap-4">
+          <TotalCard title="Actifs" value={meta?.total || 0} subtitle="Livreurs" />
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl"
+            className="flex items-center gap-2 px-8 py-4 rounded-[1.5rem] bg-primary text-white hover:bg-secondary transition-all shadow-xl hover:shadow-secondary/20 text-xs font-black uppercase tracking-widest"
           >
-            <Plus size={16} />
-            Nouveau livreur
+            <Plus size={18} strokeWidth={3} />
+            Ajouter
           </button>
-
         </div>
-
       </div>
 
       {/* FILTERS */}
-      <div className="flex flex-wrap gap-2">
-      {["ALL", "ACTIVE", "INACTIVE", "BLOCKED"].map((s) => (
-        <button
-          key={s}
-          onClick={() => setStatus(s)}
-          className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
-            status === s
-              ? "bg-primary text-white border-primary"
-              : "bg-white text-slate-600 border-slate-200"
-          }`}
-        >
-          {s}
-        </button>
-      ))}
-    </div>
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {["ALL", "ACTIVE", "INACTIVE", "BLOCKED"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatus(s)}
+            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap
+              ${status === s ? "bg-primary text-white border-primary shadow-lg" : "bg-white text-slate-400 border-slate-100"}`}
+          >
+            {s === "ALL" ? "Tous" : s}
+          </button>
+        ))}
+      </div>
 
-      {/* TABLE (UI RESTORED CLIENT-LIKE STYLE) */}
-      <div className="bg-white rounded-3xl border shadow-xl overflow-hidden">
-
-        <table className="w-full text-left border-separate border-spacing-0">
-
-          <thead>
-            <tr className="bg-slate-50/80">
-              <th className="px-6 py-5 text-xs font-bold text-slate-400">Livreur</th>
-              <th className="px-6 py-5 text-xs font-bold text-slate-400">Contact</th>
-              <th className="px-6 py-5 text-xs font-bold text-slate-400 text-center">Statut</th>
-              <th className="px-6 py-5 text-xs font-bold text-slate-400 text-right">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredDrivers.map((d) => {
-              const isDeleted = d.status === "DELETED";
-
-              return (
-                <tr
-                  key={d._id}
-                  className={`group border-t hover:bg-emerald-50/30 transition ${
-                    isDeleted ? "opacity-40" : ""
-                  }`}
-                >
-
-                  {/* DRIVER */}
-                  <td className="px-6 py-5">
+      {/* TABLE */}
+      <div className="bg-white border border-slate-50 rounded-[2rem] shadow-soft overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50/50 border-b border-slate-50">
+              <tr>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identité</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Statut</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {drivers.map((d) => (
+                <tr key={d._id} className={`hover:bg-slate-50/50 transition-colors group ${d.status === "DELETED" ? "opacity-30" : ""}`}>
+                  <td className="p-6">
                     <div className="flex items-center gap-4">
-
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 font-bold border border-white shadow-sm group-hover:scale-105 transition">
+                      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center font-display font-black text-primary italic shadow-inner">
                         {d.nom?.charAt(0)}{d.prenom?.charAt(0)}
                       </div>
-
-                      <span className="font-bold text-slate-700 group-hover:text-primary">
-                        <Link to={`/drivers/${d._id}`}>
-                          {d.nom} {d.prenom}
-                        </Link>
-                      </span>
-
+                      <Link to={`/admin/drivers/${d._id}`} className="font-display font-black text-primary italic text-lg tracking-tight hover:text-secondary transition-colors">
+                        {d.nom} {d.prenom}
+                      </Link>
                     </div>
                   </td>
-
-                  {/* CONTACT */}
-                  <td className="px-6 py-5 text-sm text-slate-600">
-                    {d.telephone}
-                  </td>
-
-                  {/* STATUS */}
-                  <td className="px-6 py-5 text-center">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase border ${getStatusStyle(d.status)}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${getStatusDot(d.status)}`} />
+                  <td className="p-6 text-sm font-bold text-slate-600 font-sans">{d.telephone}</td>
+                  <td className="p-6 text-center">
+                    <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter border ${getStatusStyle(d.status)}`}>
                       {d.status}
                     </span>
                   </td>
-
-                  {/* ACTIONS */}
-                  <td className="px-6 py-5 text-right flex justify-end gap-2">
-
-                    <button
-                      onClick={() => handleEdit(d)}
-                      disabled={isDeleted}
-                      className="text-secondary disabled:opacity-30"
-                    >
-                      <Edit size={16} />
+                  <td className="p-6 text-right space-x-2">
+                    <button onClick={() => { setEditingDriver(d); setShowForm(true); }} className="p-2 text-slate-400 hover:text-secondary transition-colors">
+                      <Edit size={18} />
                     </button>
-
-                    <button
-                      onClick={() => toggleDriverStatus(d)}
-                      disabled={isDeleted}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
-                        isDeleted
-                          ? "opacity-30 cursor-not-allowed"
-                          : "text-rose-600 border-rose-100 hover:bg-rose-600 hover:text-white"
-                      }`}
+                    <button 
+                      onClick={() => toggleDriverStatus(d)} 
+                      className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${d.status === "ACTIVE" ? "border-primary/20 text-primary hover:bg-primary hover:text-white" : "border-emerald-200 text-emerald-600 hover:bg-emerald-500 hover:text-white"}`}
                     >
-                      {d.status === "INACTIVE" ? "Activer" : "Suspendre"}
+                      {d.status === "ACTIVE" ? "Suspendre" : "Activer"}
                     </button>
-
                   </td>
-
                 </tr>
-              );
-            })}
-          </tbody>
-
-        </table>
-
-      </div>
-
-      {/* EMPTY */}
-      {filteredDrivers.length === 0 && (
-        <div className="text-center text-slate-500 py-10">
-          Aucun livreur trouvé
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
+      <Pagination meta={meta} setPage={setPage} />
 
-      {/* MODAL */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <NewDriverForm
-            onSave={handleSave}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingDriver(null);
-            }}
-            driver={editingDriver}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-md p-4">
+          <NewDriverForm 
+            driver={editingDriver} 
+            onSave={handleSave} 
+            onCancel={() => { setShowForm(false); setEditingDriver(null); }} 
           />
         </div>
       )}
-
-      <Pagination meta={meta} setPage={setPage} />
-
     </div>
   );
 }

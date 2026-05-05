@@ -17,7 +17,7 @@ export const login = async (credentials) => {
 /**
  * REGISTER
  */
-export const register = async (data) => {
+export const registerClient = async (data) => {
   const res = await API.post(ENDPOINTS.REGISTER, data);
 
   return res;

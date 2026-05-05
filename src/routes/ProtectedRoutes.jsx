@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   // pas connecté
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // rôle non autorisé

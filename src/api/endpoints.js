@@ -39,4 +39,10 @@ export const ENDPOINTS = {
   // ======================
   ADMIN_STATS: "/api/admin/stats",
 
+  // ======================
+  // OTP (Vérification Téléphone)
+  // ======================
+  OTP_SEND: "/api/otp/send",
+  OTP_VERIFY: "/api/otp/verify",
+
 };

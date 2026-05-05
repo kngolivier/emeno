@@ -1,246 +1,212 @@
 // FILE: src/pages/client-portal/ClientOrderDetails.jsx
-
-// FILE: src/pages/client-portal/ClientOrderDetails.jsx
-
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { fetchDeliveryById } from "../../api/deliveries.api";
-import { useNavigate } from "react-router-dom";
-
-import {
-  Truck,
-  MapPin,
-  Package,
-  CheckCircle,
-  Circle,
-  Clock,
-  User,
-  ShieldCheck,
-  ChevronLeft
+import { useParams, useNavigate } from "react-router-dom";
+import { fetchDeliveryById, cancelDelivery } from "../../api/deliveries.api";
+import { 
+  Truck, MapPin, Package, Clock, ShieldCheck, 
+  ChevronLeft, XCircle, AlertTriangle, Loader2 
 } from "lucide-react";
+import { notifySuccess, notifyError } from "../../utils/notify";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function ClientOrderDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [delivery, setDelivery] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
+  // Fonction pour charger ou rafraîchir les données
+  const loadDelivery = async () => {
+    try {
       const res = await fetchDeliveryById(id);
       setDelivery(res?.data);
-    };
-    load();
+    } catch (err) {
+      notifyError("Erreur lors du chargement de la commande");
+    }
+  };
+
+  useEffect(() => {
+    loadDelivery();
   }, [id]);
 
-  if (!delivery) {
-    return (
-      <div className="p-10 text-center text-slate-500">
-        Chargement...
-      </div>
-    );
-  }
-
+  if (!delivery) return <PageLoader />;
   const steps = [
-    { label: "Commande créée", time: delivery.createdAt },
+    { label: "Créée", time: delivery.createdAt },
     { label: "Assignée", time: delivery.timestampsLog?.assignedAt },
     { label: "Récupérée", time: delivery.timestampsLog?.pickedUpAt },
     { label: "En cours", time: delivery.timestampsLog?.inProgressAt },
     { label: "Livrée", time: delivery.timestampsLog?.deliveredAt },
   ];
 
-  const getStepIndex = () => {
-    switch (delivery.status) {
-      case "PENDING": return 0;
-      case "ASSIGNED": return 1;
-      case "PICKED_UP": return 2;
-      case "IN_PROGRESS": return 3;
-      case "DELIVERED": return 4;
-      default: return 0;
+  const activeStep = ["PENDING", "ASSIGNED", "PICKED_UP", "IN_PROGRESS", "DELIVERED"].indexOf(delivery.status);
+
+  // Une commande peut être annulée seulement si elle n'est pas encore récupérée
+  const canCancel = ["PENDING", "ASSIGNED"].includes(delivery.status);
+
+  const handleCancelOrder = async () => {
+    try {
+      setIsCancelling(true);
+      await cancelDelivery(id);
+      notifySuccess("Commande annulée avec succès");
+      setShowCancelModal(false);
+      loadDelivery(); // On rafraîchit pour voir le statut CANCELLED
+    } catch (err) {
+      notifyError(err?.response?.data?.message || "Erreur lors de l'annulation");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
-  const activeStep = getStepIndex();
-
-  const statusColor = {
-    PENDING: "bg-amber-50 text-amber-600",
-    ASSIGNED: "bg-blue-50 text-blue-600",
-    IN_PROGRESS: "bg-cyan-50 text-cyan-600",
-    DELIVERED: "bg-emerald-50 text-emerald-600",
-  };
-
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-
-      {/* HEADER */}
-    <div className="bg-white border rounded-2xl p-5 flex items-center justify-between shadow-sm">
-
-    {/* LEFT */}
-    <div className="flex items-center gap-4">
-
-        {/* BACK BUTTON */}
-        <button
-        onClick={() => navigate("/client/orders")}
-        className="p-2 rounded-xl border bg-slate-50 hover:bg-slate-100 transition"
-        >
-        <ChevronLeft size={18} className="text-slate-600" />
-        </button>
-
-        <div>
-        <h1 className="text-xl font-bold text-slate-800">
-            Commande #{delivery.orderNumber}
-        </h1>
-
-        <p className="text-sm text-slate-500 flex items-center gap-2 mt-1">
-            <Clock size={14} />
-            {new Date(delivery.createdAt).toLocaleString()}
-        </p>
-        </div>
-
-    </div>
-
-    {/* STATUS */}
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor[delivery.status] || "bg-slate-100 text-slate-600"}`}>
-        {delivery.status}
-    </span>
-
-    </div>
-
-      {/* GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* TIMELINE */}
-        <div className="bg-white border rounded-2xl p-5 shadow-sm">
-
-          <h2 className="font-semibold flex items-center gap-2 mb-4 text-slate-800">
-            <Truck size={18} />
-            Suivi livraison
-          </h2>
-
-          <div className="space-y-4">
-
-            {steps.map((step, index) => {
-              const done = index <= activeStep;
-
-              return (
-                <div key={index} className="flex items-start gap-3">
-
-                  <div className="mt-1">
-                    {done ? (
-                      <CheckCircle className="text-emerald-600" size={18} />
-                    ) : (
-                      <Circle className="text-slate-300" size={18} />
-                    )}
-                  </div>
-
-                  <div className="flex-1">
-                    <p className={`text-sm ${done ? "text-slate-800 font-medium" : "text-slate-400"}`}>
-                      {step.label}
-                    </p>
-
-                    <p className="text-xs text-slate-400">
-                      {step.time ? new Date(step.time).toLocaleString() : "En attente"}
-                    </p>
-                  </div>
-
-                </div>
-              );
-            })}
-
-          </div>
-        </div>
-
-        {/* COLIS */}
-        <div className="bg-white border rounded-2xl p-5 shadow-sm space-y-4">
-
-          <h2 className="font-semibold flex items-center gap-2 text-slate-800">
-            <Package size={18} />
-            Colis
-          </h2>
-
-          <div className="space-y-3 text-sm">
-
-            <div className="flex justify-between bg-slate-50 p-3 rounded-xl">
-              <span className="text-slate-500">Catégorie</span>
-              <span className="font-medium">{delivery.packageDetails?.category}</span>
-            </div>
-
-            <div className="flex justify-between bg-slate-50 p-3 rounded-xl">
-              <span className="text-slate-500">Fragile</span>
-              <span className="font-medium">
-                {delivery.packageDetails?.isFragile ? "Oui" : "Non"}
-              </span>
-            </div>
-
-            <div className="flex justify-between bg-slate-50 p-3 rounded-xl">
-              <span className="text-slate-500">Poids</span>
-              <span className="font-medium">
-                {delivery.packageDetails?.weight || "-"} kg
-              </span>
-            </div>
-
-          </div>
-
-          {delivery.verificationCode && (
-            <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-xl flex items-center gap-2 text-sm">
-              <ShieldCheck size={16} />
-              Code : <strong>{delivery.verificationCode}</strong>
-            </div>
-          )}
-
-        </div>
-
-        {/* LIVREUR */}
-        <div className="bg-white border rounded-2xl p-5 shadow-sm space-y-4">
-
-          <h2 className="font-semibold flex items-center gap-2 text-slate-800">
-            <User size={18} />
-            Livreur
-          </h2>
-
-          {delivery.driverId ? (
-            <div className="bg-slate-50 p-4 rounded-xl">
-              <p className="font-semibold text-slate-800">
-                {delivery.driverId.nom} {delivery.driverId.prenom}
-              </p>
-              <p className="text-sm text-slate-500">
-                {delivery.driverId.telephone}
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-slate-400">
-              Aucun livreur assigné
+    <div className="max-w-6xl mx-auto p-6 space-y-8 animate-in slide-in-from-bottom-4 duration-500 relative">
+      
+      {/* HEADER CARD */}
+      <div className="bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between shadow-soft gap-6">
+        <div className="flex items-center gap-6 w-full md:w-auto">
+          <button onClick={() => navigate("/client/orders")} className="p-4 rounded-2xl bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm">
+            <ChevronLeft size={24} strokeWidth={3} />
+          </button>
+          <div>
+            <h1 className="text-3xl font-black text-primary italic tracking-tighter">Commande - #{delivery.orderNumber}</h1>
+            <p className="text-xs font-black uppercase text-slate-300 tracking-widest mt-1 flex items-center gap-2">
+              <Clock size={12} /> {new Date(delivery.createdAt).toLocaleString()}
             </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          {/* BOUTON ANNULER */}
+          {canCancel && (
+            <button 
+              onClick={() => setShowCancelModal(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-red-500 border-2 border-red-50 hover:bg-red-500 hover:text-white transition-all"
+            >
+              <XCircle size={16} /> Annuler la commande
+            </button>
           )}
 
+          <span className={`px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest border-2 
+            ${delivery.status === 'DELIVERED' ? 'bg-success/10 text-success border-success/20' : 
+              delivery.status === 'CANCELLED' ? 'bg-slate-100 text-slate-400 border-slate-200' :
+              'bg-secondary/10 text-secondary border-secondary/20'}`}>
+            {delivery.status}
+          </span>
         </div>
-
       </div>
 
-      {/* ADRESSES */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <div className="bg-white border rounded-2xl p-5 shadow-sm">
-          <h3 className="font-semibold flex items-center gap-2 mb-3">
-            <MapPin size={16} />
-            Pickup
-          </h3>
-          <p className="text-sm text-slate-600">
-            {delivery.pickupLocation}
-          </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* TIMELINE */}
+        <div className="bg-white border border-slate-50 rounded-[2.5rem] p-8 shadow-soft">
+          <h2 className="font-black text-primary uppercase tracking-widest text-xs mb-8 flex items-center gap-2">
+            <Truck size={16} className="text-secondary" /> Suivi Expédition
+          </h2>
+          <div className="space-y-8 relative">
+            <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-slate-100" />
+            {steps.map((step, index) => (
+              <div key={index} className="flex items-start gap-4 relative z-10">
+                <div className={`mt-1.5 w-5 h-5 rounded-full border-4 bg-white transition-all duration-500
+                  ${index <= activeStep ? "border-secondary scale-110 shadow-lg shadow-secondary/20" : "border-slate-100"}`} />
+                <div>
+                  <p className={`text-sm font-black uppercase tracking-tight ${index <= activeStep ? "text-primary" : "text-slate-300"}`}>{step.label}</p>
+                  <p className="text-[10px] font-bold text-slate-400">{step.time ? new Date(step.time).toLocaleString() : "..."}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="bg-white border rounded-2xl p-5 shadow-sm">
-          <h3 className="font-semibold flex items-center gap-2 mb-3">
-            <MapPin size={16} />
-            Dropoff
-          </h3>
-          <p className="text-sm text-slate-600">
-            {delivery.dropoffLocation}
-          </p>
-        </div>
+        {/* COLIS & CODE */}
+        <div className="space-y-8 lg:col-span-2">
+          <div className="bg-white border border-slate-50 rounded-[2.5rem] p-8 shadow-soft">
+            <h2 className="font-black text-primary uppercase tracking-widest text-xs mb-8 flex items-center gap-2">
+              <Package size={16} className="text-secondary" /> Informations Colis
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+              <InfoBox label="Catégorie" value={delivery.packageDetails?.category} />
+              <InfoBox label="Poids" value={`${delivery.packageDetails?.weight || "-"} KG`} />
+              <InfoBox label="Fragile" value={delivery.packageDetails?.isFragile ? "OUI" : "NON"} isAlert={delivery.packageDetails?.isFragile} />
+            </div>
 
+            {/* CODE DE SÉCURITÉ - Masqué si annulé */}
+            {delivery.verificationCode && delivery.status !== 'CANCELLED' && (
+              <div className="bg-secondary/5 border-2 border-secondary/10 rounded-[2rem] p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4 text-secondary">
+                  <ShieldCheck size={24} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Code de sécurité</span>
+                </div>
+                <span className="text-2xl font-black text-primary tracking-widest">{delivery.verificationCode}</span>
+              </div>
+            )}
+
+            {delivery.status === 'CANCELLED' && (
+              <div className="bg-slate-50 border-2 border-slate-100 rounded-[2rem] p-6 flex items-center gap-4 text-slate-400">
+                <XCircle size={24} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Cette commande a été annulée</span>
+              </div>
+            )}
+          </div>
+
+          {/* ADRESSES */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <AddressCard title="Enlèvement" address={delivery.pickupLocation} color="primary" />
+            <AddressCard title="Destination" address={delivery.dropoffLocation} color="secondary" />
+          </div>
+        </div>
       </div>
 
+      {/* MODAL DE CONFIRMATION */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-primary/20 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6">
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className="text-2xl font-black text-primary italic tracking-tighter mb-2">Annuler la commande ?</h3>
+            <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8">
+              Êtes-vous sûr de vouloir annuler cette livraison ? Cette action est irréversible et le livreur en sera informé.
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 px-6 py-4 rounded-2xl bg-slate-50 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:bg-slate-100 transition-all"
+              >
+                Retour
+              </button>
+              <button 
+                onClick={handleCancelOrder}
+                disabled={isCancelling}
+                className="flex-1 px-6 py-4 rounded-2xl bg-red-500 text-white font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-200 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                {isCancelling ? <Loader2 className="animate-spin" size={16} /> : "Confirmer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InfoBox({ label, value, isAlert }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{label}</p>
+      <p className={`text-lg font-black italic ${isAlert ? "text-red-500" : "text-primary"}`}>{value}</p>
+    </div>
+  );
+}
+
+function AddressCard({ title, address, color }) {
+  return (
+    <div className="bg-white border border-slate-50 rounded-[2rem] p-6 shadow-soft">
+      <div className="flex items-center gap-3 mb-4">
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white ${color === 'primary' ? 'bg-primary' : 'bg-secondary'}`}>
+          <MapPin size={14} />
+        </div>
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{title}</h3>
+      </div>
+      <p className="text-sm font-bold text-primary leading-relaxed">{address}</p>
     </div>
   );
 }

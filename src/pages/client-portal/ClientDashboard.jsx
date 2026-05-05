@@ -1,26 +1,16 @@
 // FILE: src/pages/client-portal/ClientDashboard.jsx
-
 import { useEffect, useState } from "react";
 import { fetchClientDeliveries } from "../../api/deliveries.api";
 import { useNavigate } from "react-router-dom";
 import {
-  Package,
-  Truck,
-  CheckCircle,
-  XCircle,
-  Plus,
-  Clock
+  Package, Truck, CheckCircle, XCircle, Plus, Clock, ChevronRight, LayoutDashboard
 } from "lucide-react";
 
 export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
   const [deliveries, setDeliveries] = useState([]);
-
   const navigate = useNavigate();
 
-  // ======================
-  // FETCH DATA
-  // ======================
   const loadData = async () => {
     try {
       setLoading(true);
@@ -33,127 +23,94 @@ export default function ClientDashboard() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  // ======================
-  // STATS CALC
-  // ======================
   const stats = {
     total: deliveries.length,
     pending: deliveries.filter(d => d.status === "PENDING").length,
-    inProgress: deliveries.filter(d =>
-      ["ASSIGNED", "PICKED_UP", "IN_PROGRESS"].includes(d.status)
-    ).length,
+    inProgress: deliveries.filter(d => ["ASSIGNED", "PICKED_UP", "IN_PROGRESS"].includes(d.status)).length,
     delivered: deliveries.filter(d => d.status === "DELIVERED").length,
     cancelled: deliveries.filter(d => d.status === "CANCELLED").length
   };
 
-  // ======================
-  // UI BADGE STATUS
-  // ======================
   const getStatusStyle = (status) => {
     switch (status) {
-      case "PENDING":
-        return "bg-yellow-100 text-yellow-700";
+      case "PENDING": return "bg-amber-50 text-amber-600 border-amber-100";
       case "ASSIGNED":
       case "PICKED_UP":
-      case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-700";
-      case "DELIVERED":
-        return "bg-green-100 text-green-700";
-      case "CANCELLED":
-        return "bg-red-100 text-red-700";
-      default:
-        return "bg-gray-100 text-gray-600";
+      case "IN_PROGRESS": return "bg-primary/10 text-primary border-primary/20";
+      case "DELIVERED": return "bg-success/10 text-success border-success/20";
+      case "CANCELLED": return "bg-red-50 text-red-600 border-red-100";
+      default: return "bg-slate-50 text-slate-600 border-slate-100";
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
+    <div className="p-6 space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">
-            Tableau de bord
-          </h1>
-          <p className="text-sm text-slate-500">
-            Suivi de vos livraisons
-          </p>
+          <div className="flex items-center gap-2 text-primary mb-1">
+            <LayoutDashboard size={20} />
+            <span className="text-xs font-black uppercase tracking-widest opacity-70">Aperçu</span>
+          </div>
+          <h1 className="text-3xl font-black text-primary tracking-tight">Tableau de bord</h1>
         </div>
-
-        <button
-          onClick={() => navigate("/client/new-order")}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl"
-        >
-          <Plus size={16} />
-          Nouvelle commande
+        <button onClick={() => navigate("/client/new-order")} className="flex items-center gap-3 bg-secondary text-white px-6 py-3.5 rounded-2xl font-bold hover:shadow-lg active:scale-95 transition-all">
+          <Plus size={20} strokeWidth={3} /> Nouvelle commande
         </button>
       </div>
 
-      {/* STATS */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-
-        <StatCard icon={<Package />} label="Total" value={stats.total} />
-        <StatCard icon={<Clock />} label="En attente" value={stats.pending} />
-        <StatCard icon={<Truck />} label="En cours" value={stats.inProgress} />
-        <StatCard icon={<CheckCircle />} label="Livrées" value={stats.delivered} />
-        <StatCard icon={<XCircle />} label="Annulées" value={stats.cancelled} />
-
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <StatCard icon={<Package size={22} />} label="Total" value={stats.total} color="primary" />
+        <StatCard icon={<Clock size={22} />} label="En attente" value={stats.pending} color="secondary" />
+        <StatCard icon={<Truck size={22} />} label="En cours" value={stats.inProgress} color="primary" />
+        <StatCard icon={<CheckCircle size={22} />} label="Livrées" value={stats.delivered} color="success" />
+        <StatCard icon={<XCircle size={22} />} label="Annulées" value={stats.cancelled} color="red-500" />
       </div>
 
-      {/* LAST ORDERS */}
-      <div className="bg-white rounded-xl border p-4">
-        <h2 className="font-semibold mb-4">Dernières commandes</h2>
-
-        {loading ? (
-          <p>Chargement...</p>
-        ) : deliveries.length === 0 ? (
-          <p className="text-slate-500">Aucune commande</p>
-        ) : (
-          <div className="space-y-3">
-
-            {deliveries.slice(0, 5).map((d) => (
-              <div
-                key={d._id}
-                onClick={() => navigate(`/client/orders/${d._id}`)}
-                className="flex justify-between items-center p-3 border rounded-lg hover:bg-slate-50 cursor-pointer"
-              >
-                <div>
-                  <p className="font-medium">
-                    Commande #{d.orderNumber}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {d.pickupLocation} → {d.dropoffLocation}
-                  </p>
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-soft overflow-hidden">
+        <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+          <h2 className="font-black text-primary uppercase tracking-tighter text-lg">Dernières commandes</h2>
+        </div>
+        <div className="p-2">
+          {loading ? (
+            <div className="p-12 text-center text-slate-400 font-medium">Chargement...</div>
+          ) : deliveries.length === 0 ? (
+            <div className="p-12 text-center text-slate-400 font-medium">Aucune commande</div>
+          ) : (
+            <div className="space-y-2">
+              {deliveries.slice(0, 5).map((d) => (
+                <div key={d._id} onClick={() => navigate(`/client/orders/${d._id}`)} className="group flex justify-between items-center p-5 rounded-3xl transition-all hover:bg-slate-50 cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                      <Package size={20} />
+                    </div>
+                    <div>
+                      <p className="font-black text-primary italic leading-none mb-1">#{d.orderNumber}</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{d.pickupLocation} → {d.dropoffLocation}</p>
+                    </div>
+                  </div>
+                  <span className={`text-[10px] font-black uppercase px-4 py-1.5 rounded-full border ${getStatusStyle(d.status)}`}>
+                    {d.status}
+                  </span>
                 </div>
-
-                <span className={`text-xs px-3 py-1 rounded-full ${getStatusStyle(d.status)}`}>
-                  {d.status}
-                </span>
-              </div>
-            ))}
-
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-
     </div>
   );
 }
 
-// ======================
-// SMALL COMPONENT
-// ======================
-function StatCard({ icon, label, value }) {
+function StatCard({ icon, label, value, color }) {
+  const colors = { primary: "text-primary bg-primary/5", secondary: "text-secondary bg-secondary/5", success: "text-success bg-success/5", "red-500": "text-red-500 bg-red-50" };
   return (
-    <div className="bg-white p-4 rounded-xl border flex items-center gap-3">
-      <div className="text-primary">{icon}</div>
+    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-soft flex flex-col gap-4">
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${colors[color]}`}>{icon}</div>
       <div>
-        <p className="text-lg font-bold">{value}</p>
-        <p className="text-xs text-slate-500">{label}</p>
+        <p className="text-2xl font-black text-primary leading-none">{value}</p>
+        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mt-1">{label}</p>
       </div>
     </div>
   );

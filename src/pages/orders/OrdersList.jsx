@@ -2,62 +2,28 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, X, Eye } from "lucide-react";
+import { Eye, Plus, Search } from "lucide-react";
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { Pagination } from "../../components/Pagination";
-
 import { fetchAdminDeliveries, createDelivery } from "../../api/deliveries.api";
 import PageLoader from "../../components/ui/PageLoader";
 import TotalCard from "../../components/dashbord/TotalCard";
-import { Plus } from "lucide-react";
 import NewOrderForm from "./NewOrderForm";
 import { notifySuccess, notifyError } from "../../utils/notify";
 
 export default function OrdersList() {
   const [showForm, setShowForm] = useState(false);
-
-    // ======================
-    // HOOK (SOURCE UNIQUE)
-    // ======================
-    const {
-      data: orders = [],
-      meta,
-      loading,
-      setPage,
-      // refresh
-    } = usePaginatedFetch(fetchAdminDeliveries, 10);
-  
+  const { data: orders = [], meta, loading, setPage } = usePaginatedFetch(fetchAdminDeliveries, 10);
   const [filter, setFilter] = useState("ALL");
-  const [searchTerm, setSearchTerm] = useState("");
-
-
-  const getName = (user) => {
-    if (!user) return "Inconnu";
-    if (typeof user === "object") return `${user.nom || ""} ${user.prenom || ""}`;
-    return "Client";
-  };
 
   const statusStyles = {
-    PENDING: "bg-amber-50 text-amber-700 border-amber-200",
-    ASSIGNED: "bg-blue-50 text-blue-700 border-blue-200",
-    PICKED_UP: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    IN_PROGRESS: "bg-cyan-50 text-cyan-700 border-cyan-200",
-    DELIVERED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    CANCELLED: "bg-red-50 text-red-600 border-red-200",
+    PENDING: "bg-primary/5 text-primary border-primary/20",
+    ASSIGNED: "bg-secondary/10 text-secondary border-secondary/20",
+    PICKED_UP: "bg-secondary/5 text-secondary border-secondary/10",
+    IN_PROGRESS: "bg-secondary text-white border-secondary shadow-sm shadow-secondary/20",
+    DELIVERED: "bg-emerald-500/10 text-emerald-600 border-emerald-200", // On peut garder une nuance verte pour le succès
+    CANCELLED: "bg-red-500/10 text-red-600 border-red-200",
   };
-
-  const filteredOrders = orders.filter((order) => {
-    const matchesStatus = filter === "ALL" || order.status === filter;
-
-    const search = searchTerm.toLowerCase();
-
-    const matchesSearch =
-      order.orderNumber?.toString().includes(search) ||
-      order.creatorId?.nom?.toLowerCase().includes(search) ||
-      order.driverId?.nom?.toLowerCase().includes(search);
-
-    return matchesStatus && matchesSearch;
-  });
 
   const handleCreateOrder = async (data) => {
     try {
@@ -69,169 +35,99 @@ export default function OrdersList() {
     }
   };
 
-  if (loading) {
-    return (
-      <PageLoader />
-    );
-  }
+  if (loading) return <PageLoader />;
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-8 font-sans">
       {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">
+          <h1 className="text-4xl font-black text-primary font-display italic tracking-tighter">
             Livraisons
           </h1>
-          <p className="text-slate-500 text-sm">
-            Suivi et gestion des commandes
+          <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-[0.1em]">
+            Flux opérationnel en temps réel
           </p>
         </div>
 
-        <TotalCard
-          title="Total Commandes"
-          value={meta?.total || 0}
-          subtitle="Commandes créées"
-        />
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white hover:bg-secondary transition text-sm font-semibold"
-        >
-          <Plus size={16} />
-          Nouvelle commande
-        </button>
-
-        {/* SEARCH */}
-        {/* <div className="relative w-full lg:w-80">
-          <Search className="absolute left-3 top-3 text-slate-400" size={16} />
-
-          <input
-            className="w-full border border-slate-200 rounded-xl pl-10 pr-10 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-            placeholder="ID, client, livreur..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div> */}
+        <div className="flex flex-wrap items-center gap-4">
+          <TotalCard title="Volume Total" value={meta?.total || 0} subtitle="Commandes" />
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-8 py-4 rounded-[1.5rem] bg-primary text-white hover:bg-secondary transition-all shadow-xl hover:shadow-secondary/20 text-xs font-black uppercase tracking-widest"
+          >
+            <Plus size={18} strokeWidth={3} />
+            Créer
+          </button>
+        </div>
       </div>
 
       {/* FILTERS */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {["ALL", "PENDING", "ASSIGNED", "IN_PROGRESS", "DELIVERED", "CANCELLED"].map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-4 py-2 rounded-full text-sm border transition whitespace-nowrap
-              ${filter === s
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-600 hover:bg-slate-50 border-slate-200"
-              }`}
+            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all
+              ${filter === s ? "bg-primary text-white border-primary shadow-lg" : "bg-white text-slate-400 border-slate-100 hover:border-slate-300"}`}
           >
             {s}
           </button>
         ))}
-
       </div>
 
-      {/* TABLE CARD */}
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-
+      {/* TABLE */}
+      <div className="bg-white border border-slate-50 rounded-[2rem] shadow-soft overflow-hidden">
         <div className="overflow-x-auto">
-
-          <table className="w-full text-sm">
-
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50/50 border-b border-slate-50">
               <tr>
-                <th className="p-4 text-left">Commande</th>
-                <th className="text-left">Client</th>
-                <th className="text-left">Livreur</th>
-                <th className="text-left">Statut</th>
-                <th className="text-left">Date</th>
-                <th className="text-right p-4">Action</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">ID Commande</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Client</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Livreur</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Statut</th>
+                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
               </tr>
             </thead>
-
-            <tbody>
-
-              {filteredOrders.map((order) => (
-                <tr
-                  key={order._id}
-                  className="border-t border-slate-100 hover:bg-slate-50 transition"
-                >
-
-                  <td className="p-4 font-semibold text-slate-800">
+            <tbody className="divide-y divide-slate-50">
+              {orders.map((order) => (
+                <tr key={order._id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="p-6 font-display font-black text-primary italic text-lg tracking-tighter">
                     #{order.orderNumber}
                   </td>
-
-                  <td className="text-slate-700">
-                    {getName(order.creatorId)}
+                  <td className="p-6">
+                    <p className="font-bold text-slate-700 text-sm">{order.creatorId?.nom || "Client App"}</p>
+                    <p className="text-[10px] text-slate-400 font-sans italic">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </td>
-
-                  <td className="text-slate-700">
-                    {getName(order.driverId)}
+                  <td className="p-6 text-sm font-bold text-slate-600">
+                    {order.driverId ? `${order.driverId.prenom} ${order.driverId.nom}` : "---"}
                   </td>
-
-                  <td>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs border font-medium
-                      ${statusStyles[order.status]}`}
-                    >
+                  <td className="p-6">
+                    <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter border ${statusStyles[order.status]}`}>
                       {order.status}
                     </span>
                   </td>
-
-                  <td className="text-slate-500">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-
-                  <td className="text-right p-4">
+                  <td className="p-6 text-right">
                     <Link
-                      to={`/deliveries/${order._id}`}
-                      className="inline-flex items-center gap-1 px-3 py-1.5
-                                 rounded-lg bg-blue-50 text-blue-600
-                                 hover:bg-blue-100 transition text-xs font-medium"
+                      to={`/admin/deliveries/${order._id}`}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-primary hover:bg-secondary hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
                     >
-                      <Eye size={14} />
-                      Voir
+                      <Eye size={14} strokeWidth={3} /> Détails
                     </Link>
                   </td>
-
                 </tr>
               ))}
-
             </tbody>
-
           </table>
-
         </div>
-
-        {filteredOrders.length === 0 && (
-          <div className="p-10 text-center text-slate-500">
-            Aucune livraison trouvée
-          </div>
-        )}
-        {showForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-              <NewOrderForm
-                onAdd={handleCreateOrder}
-                onClose={() => setShowForm(false)}
-              />
-          </div>
-        )}
       </div>
       <Pagination meta={meta} setPage={setPage} />
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-md p-4">
+          <NewOrderForm onAdd={handleCreateOrder} onClose={() => setShowForm(false)} />
+        </div>
+      )}
     </div>
   );
 }

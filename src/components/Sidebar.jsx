@@ -1,101 +1,84 @@
 // FILE: src/components/Sidebar.jsx
-
 import { NavLink, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  ShoppingCart,
-  Truck,
-  Users,
-  DollarSign,
-  Shield,
-  PlusCircle,
-  ClipboardList,
-  User,
-  LogOutIcon
+import { 
+  LayoutDashboard, ShoppingCart, Truck, Users, 
+  DollarSign, Shield, PlusCircle, ClipboardList, 
+  User, LogOutIcon 
 } from "lucide-react";
-
-import { THEME } from "../utils/theme";
 import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
+  // Style des liens : plus propre, moins agressif
   const linkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+    `group flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-200 mb-1.5 ${
       isActive
-        ? "bg-secondary text-white shadow-lg"
-        : "text-white hover:bg-secondary-light hover:text-[#000]"
+        ? "bg-secondary text-white shadow-lg shadow-secondary/20"
+        : "text-white/70 hover:bg-white/10 hover:text-white"
     }`;
 
-  // ======================
-  // MENU PAR ROLE
-  // ======================
   const menuByRole = {
     ADMIN: [
-      { to: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-      { to: "/admins", label: "Admins", icon: <Shield size={20} /> },
-      { to: "/deliveries", label: "Livraisons", icon: <ShoppingCart size={20} /> },
-      { to: "/drivers", label: "Livreurs", icon: <Truck size={20} /> },
-      { to: "/clients", label: "Clients", icon: <Users size={20} /> },
-      { to: "/pricing", label: "Tarifs", icon: <DollarSign size={20} /> }
+      { to: "/admin", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
+      { to: "/admin/deliveries", label: "Livraisons", icon: <ShoppingCart size={20} /> },
+      { to: "/admin/drivers", label: "Livreurs", icon: <Truck size={20} /> },
+      { to: "/admin/clients", label: "Clients", icon: <Users size={20} /> },
+      { to: "/admin/pricing", label: "Tarifs", icon: <DollarSign size={20} /> },
+      { to: "/admin/admins", label: "Équipe", icon: <Shield size={20} /> },
     ],
-
     DRIVER: [
       { to: "/driver", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-      { to: "/driver/deliveries", label: "Mes livraisons", icon: <Truck size={20} /> },
+      { to: "/driver/deliveries", label: "Mes courses", icon: <Truck size={20} /> },
       { to: "/driver/active", label: "En cours", icon: <ClipboardList size={20} /> },
       { to: "/driver/profile", label: "Profil", icon: <User size={20} /> }
     ],
-
     CLIENT: [
-      { to: "/client", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/client", label: "Aperçu", icon: <LayoutDashboard size={20} /> },
       { to: "/client/new-order", label: "Nouvelle commande", icon: <PlusCircle size={20} /> },
-      { to: "/client/orders", label: "Mes commandes", icon: <ShoppingCart size={20} /> },
-      { to: "/client/profile", label: "Profil", icon: <User size={20} /> }
+      { to: "/client/orders", label: "Historique", icon: <ShoppingCart size={20} /> },
+      { to: "/client/profile", label: "Mon Profil", icon: <User size={20} /> }
     ]
   };
 
   const navItems = menuByRole[user?.role] || [];
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
   return (
-    <aside
-      className="w-72 h-screen flex flex-col p-6 bg-primary"
-      style={{ backgroundColor: THEME.colors.primary }}
-    >
-      {/* LOGO */}
-      <div className="h-24 flex items-center justify-center mb-4">
-        <img src="/logo.png" className="h-20 object-contain" />
+    <aside className="w-72 h-screen flex flex-col p-6 bg-primary sticky top-0 z-50 shadow-2xl">
+      {/* LOGO : Plus compact */}
+      <div className="mb-10 px-4 pt-2">
+        <img src="/logo.png" alt="Logo"/>
       </div>
 
-      {/* NAV */}
-      <nav className="flex-1 space-y-1">
+      {/* NAVIGATION : Texte clair et posé */}
+      <nav className="flex-1">
+        <p className="text-[11px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-4 px-4">
+          Menu Principal
+        </p>
+        
         {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end
-            className={linkClass}
-          >
-            {item.icon}
-            <span className="font-medium">{item.label}</span>
+          <NavLink key={item.to} to={item.to} end className={linkClass}>
+            <span className="opacity-80 group-hover:opacity-100 transition-opacity">
+              {item.icon}
+            </span>
+            <span className="font-medium text-sm tracking-wide">
+              {item.label}
+            </span>
           </NavLink>
         ))}
       </nav>
 
-      {/* LOGOUT */}
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 px-4 py-3 text-red-300 hover:bg-red-500/10 rounded-xl"
-      >
-        <LogOutIcon size={20} />
-        <span>Déconnexion</span>
-      </button>
+      {/* LOGOUT : Design épuré mais distinctif */}
+      <div className="pt-6 border-t border-white/10">
+        <button
+          onClick={() => { logout(); navigate("/"); }}
+          className="w-full flex items-center gap-4 px-5 py-3.5 text-red-300 hover:bg-red-500/10 hover:text-red-400 rounded-2xl transition-all duration-200 font-semibold text-sm"
+        >
+          <LogOutIcon size={20} />
+          <span>Déconnexion</span>
+        </button>
+      </div>
     </aside>
   );
 }

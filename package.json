@@ -1,5 +1,5 @@
 {
-  "name": "emeno",
+  "name": "EMENO",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,6 +13,7 @@
     "@react-google-maps/api": "^2.20.8",
     "axios": "^1.15.2",
     "dotenv": "^17.4.2",
+    "framer-motion": "^12.38.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.7.0",
     "react": "^19.2.4",

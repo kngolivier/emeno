@@ -1,9 +1,8 @@
 // FILE: src/pages/drivers/DriverDetails
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Phone, Activity, Truck, Package, ShieldOff, Trash2, Mail } from "lucide-react";
-
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ChevronLeft, Phone, Activity, Truck, Package, ShieldOff, Trash2, Mail, Clock } from "lucide-react";
 import { fetchDriverById, updateUserStatus, deleteUser } from "../../api/users.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
@@ -11,271 +10,128 @@ import PageLoader from "../../components/ui/PageLoader";
 export default function DriverDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [driver, setDriver] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // ======================
-  // LOAD DRIVER
-  // ======================
   const loadDriver = async () => {
     try {
-      setLoading(true);
-
       const res = await fetchDriverById(id);
-      const data = res?.data?.data || res?.data || res;
-
-      setDriver(data);
+      setDriver(res?.data?.data || res?.data || res);
     } catch (err) {
       notifyError("Impossible de charger le livreur");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadDriver();
-  }, [id]);
+  useEffect(() => { loadDriver(); }, [id]);
 
-  // ======================
-  //   Fonction de suppression
-  // ======================
-  const handleDelete = async () => {
-        try {
-            setDeleting(true);
-
-            await deleteUser(driver._id);
-
-            notifySuccess("Livreur supprimé");
-            setShowDeleteModal(false);
-
-        } catch (err) {
-            notifyError("Erreur lors de la suppression");
-        } finally {
-            setDeleting(false);
-        }
-    };
-  // ======================
-  // STATUS STYLE
-  // ======================
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "ACTIVE":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "INACTIVE":
-        return "bg-slate-100 text-slate-600 border-slate-200";
-      case "BLOCKED":
-        return "bg-red-50 text-red-600 border-red-200";
-      case "DELETED":
-        return "bg-black text-white";
-      default:
-        return "bg-slate-100 text-slate-600";
-    }
-  };
-
-  // ======================
-  // BLOCK / UNBLOCK
-  // ======================
   const handleBlockToggle = async () => {
     try {
       const newStatus = driver.status === "BLOCKED" ? "ACTIVE" : "BLOCKED";
-
       await updateUserStatus(driver._id, newStatus);
-
-      setDriver((prev) => ({
-        ...prev,
-        status: newStatus,
-      }));
-
+      setDriver(prev => ({ ...prev, status: newStatus }));
       notifySuccess("Statut mis à jour");
-    } catch (err) {
-      notifyError("Erreur lors du changement de statut");
-    }
+    } catch (err) { notifyError("Erreur de statut"); }
   };
 
-  if (loading) {
-    return <PageLoader />;
-  }
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteUser(driver._id);
+      notifySuccess("Livreur supprimé");
+      navigate("/admin/drivers");
+    } catch (err) { notifyError("Erreur de suppression"); }
+    finally { setDeleting(false); }
+  };
 
-  if (!driver) {
-    return <div className="p-6 text-red-500">Livreur introuvable</div>;
-  }
+  if (loading) return <PageLoader />;
+  if (!driver) return <div className="p-20 text-center font-display italic text-primary">Livreur introuvable</div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8 bg-slate-50 min-h-screen">
-
+    <div className="space-y-8 font-sans">
       {/* HEADER */}
-      <div className="space-y-3">
-
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-primary"
-        >
-          <ArrowLeft size={16} />
-          Retour
-        </button>
-
-        <div className="flex items-center justify-between">
-
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <button onClick={() => navigate(-1)} className="p-4 bg-white rounded-2xl border border-slate-100 hover:shadow-lg transition-all text-primary">
+            <ChevronLeft size={24} strokeWidth={3} />
+          </button>
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900">
+            <h1 className="text-4xl font-black text-primary font-display italic tracking-tighter">
               {driver.nom} {driver.prenom}
             </h1>
-
-            <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(driver.status)}`}>
-              {driver.status}
+            <span className={`inline-block mt-2 px-4 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border 
+              ${driver.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-100' : 'bg-primary/10 text-primary border-primary/10'}`}>
+              Compte {driver.status}
             </span>
           </div>
-
-        </div>
-      </div>
-
-      {/* INFO CARD */}
-      <div className="bg-white rounded-3xl border shadow-sm p-6 grid md:grid-cols-3 gap-6">
-
-        <div className="space-y-3">
-          <p className="text-slate-400 text-xs font-semibold">CONTACT</p>
-
-          <div className="flex items-center gap-2 text-slate-700">
-            <Phone size={16} />
-            {driver.telephone}
-          </div>
-
-          <div className="flex items-center gap-2 text-slate-700">
-            <Mail size={16} />
-            {driver.email || "—"}
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <p className="text-slate-400 text-xs font-semibold">STATUT COMPTE</p>
-          <p className="text-slate-700 font-semibold">
-            {driver.status}
-          </p>
-
-          <p className="text-slate-400 text-sm">
-            Dernière mise à jour à brancher API
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          <p className="text-slate-400 text-xs font-semibold">ACTIVITÉ</p>
-          <div className="flex items-center gap-2 text-slate-700">
-            <Activity size={16} />
-            Statistiques à venir
-          </div>
-        </div>
-
-      </div>
-
-      {/* ACTIONS */}
-        <div className="bg-white border rounded-2xl p-4 flex items-center justify-between">
-
-        <div className="text-sm text-slate-500">
-            Actions sur le livreur
         </div>
 
         <div className="flex gap-3">
-
-            {/* BLOCK / UNBLOCK */}
-            <button
-            onClick={handleBlockToggle}
-            disabled={driver.status === "DELETED"}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition
-                ${
-                driver.status === "BLOCKED"
-                    ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                    : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
-                }
-                ${driver.status === "DELETED" ? "opacity-40 cursor-not-allowed" : ""}
-            `}
-            >
-            <ShieldOff size={16} />
-            {driver.status === "BLOCKED" ? "Débloquer" : "Bloquer"}
-            </button>
-
-            {/* DELETE */}
-            <button
-            onClick={() => setShowDeleteModal(true)}
-            disabled={driver.status === "DELETED"}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition
-                bg-red-50 text-red-600 border-red-200 hover:bg-red-600 hover:text-white
-                ${driver.status === "DELETED" ? "opacity-40 cursor-not-allowed" : ""}
-            `}
-            >
-            <Trash2 size={16} />
-            Supprimer
-            </button>
-
+          <button onClick={handleBlockToggle} className="px-6 py-4 bg-white border border-slate-100 text-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all flex items-center gap-2">
+            <ShieldOff size={16} /> {driver.status === "BLOCKED" ? "Débloquer" : "Bloquer"}
+          </button>
+          <button onClick={() => setShowDeleteModal(true)} className="px-6 py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-red-200 hover:bg-red-600 transition-all flex items-center gap-2">
+            <Trash2 size={16} /> Supprimer
+          </button>
         </div>
-        </div>
-
-      {/* STATS GRID */}
-      <div className="grid md:grid-cols-3 gap-5">
-
-        <div className="bg-white border rounded-2xl p-6">
-          <div className="flex items-center gap-2 text-slate-500 text-sm">
-            <Truck size={16} />
-            Livraisons
-          </div>
-          <p className="text-3xl font-bold text-primary mt-2">0</p>
-        </div>
-
-        <div className="bg-white border rounded-2xl p-6">
-          <div className="flex items-center gap-2 text-slate-500 text-sm">
-            <Package size={16} />
-            Livraisons réussies
-          </div>
-          <p className="text-3xl font-bold text-secondary mt-2">0</p>
-        </div>
-
-        <div className="bg-white border rounded-2xl p-6">
-          <p className="text-slate-500 text-sm">Dernière activité</p>
-          <p className="text-2xl font-bold text-slate-700 mt-2">—</p>
-        </div>
-
       </div>
 
+      {/* INFO CARDS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft space-y-6">
+          <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Contact & Localisation</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl">
+              <Phone className="text-secondary" size={20} />
+              <span className="font-bold text-slate-700">{driver.telephone}</span>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl">
+              <Mail className="text-secondary" size={20} />
+              <span className="font-bold text-slate-700 break-all">{driver.email || "Non renseigné"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { label: "Livraisons", val: "0", icon: Truck, col: "bg-blue-500" },
+            { label: "Réussies", val: "0", icon: Package, col: "bg-emerald-500" },
+            { label: "Score Actu", val: "N/A", icon: Activity, col: "bg-secondary" },
+          ].map((item, i) => (
+            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft flex flex-col items-center text-center space-y-4">
+              <div className={`w-14 h-14 ${item.col} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
+                <item.icon size={24} />
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">{item.label}</p>
+                <p className="font-display font-black text-3xl text-primary italic">{item.val}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* DELETE MODAL */}
       {showDeleteModal && (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-        <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl space-y-4">
-
-        <h2 className="text-xl font-bold text-slate-900">
-            Supprimer le livreur ?
-        </h2>
-
-        <p className="text-slate-500 text-sm">
-            Cette action est irréversible. Le compte sera désactivé définitivement.
-        </p>
-
-        <div className="flex justify-end gap-3 pt-4">
-
-            <button
-            onClick={() => setShowDeleteModal(false)}
-            className="px-4 py-2 rounded-xl border text-slate-600 hover:bg-slate-50"
-            >
-            Annuler
-            </button>
-
-            <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-            >
-            {deleting ? "Suppression..." : "Supprimer"}
-            </button>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-md p-4">
+          <div className="bg-white p-8 rounded-[2.5rem] max-w-sm w-full text-center space-y-6 shadow-2xl">
+            <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto">
+              <Trash2 size={32} />
+            </div>
+            <div>
+              <h2 className="font-display font-black text-2xl italic text-primary">Supprimer ?</h2>
+              <p className="text-slate-400 text-sm mt-2">Cette action est irréversible. Le compte sera désactivé définitivement.</p>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Annuler</button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">
+                {deleting ? "..." : "Confirmer"}
+              </button>
+            </div>
+          </div>
         </div>
-
-        </div>
-
-    </div>
-    )}
-
+      )}
     </div>
   );
 }

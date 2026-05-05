@@ -1,7 +1,7 @@
+// FILE: src/pages/client-portal/ClientOrders.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Eye, X } from "lucide-react";
-
+import { Search, Eye, X, Filter } from "lucide-react";
 import { fetchClientDeliveries } from "../../api/deliveries.api";
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import PageLoader from "../../components/ui/PageLoader";
@@ -9,25 +9,10 @@ import { Pagination } from "../../components/Pagination";
 
 export default function ClientOrders() {
   const navigate = useNavigate();
-
-  // ======================
-  // STATE UI
-  // ======================
   const [filter, setFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  // ======================
-  // HOOK CENTRAL (AVEC STATUS)
-  // ======================
-  const {
-    data: orders = [],
-    meta,
-    loading,
-    setPage,
-  } = usePaginatedFetch(fetchClientDeliveries, 10);
+  const { data: orders = [], meta, loading, setPage } = usePaginatedFetch(fetchClientDeliveries, 10);
 
-  // ======================
-  // STATUS STYLES
-  // ======================
   const statusStyles = {
     PENDING: "bg-amber-50 text-amber-700 border-amber-200",
     ASSIGNED: "bg-blue-50 text-blue-700 border-blue-200",
@@ -39,145 +24,91 @@ export default function ClientOrders() {
 
   const filteredOrders = orders.filter((order) => {
     const matchesStatus = filter === "ALL" || order.status === filter;
-
     const search = searchTerm.toLowerCase();
-
-    const matchesSearch =
-      order.orderNumber?.toString().includes(search) ||
-      order.creatorId?.nom?.toLowerCase().includes(search) ||
-      order.driverId?.nom?.toLowerCase().includes(search);
-
+    const matchesSearch = order.orderNumber?.toString().includes(search) || 
+                          order.creatorId?.nom?.toLowerCase().includes(search) || 
+                          order.driverId?.nom?.toLowerCase().includes(search);
     return matchesStatus && matchesSearch;
   });
 
-  // ======================
-  // LOADING
-  // ======================
   if (loading) return <PageLoader />;
 
   return (
-    <div className="space-y-6">
-
-      {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-
+    <div className="p-6 space-y-8">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">
-            Mes commandes
-          </h1>
-          <p className="text-slate-500 text-sm">
-            Suivi de vos livraisons
-          </p>
+          <h1 className="text-3xl font-black text-primary tracking-tight">Mes commandes</h1>
+          <p className="text-slate-400 font-medium italic">Historique et suivi en temps réel</p>
         </div>
 
-        {/* SEARCH (optionnel backend plus tard) */}
-        <div className="relative w-full lg:w-80">
-          <Search className="absolute left-3 top-3 text-slate-400" size={16} />
-
+        <div className="relative w-full lg:w-96 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors" size={18} />
           <input
-            className="w-full border border-slate-200 rounded-xl pl-10 pr-10 py-2 text-sm"
-            placeholder="Rechercher..."
+            className="w-full bg-white border-2 border-slate-50 rounded-2xl pl-12 pr-12 py-3.5 text-sm font-bold shadow-soft outline-none focus:border-secondary/20 transition-all"
+            placeholder="Rechercher un numéro, un nom..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-
           {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-2.5 text-slate-400"
-            >
-              <X size={16} />
+            <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500">
+              <X size={18} />
             </button>
           )}
         </div>
-
       </div>
 
-      {/* FILTERS CONNECTÉS AU BACKEND */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
         {["ALL", "PENDING", "ASSIGNED", "IN_PROGRESS", "DELIVERED", "CANCELLED"].map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-4 py-2 rounded-full text-sm border transition whitespace-nowrap
-              ${filter === s
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-600 border-slate-200"
-              }`}
+            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all whitespace-nowrap
+              ${filter === s ? "bg-primary text-white border-primary shadow-lg" : "bg-white text-slate-400 border-slate-50 hover:border-slate-200"}`}
           >
-            {s}
+            {s === "ALL" ? "TOUS" : s}
           </button>
         ))}
       </div>
 
-      {/* TABLE */}
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-[2.5rem] border border-slate-50 shadow-soft overflow-hidden">
         <div className="overflow-x-auto">
-
-          <table className="w-full text-sm">
-
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
-              <tr>
-                <th className="p-4 text-left">Commande</th>
-                <th className="text-left">Trajet</th>
-                <th className="text-left">Statut</th>
-                <th className="text-left">Date</th>
-                <th className="text-right p-4">Action</th>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="p-6 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Commande</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Trajet</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Statut</th>
+                <th className="text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
+                <th className="p-6 text-right"></th>
               </tr>
             </thead>
-
-            <tbody>
+            <tbody className="divide-y divide-slate-50">
               {filteredOrders.map((d) => (
-                <tr
-                  key={d._id}
-                  className="border-t hover:bg-slate-50 cursor-pointer"
-                >
-                  <td className="p-4 font-semibold text-slate-800">
-                    #{d.orderNumber}
+                <tr key={d._id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => navigate(`/client/orders/${d._id}`)}>
+                  <td className="p-6 font-black text-primary italic">#{d.orderNumber}</td>
+                  <td className="text-sm font-bold text-slate-600">
+                    {d.pickupLocation} <span className="text-secondary mx-1">→</span> {d.dropoffLocation}
                   </td>
-
                   <td>
-                    {d.pickupLocation} → {d.dropoffLocation}
-                  </td>
-
-                  <td>
-                    <span className={`px-2 py-1 rounded-full text-xs border ${statusStyles[d.status]}`}>
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase border ${statusStyles[d.status]}`}>
                       {d.status}
                     </span>
                   </td>
-
-                  <td>
-                    {new Date(d.createdAt).toLocaleDateString()}
-                  </td>
-
-                  <td className="text-right p-4">
-                    <button
-                      onClick={() => navigate(`/client/orders/${d._id}`, { replace: false })}
-                      className="inline-flex items-center gap-1 px-3 py-1.5
-                                 rounded-lg bg-blue-50 text-blue-600
-                                 hover:bg-blue-100 transition text-xs font-medium"
-                    >
-                      <Eye size={14} />
-                      voir
-                    </button>
+                  <td className="text-sm font-bold text-slate-400">{new Date(d.createdAt).toLocaleDateString()}</td>
+                  <td className="p-6 text-right">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-all">
+                      <Eye size={18} />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
-
-        {orders.length === 0 && (
-          <div className="p-10 text-center text-slate-500">
-            Aucune commande trouvée
-          </div>
-        )}
+        {filteredOrders.length === 0 && <div className="p-20 text-center font-bold text-slate-300 uppercase tracking-widest">Aucun résultat</div>}
       </div>
 
-      {/* PAGINATION */}
       <Pagination meta={meta} setPage={setPage} />
-
     </div>
   );
 }

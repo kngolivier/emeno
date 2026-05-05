@@ -2,315 +2,112 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Phone, Mail, Activity, Trash2, ShieldOff } from "lucide-react";
-
-import {
-  fetchClientById,
-  updateUserStatus,
-  deleteUser
-} from "../../api/users.api";
-
+import { ArrowLeft, Shield, Phone, Mail, Clock, Trash2, CheckCircle, Ban } from "lucide-react";
+import { fetchClientById, updateUserStatus, deleteUser } from "../../api/users.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
 
 export default function AdminDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   const loadAdmin = async () => {
     try {
       setLoading(true);
       const res = await fetchClientById(id);
       setAdmin(res.data);
-    } catch (err) {
-      notifyError("Erreur chargement admin");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { notifyError("Erreur chargement admin"); } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadAdmin();
-  }, [id]);
+  useEffect(() => { loadAdmin(); }, [id]);
 
-  const handleDelete = async () => {
-        try {
-            setDeleting(true);
-
-            await deleteUser(id);
-
-            notifySuccess("Administrateur supprimé");
-
-            setShowDeleteModal(false);
-
-            // refresh + retour (optionnel mais propre pour UX admin)
-            navigate("/admins");
-
-        } catch (err) {
-            notifyError("Erreur lors de la suppression");
-        } finally {
-            setDeleting(false);
-        }
-    };
-
-  const handleStatus = async (status) => {
+  const handleAction = async (status) => {
     try {
       await updateUserStatus(id, status);
       loadAdmin();
       notifySuccess("Statut mis à jour");
-    } catch (err) {
-      notifyError("Erreur mise à jour statut");
-    }
+    } catch (err) { notifyError("Erreur mise à jour"); }
   };
 
   if (loading) return <PageLoader />;
-  if (!admin) return <div className="p-6 text-red-500">Admin introuvable</div>;
+  if (!admin) return <div className="p-8 text-center font-black text-rose-500 uppercase tracking-widest">Admin introuvable</div>;
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case "ACTIVE":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "INACTIVE":
-        return "bg-slate-100 text-slate-600 border-slate-200";
-      case "BLOCKED":
-        return "bg-red-50 text-red-600 border-red-200";
-      case "DELETED":
-        return "bg-black text-white";
-      default:
-        return "bg-slate-100 text-slate-600";
-    }
-  };
+  const cardClass = "bg-white border border-slate-50 rounded-[2rem] p-8 shadow-soft";
+  const labelClass = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 mb-4 block";
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8 bg-slate-50 min-h-screen">
-
-      {/* ===================== */}
-      {/* HEADER */}
-      {/* ===================== */}
-      <div className="flex items-start justify-between">
-
-        <div className="space-y-2">
-
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-primary"
-          >
-            <ArrowLeft size={16} />
-            Retour
-          </button>
-
-          <h1 className="text-3xl font-extrabold text-slate-900">
-            {admin.nom} {admin.prenom}
-          </h1>
-
-          <div className="flex items-center gap-3">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(admin.status)}`}>
-              {admin.status}
-            </span>
-
-            <span className="text-xs text-slate-400">
-              ADMIN ID: {admin._id}
-            </span>
-          </div>
-
-        </div>
-
+    <div className="max-w-6xl mx-auto space-y-8 font-sans">
+      {/* TOP NAV */}
+      <div className="flex items-center justify-between">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">
+          <ArrowLeft size={16} strokeWidth={3} /> Retour
+        </button>
         <div className="flex gap-2">
-
-        <button
-            onClick={() => handleStatus("ACTIVE")}
-            className="px-3 py-2 rounded-xl bg-green-50 text-green-700 text-sm"
-        >
-            Activer
-        </button>
-
-        <button
-            onClick={() => handleStatus("BLOCKED")}
-            className="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-sm"
-        >
-            Bloquer
-        </button>
-
-        <button
-            onClick={() => handleStatus("INACTIVE")}
-            className="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-sm"
-        >
-            Désactiver
-        </button>
-
-        {/* DELETE BUTTON */}
-        <button
-            onClick={() => setShowDeleteModal(true)}
-            disabled={admin.status === "DELETED"}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 text-red-600 text-sm hover:bg-red-600 hover:text-white transition"
-        >
-            <Trash2 size={16} />
-            Supprimer
-        </button>
-
+          <button onClick={() => handleAction("ACTIVE")} className="p-4 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"><CheckCircle size={20}/></button>
+          <button onClick={() => handleAction("BLOCKED")} className="p-4 bg-rose-500 text-white rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-105 transition-all"><Ban size={20}/></button>
+          <button onClick={() => setShowDeleteModal(true)} className="p-4 bg-slate-800 text-white rounded-2xl shadow-lg hover:bg-black transition-all"><Trash2 size={20}/></button>
         </div>
       </div>
 
-      {/* ===================== */}
-      {/* BLOCK 1 - IDENTITY */}
-      {/* ===================== */}
-      <div className="bg-white border rounded-3xl shadow-sm p-6 grid md:grid-cols-3 gap-6">
-
-        <div className="space-y-3">
-          <p className="text-xs font-bold text-slate-400">IDENTITÉ</p>
-
-          <div className="flex items-center gap-2 text-slate-700">
-            <Shield size={16} />
-            {admin.role}
+      {/* IDENTITY HEADER */}
+      <div className={`${cardClass} flex flex-col md:flex-row justify-between items-center gap-8 border-l-[12px] border-l-primary`}>
+        <div className="flex items-center gap-6">
+          <div className="h-24 w-24 rounded-[2rem] bg-slate-100 flex items-center justify-center text-4xl font-black text-primary italic border-4 border-white shadow-xl">
+            {admin.nom?.charAt(0)}
           </div>
-
-          <div className="flex items-center gap-2 text-slate-700">
-            <Phone size={16} />
-            {admin.telephone}
-          </div>
-
-          <div className="flex items-center gap-2 text-slate-700">
-            <Mail size={16} />
-            {admin.email || "—"}
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <p className="text-xs font-bold text-slate-400">STATUT COMPTE</p>
-          <p className="font-semibold text-slate-700">
-            {admin.status}
-          </p>
-
-          <p className="text-xs text-slate-400">
-            Bloc prêt pour permissions / rôles avancés
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          <p className="text-xs font-bold text-slate-400">ACTIVITÉ</p>
-
-          <div className="flex items-center gap-2 text-slate-700">
-            <Activity size={16} />
-            Logs système à venir
-          </div>
-        </div>
-
-      </div>
-
-      {/* ===================== */}
-      {/* BLOCK 2 - SYSTEM INFO */}
-      {/* ===================== */}
-      <div className="bg-white border rounded-3xl shadow-sm p-6 grid md:grid-cols-2 gap-6">
-
-        <div>
-          <p className="text-xs font-bold text-slate-400 mb-2">SYSTÈME</p>
-
-          <p className="text-slate-700">
-            Créé le :{" "}
-            {new Date(admin.createdAt).toLocaleString()}
-          </p>
-
-          <p className="text-slate-700 mt-2">
-            Dernière connexion :{" "}
-            {admin.lastLogin
-              ? new Date(admin.lastLogin).toLocaleString()
-              : "Jamais"}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs font-bold text-slate-400 mb-2">SÉCURITÉ</p>
-
-          <p className="text-slate-500 text-sm">
-            Section prête pour : logs login, IP, device tracking
-          </p>
-        </div>
-
-      </div>
-
-      {/* ===================== */}
-      {/* BLOCK 3 - STATS */}
-      {/* ===================== */}
-      <div className="grid md:grid-cols-3 gap-5">
-
-        <div className="bg-white border rounded-2xl p-6">
-          <p className="text-slate-500 text-sm">Actions effectuées</p>
-          <p className="text-3xl font-bold text-primary">0</p>
-          <p className="text-xs text-slate-400">à brancher logs</p>
-        </div>
-
-        <div className="bg-white border rounded-2xl p-6">
-          <p className="text-slate-500 text-sm">Connexions</p>
-          <p className="text-3xl font-bold text-secondary">0</p>
-          <p className="text-xs text-slate-400">historique login</p>
-        </div>
-
-        <div className="bg-white border rounded-2xl p-6">
-          <p className="text-slate-500 text-sm">Niveau d'activité</p>
-          <p className="text-2xl font-bold text-slate-700">—</p>
-          <p className="text-xs text-slate-400">score futur</p>
-        </div>
-
-      </div>
-
-      {/* ===================== */}
-      {/* BLOCK 4 - LOGS (FUTURE) */}
-      {/* ===================== */}
-      <div className="bg-white border rounded-2xl p-6">
-
-        <h2 className="text-lg font-bold text-slate-800 mb-4">
-          Logs & Activités
-        </h2>
-
-        <p className="text-slate-400 text-sm">
-          Section prête pour audit system (actions admin, sécurité, modifications)
-        </p>
-
-      </div>
-
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-            <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl space-y-4">
-
-            <h2 className="text-xl font-bold text-slate-900">
-                Supprimer l’administrateur ?
-            </h2>
-
-            <p className="text-slate-500 text-sm">
-                Cette action est irréversible. Le compte sera désactivé définitivement.
-            </p>
-
-            <div className="flex justify-end gap-3 pt-4">
-
-                <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 rounded-xl border text-slate-600 hover:bg-slate-50"
-                >
-                Annuler
-                </button>
-
-                <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-                >
-                {deleting ? "Suppression..." : "Supprimer"}
-                </button>
-
+          <div>
+            <h1 className="text-4xl font-black text-slate-900 font-display italic tracking-tighter uppercase">{admin.nom} {admin.prenom}</h1>
+            <div className="flex items-center gap-3 mt-2">
+              <span className="px-3 py-1 rounded-lg bg-primary text-white text-[9px] font-black uppercase tracking-widest italic">{admin.role}</span>
+              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">ID: {admin._id}</span>
             </div>
-
-            </div>
-
+          </div>
         </div>
-        )}
+        <div className="text-center md:text-right">
+          <span className={`inline-block px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest border ${admin.status === "ACTIVE" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-100 text-slate-400 border-slate-200"}`}>
+            Compte {admin.status}
+          </span>
+        </div>
+      </div>
 
+      {/* INFO GRID */}
+      <div className="grid md:grid-cols-3 gap-8">
+        <div className={cardClass}>
+          <span className={labelClass}>Coordonnées</span>
+          <div className="space-y-4 font-bold text-slate-700">
+            <div className="flex items-center gap-4"><div className="p-2 bg-slate-50 rounded-lg"><Phone size={16} className="text-primary"/></div> {admin.telephone}</div>
+            <div className="flex items-center gap-4"><div className="p-2 bg-slate-50 rounded-lg"><Mail size={16} className="text-primary"/></div> {admin.email || "—"}</div>
+          </div>
+        </div>
+
+        <div className={cardClass}>
+          <span className={labelClass}>Historique</span>
+          <div className="space-y-4 text-sm font-bold text-slate-600">
+            <div className="flex justify-between">
+              <span className="text-slate-300 uppercase text-[9px]">Création</span>
+              <span>{new Date(admin.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-300 uppercase text-[9px]">Dernière Connexion</span>
+              <span className="text-secondary">{admin.lastLogin ? new Date(admin.lastLogin).toLocaleDateString() : "Jamais"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={cardClass}>
+          <span className={labelClass}>Sécurité</span>
+          <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+            <Shield className="text-primary" size={24}/>
+            <div>
+              <p className="text-[10px] font-black text-primary uppercase">Niveau d'accès</p>
+              <p className="text-xs font-bold text-slate-600">Administrateur Système</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,17 +2,16 @@
 
 import { useState } from "react";
 import { login as loginApi } from "../../api/auth.api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock, User, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Login() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
@@ -25,12 +24,9 @@ export default function Login() {
 
     try {
       const res = await loginApi({ identifier, password });
+      const { token, user, mustChangePassword } = res.data;
 
-      const token = res?.data.token;
-      const user = res?.data.user;
-      const mustChangePassword = res?.data.mustChangePassword;
-
-      if (!token) throw new Error("Token manquant");
+      if (!token) throw new Error("Erreur d'authentification");
 
       login({ user, token });
 
@@ -38,134 +34,130 @@ export default function Login() {
         return navigate("/change-password", { replace: true });
       }
 
-      switch (user?.role) {
-        case "ADMIN":
-          navigate("/", { replace: true });
-          break;
-        case "DRIVER":
-          navigate("/driver", { replace: true });
-          break;
-        case "CLIENT":
-          navigate("/client", { replace: true });
-          break;
-        default:
-          navigate("/unauthorized", { replace: true });
-      }
+      // Redirection selon le rôle
+      const routes = {
+        ADMIN: "/admin",
+        DRIVER: "/driver",
+        CLIENT: "/client"
+      };
+      navigate(routes[user?.role] || "/unauthorized", { replace: true });
 
     } catch (err) {
-      setError(err?.response?.data?.message || err.message);
+      setError(err.message || "Identifiants incorrects");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-
-      {/* ====================== */}
-      {/* LEFT SIDE (BRANDING) */}
-      {/* ====================== */}
-      <div className="hidden md:flex flex-col justify-between bg-secondary-light text-white p-10 relative overflow-hidden">
-
-        {/* BACKGROUND LOGO */}
-        <img
-          src="./logo-dark.png"
-          alt="bg-logo"
-          className="absolute inset-0 m-auto w-[400px] opacity-[0.7] pointer-events-none"
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-8 relative overflow-hidden">
+      
+      {/* Background Decor & Logo Filigrane */}
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      {/* Les halos de couleur */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/5 blur-[120px] rounded-full" />
+      
+      {/* LE LOGO EN BACKGROUND */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none">
+        <img 
+          src="/logo-dark.png"
+          alt="Logo" 
+          className="w-[500px] md:w-[800px] grayscale select-none"
         />
-
-        {/* TOP */}
-        <div className="z-10">
-          {/* <img src="./logo-dark.png" alt="logo" className="h-12 mb-6" /> */}
-          <h1 className="text-3xl font-extrabold leading-tight">
-            Plateforme de gestion
-            <br /> de livraisons intelligente
-          </h1>
-{/* 
-          <p className="mt-4 text-sm text-primary/80 max-w-sm">
-            Suivez vos livraisons en temps réel, gérez vos livreurs,
-            optimisez vos coûts et améliorez votre performance opérationnelle.
-          </p> */}
-        </div>
-
-        {/* BOTTOM */}
-        <div className="z-10 text-xs text-white/60">
-          © {new Date().getFullYear()} EMENO
-        </div>
       </div>
+    </div>
 
-      {/* ====================== */}
-      {/* RIGHT SIDE (FORM) */}
-      {/* ====================== */}
-      <div className="flex items-center justify-center bg-background px-6">
-
-        <div className="w-full max-w-md bg-card p-8 rounded-3xl shadow-soft border">
-
-          {/* LOGO (mobile) */}
-          <div className="md:hidden flex justify-center mb-6">
-            <img src="./logo.png" alt="logo" className="h-12" />
-          </div>
-
-          <h2 className="text-2xl font-bold text-primary mb-2">
-            Connexion
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-white p-10 rounded-[3rem] shadow-xl border border-slate-50"
+      >
+        {/* Header / Logo */}
+        <div className="text-center mb-10">
+          <Link to="/" className="text-4xl font-black text-primary tracking-tighter italic mb-2 block">
+            EMENO<span className="text-secondary">.</span>
+          </Link>
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] italic">
+            Espace de connexion
           </h2>
+        </div>
 
-          <p className="text-sm text-muted mb-6">
-            Accédez à votre espace de gestion
-          </p>
+        {error && (
+          <motion.div 
+            initial={{ scale: 0.9 }} 
+            animate={{ scale: 1 }}
+            className="mb-6 p-4 bg-red-50 text-red-500 text-[10px] font-black rounded-2xl border border-red-100 uppercase tracking-widest text-center"
+          >
+            {error}
+          </motion.div>
+        )}
 
-          {error && (
-            <div className="mb-4 text-sm text-danger bg-danger/10 p-3 rounded-xl">
-              {error}
+        <form onSubmit={handleLogin} className="space-y-4">
+          
+          {/* Identifiant */}
+          <div className="relative group">
+            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
+              <User size={18} />
             </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-4">
-
             <input
-              className="w-full border border-slate-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none"
-              placeholder="Email ou téléphone"
+              type="text"
+              className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary placeholder:text-slate-300 transition-all"
+              placeholder="EMAIL OU TÉLÉPHONE"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
+              required
             />
+          </div>
 
-            <div className="relative">
-
-              <input
-                type={showPassword ? "text" : "password"}
-                className="w-full border border-slate-200 p-3 pr-12 rounded-xl text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none"
-                placeholder="Mot de passe"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-
-              {/* TOGGLE BUTTON */}
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className={`absolute inset-y-0 right-3 flex items-center transition ${
-                  showPassword ? "text-primary" : "text-slate-400 hover:text-primary"
-                }`}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-
+          {/* Mot de passe */}
+          <div className="relative group">
+            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
+              <Lock size={18} />
             </div>
-
+            <input
+              type={showPassword ? "text" : "password"}
+              className="w-full pl-14 pr-14 py-5 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary placeholder:text-slate-300 transition-all"
+              placeholder="MOT DE PASSE"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary/light transition disabled:opacity-50"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-primary transition-colors"
             >
-              {loading ? "Connexion..." : "Se connecter"}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
+          </div>
 
-          </form>
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-5 bg-primary text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 mt-6 hover:bg-secondary transition-all disabled:opacity-50 active:scale-95"
+          >
+            {loading ? "Chargement..." : <>Se connecter <ArrowRight size={18} /></>}
+          </button>
 
+        </form>
+
+        {/* Footer Link */}
+        <div className="mt-10 pt-6 border-t border-slate-50 text-center">
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+            Nouveau sur la plateforme ? <br />
+            <Link to="/register" className="text-secondary underline underline-offset-4 hover:text-primary transition-colors">
+              Créer un compte client
+            </Link>
+          </p>
         </div>
+      </motion.div>
 
+      {/* Version Desktop: Petit message discret en bas */}
+      <div className="absolute bottom-8 text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em]">
+        © {new Date().getFullYear()} Emeno Delivery System
       </div>
-
     </div>
   );
 }

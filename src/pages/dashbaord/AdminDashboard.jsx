@@ -1,147 +1,94 @@
 // FILE: src/pages/dashboard/AdminDashboard.jsx
 
 import { useEffect, useState } from "react";
-import { fetchAdminStats } from "../../api/stats.api";
 import { useNavigate } from "react-router-dom";
-import PageLoader from "../../components/ui/PageLoader";
-import {
-  Truck,
-  CreditCard,
-  PackageCheck,
-  Activity,
-  Users,
-  CheckCircle,
-  AlertCircle
-} from "lucide-react";
+import resolveConfig from 'tailwindcss/resolveConfig';
+import tailwindConfig from '../../../tailwind.config.js';
 
+import { fetchAdminStats } from "../../api/stats.api";
+import { fetchAdminDeliveries } from "../../api/deliveries.api";
+import PageLoader from "../../components/ui/PageLoader";
 import StatCard from "../../components/dashbord/StatCard";
 import ProgressRow from "../../components/dashbord/ProgressRow";
 
 import {
-  LineChart,
-  Line,
-  XAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  Truck, CreditCard, PackageCheck, Activity,
+  CheckCircle, AlertCircle, ArrowUpRight, Users, Settings
+} from "lucide-react";
+
+import {
+  LineChart, Line, XAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from "recharts";
-import { fetchAdminDeliveries } from "../../api/deliveries.api";
+
+const fullConfig = resolveConfig(tailwindConfig);
+const themeColors = fullConfig.theme.colors;
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [period, setPeriod] = useState("TODAY");
   const [recentDeliveries, setRecentDeliveries] = useState([]);
-
   const navigate = useNavigate();
 
-  // ======================
-  // FETCH
-  // ======================
-  const load = async () => {
-    try {
-      const res = await fetchAdminStats({ period });
-      setStats(res?.data || res);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  const PRIMARY_COLOR = themeColors.primary?.DEFAULT || themeColors.primary;
+  const SECONDARY_COLOR = themeColors.secondary?.DEFAULT || themeColors.secondary;
+  const DANGER_COLOR = themeColors.danger?.DEFAULT || themeColors.danger || "#ef4444";
   
-  // =========== Load Recent ===========
-  const loadRecent = async () => {
+  const PIE_COLORS = [SECONDARY_COLOR, "#3b82f6", DANGER_COLOR];
+
+  const loadData = async () => {
     try {
-      const res = await fetchAdminDeliveries();
-
-      const data = res?.data?.data || res?.data || res;
-
-      const sorted = data
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
-
+      const [statsRes, deliveriesRes] = await Promise.all([
+        fetchAdminStats({ period }),
+        fetchAdminDeliveries()
+      ]);
+      setStats(statsRes?.data || statsRes);
+      const deliveries = deliveriesRes?.data?.data || deliveriesRes?.data || deliveriesRes;
+      const sorted = [...deliveries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
       setRecentDeliveries(sorted);
     } catch (err) {
-      console.error(err);
+      console.error("Erreur de chargement:", err);
     }
   };
 
   useEffect(() => {
-    load();
-    loadRecent();
-
-    const interval = setInterval(() => {
-      load();
-      loadRecent();
-    }, 30000);
-
+    loadData();
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, [period]);
 
-  if (!stats) {
-    return <PageLoader />;
-  }
+  if (!stats) return <PageLoader />;
 
-  // ================= PIE COLORS =================
-  const COLORS = ["#10b981", "#3b82f6", "#ef4444"];
-
-  // ======================
-  // DATA
-  // ======================
   const deliveryStats = stats?.deliveries || {};
   const userStats = stats?.users || {};
-
   const total = deliveryStats.total || 0;
+  const successRate = total ? Math.round((deliveryStats.livree / total) * 100) : 0;
 
-  // ======================
-  // KPI CALCULÉS
-  // ======================
-  const successRate = total
-    ? Math.round((deliveryStats.livree / total) * 100)
-    : 0;
-
-  // ======================
-  // DATA GRAPH
-  // ======================
   const statusData = [
     { name: "Livrées", value: deliveryStats.livree || 0 },
     { name: "En cours", value: deliveryStats.enCours || 0 },
     { name: "Annulées", value: deliveryStats.annulee || 0 }
   ];
 
-  // ======================
-  // INSIGHTS
-  // ======================
-  const insights = [
-    deliveryStats.annulee > 10 && "⚠️ Taux d'annulation élevé",
-    userStats.driversActive < 5 && "🚨 Peu de livreurs disponibles",
-    successRate < 70 && "📉 Performance de livraison faible"
-  ];
-
   return (
-    <div className="space-y-8">
-
-      {/* ================= HEADER ================= */}
-      <div className="flex flex-col md:flex-row justify-between gap-4">
+    <div className="space-y-8 pb-10">
+      
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-800">
-            Dashboard Admin
+          <h1 className="text-3xl font-black text-primary italic uppercase tracking-tighter">
+            Dashboard <span className="text-secondary">Admin</span>
           </h1>
-          <p className="text-slate-500">
-            Pilotage global de la plateforme
-          </p>
+          <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Pilotage EMENO System</p>
         </div>
 
-        {/* FILTERS */}
-        <div className="flex gap-2">
+        <div className="flex bg-white p-1 rounded-2xl border border-slate-100 shadow-sm">
           {["TODAY", "WEEK", "MONTH"].map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-                period === p
-                  ? "bg-primary text-white"
-                  : "bg-white border text-slate-600 hover:bg-slate-50"
+              className={`px-6 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${
+                period === p ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-400 hover:text-primary"
               }`}
             >
               {p}
@@ -150,327 +97,124 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ================= KPI ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <StatCard
-          title="En attente"
-          value={deliveryStats.enAttente || 0}
-          icon={PackageCheck}
-          color="bg-amber-50 text-amber-600"
-          to="/deliveries?status=PENDING"
-        />
-        <StatCard
-          title="En cours"
-          value={deliveryStats.enCours || 0}
-          icon={Activity}
-          color="bg-blue-50 text-blue-600"
-          to="/deliveries?status=IN_PROGRESS"
-        />
-        <StatCard
-          title="Livreurs actifs"
-          value={userStats.driversActive || 0}
-          icon={Truck}
-          color="bg-emerald-50 text-emerald-600"
-          to="/drivers?status=ACTIVE"
-        />
-        <StatCard
-          title="Revenus"
-          value={stats?.revenue || 0}
-          icon={CreditCard}
-          color="bg-slate-900 text-white"
-        />
-        <StatCard
-          title="Succès %"
-          value={`${successRate}%`}
-          icon={CheckCircle}
-          color="bg-emerald-100 text-emerald-700"
-        />
+      {/* KPI GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <StatCard title="En attente" value={deliveryStats.enAttente} icon={PackageCheck} color="bg-amber-50 text-amber-500" />
+        <StatCard title="En cours" value={deliveryStats.enCours} icon={Activity} color="bg-cyan-50 text-secondary" />
+        <StatCard title="Livreurs" value={userStats.driversActive} icon={Truck} color="bg-indigo-50 text-indigo-500" />
+        <StatCard title="Revenus" value={`${stats?.revenue || 0} F`} icon={CreditCard} color="bg-primary text-white" />
+        <StatCard title="Succès" value={`${successRate}%`} icon={CheckCircle} color="bg-emerald-50 text-emerald-500" />
       </div>
 
-      {/* ================= ACTIONS RAPIDES ================= */}
-      <div className="bg-white p-6 rounded-3xl border shadow-sm">
-        <h3 className="font-bold mb-4">Actions rapides</h3>
-
-        <div className="flex flex-wrap gap-3">
-          <button onClick={() => navigate("/deliveries")} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm">
-            Voir commandes
-          </button>
-
-          <button onClick={() => navigate("/drivers")} className="px-4 py-2 border rounded-xl text-sm">
-            Gérer livreurs
-          </button>
-
-          <button onClick={() => navigate("/clients")} className="px-4 py-2 border rounded-xl text-sm">
-            Voir clients
-          </button>
-        </div>
-      </div>
-
-      {/* ================= GRAPHS ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* LINE CHART */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border shadow-soft hover:shadow-card transition">
-          
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Activity size={18} className="text-primary" />
-              Activité des livraisons
-            </h3>
-
-            <span className="text-xs bg-primary text-white px-2 py-1 rounded-lg">
-              Live
-            </span>
-          </div>
-
-          <ResponsiveContainer width="100%" height={260}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* LINE CHART: ACTIVITÉ */}
+        <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft">
+          <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8">
+            <Activity size={16} className="text-secondary" /> Flux d'activité
+          </h3>
+          <ResponsiveContainer width="100%" height={280}>
             <LineChart data={stats.deliveriesOverTime || []}>
-
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12 }}
-                stroke="#94A3B8"
+              <XAxis dataKey="date" hide />
+              <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }} />
+              <Line 
+                type="monotone" 
+                dataKey="total" 
+                stroke={SECONDARY_COLOR} 
+                strokeWidth={4} 
+                dot={{ r: 4, fill: SECONDARY_COLOR, strokeWidth: 2, stroke: '#fff' }} 
               />
-
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "12px",
-                  border: "none",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.08)"
-                }}
-              />
-
-              <Line
-                type="monotone"
-                dataKey="total"
-                stroke="#10B981"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6 }}
-              />
-
             </LineChart>
           </ResponsiveContainer>
-
         </div>
 
-       {/* PIE CHART */}
-        <div className="bg-white p-6 rounded-3xl border shadow-soft hover:shadow-card transition">
-
-            <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <PackageCheck size={18} className="text-secondary" />
-              Répartition des livraisons
-            </h3>
-
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-
-              {/* PIE */}
-              <PieChart width={240} height={240}>
-                <Pie
-                  data={statusData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={4}
-                  stroke="white"
-                  strokeWidth={2}
-                  isAnimationActive={true}
-                >
-                  {statusData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
-                  ))}
-                </Pie>
-
-                <Tooltip
-                  cursor={{ fill: "rgba(0,0,0,0.04)" }}
-                  contentStyle={{
-                    borderRadius: "14px",
-                    border: "none",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.10)"
-                  }}
-                  formatter={(value, name) => [`${value}`, name]}
-                />
-              </PieChart>
-
-              {/* LEGEND PRO */}
-              <div className="w-full space-y-3">
-
-                {statusData.map((item, i) => {
-                  const percent = total ? Math.round((item.value / total) * 100) : 0;
-
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition"
-                    >
-                      <div className="flex items-center gap-3">
-
-                        <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: COLORS[i] }}
-                        />
-
-                        <div>
-                          <p className="text-sm font-medium text-slate-700">
-                            {item.name}
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            {percent}% du total
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-sm font-bold text-slate-800">
-                        {item.value}
-                      </div>
-                    </div>
-                  );
-                })}
-
-              </div>
-
-            </div>
-
-            {/* FOOTER */}
-            <div className="mt-5 text-xs text-slate-400">
-              Survole le graphique pour voir les détails
-            </div>
-
+        {/* ACTIONS RAPIDES (Redirection des flux) */}
+        <div className="bg-primary p-8 rounded-[2.5rem] shadow-xl shadow-primary/20 text-white flex flex-col">
+          <h3 className="font-black uppercase text-[10px] tracking-widest text-secondary mb-2 italic">Gestion des flux</h3>
+          <p className="text-white/40 text-xs mb-8 font-medium italic">Accès direct aux modules clés</p>
+          
+          <div className="space-y-3 mt-auto">
+            <QuickAction label="Livraisons" icon={Truck} onClick={() => navigate("/admin/deliveries")} />
+            <QuickAction label="Livreurs" icon={Users} onClick={() => navigate("/admin/drivers")} />
+            <QuickAction label="Tarifications" icon={CreditCard} onClick={() => navigate("/admin/pricing")} />
+            <QuickAction label="Configuration" icon={Settings} onClick={() => navigate("/admin/settings")} />
           </div>
+        </div>
 
       </div>
 
-      {/* ================= PERFORMANCE + ALERTES ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* PROGRESS */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-3xl border shadow-sm">
-          <div className="flex justify-between mb-6">
-            <h3 className="font-bold">Performance livraisons</h3>
-            <div className="flex items-center gap-3 bg-white border shadow-sm px-4 py-2 rounded-2xl">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                <PackageCheck size={16} className="text-primary" />
-              </div>
-
-              <div className="leading-tight">
-                <p className="text-xs text-slate-500">Total livraisons</p>
-                <p className="text-lg font-bold text-slate-900">{total}</p>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* LIVRAISONS RÉCENTES */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-black text-primary uppercase text-[10px] tracking-widest italic">Derniers mouvements</h3>
+            <button onClick={() => navigate("/admin/deliveries")} className="text-[9px] font-black text-secondary underline uppercase tracking-widest">Voir tout</button>
           </div>
-
-          <div className="space-y-4">
-            <ProgressRow label="Livrées" value={deliveryStats.livree} total={total} colorClass="bg-emerald-500" />
-            <ProgressRow label="En cours" value={deliveryStats.enCours} total={total} colorClass="bg-blue-500" />
-            <ProgressRow label="En attente" value={deliveryStats.enAttente} total={total} colorClass="bg-amber-400" />
-            <ProgressRow label="Annulées" value={deliveryStats.annulee} total={total} colorClass="bg-rose-500" />
-          </div>
-        </div>
-
-        {/* ================= INSIGHTS & ALERTES ================= */}
-        <div className="bg-white p-6 rounded-3xl border shadow-soft">
-
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <AlertCircle size={18} className="text-primary" />
-              Insights & alertes système
-            </h3>
-
-            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
-              temps réel
-            </span>
-          </div>
-
           <div className="space-y-3">
-
-            {/* ALERTES SYSTEME (priorité haute) */}
-            {stats.alerts?.length > 0 && (
-              <div className="space-y-2">
-                {stats.alerts.map((a, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-100"
-                  >
-                    <AlertCircle size={16} />
-                    <span>{a.message}</span>
+            {recentDeliveries.map((d) => (
+              <div key={d._id} onClick={() => navigate(`/admin/deliveries/${d._id}`)} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 cursor-pointer group transition-all">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:text-secondary transition-colors">
+                    <Truck size={18} />
                   </div>
-                ))}
-              </div>
-            )}
-
-            {/* INSIGHTS */}
-            <div className="space-y-2">
-
-              {insights.map((i, index) =>
-                i && (
-                  <div
-                    key={index}
-                    className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100"
-                  >
-                    <CheckCircle size={16} className="text-amber-500" />
-                    <span>{i}</span>
+                  <div>
+                    <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{d.pickupContact?.name || "Client"}</p>
+                    <p className="text-[10px] text-slate-400 font-bold">#{d.orderNumber || "EM-000"}</p>
                   </div>
-                )
-              )}
-
-              {insights.every(Boolean) === false && stats.alerts?.length === 0 && (
-                <div className="text-sm text-slate-500 bg-slate-50 p-3 rounded-xl">
-                  Aucun signal critique détecté
                 </div>
-              )}
-
-            </div>
-
+                <ArrowUpRight size={16} className="text-slate-300 group-hover:text-secondary transition-all" />
+              </div>
+            ))}
           </div>
         </div>
 
-      </div>
-
-      {/* ================= RECENT ================= */}
-      <div className="bg-white p-6 rounded-3xl border shadow-soft mt-6">
-
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
-            <PackageCheck size={18} className="text-primary" />
-            Dernières livraisons
-          </h3>
-
-          <button
-            onClick={() => navigate("/deliveries")}
-            className="text-xs text-primary font-semibold hover:underline"
-          >
-            Voir tout
-          </button>
-        </div>
-
-        <div className="space-y-2">
-
-          {recentDeliveries.map((d) => (
-            <div
-              key={d._id}
-              onClick={() => navigate(`/deliveries/${d._id}`)}
-              className="flex justify-between items-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer transition border border-transparent hover:border-slate-200"
-            >
-
-              <div>
-                <p className="font-medium text-slate-800">{d.pickupContact.name}</p>
-                <p className="text-xs text-slate-400">Commande #{d.orderNumber || "—"}</p>
-              </div>
-
-              <span className="text-xs px-2 py-1 rounded-lg bg-white border text-slate-600">
-                {d.status}
-              </span>
-
+        {/* RÉPARTITION (PieChart) & PERFORMANCE */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft">
+          <h3 className="font-black text-primary uppercase text-[10px] tracking-widest mb-6 italic text-center">Répartition & Alertes</h3>
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="w-full md:w-1/2">
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie data={statusData} innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-          ))}
-
+            <div className="w-full md:w-1/2 space-y-4">
+              <ProgressRow label="Livrées" value={deliveryStats.livree} total={total} colorClass="bg-secondary" />
+              <ProgressRow label="Annulées" value={deliveryStats.annulee} total={total} colorClass="bg-red-400" />
+            </div>
+          </div>
+          
+          {deliveryStats.annulee > 5 && (
+            <div className="mt-6 flex items-center gap-3 text-[10px] font-black uppercase text-red-500 bg-red-50 p-4 rounded-2xl border border-red-100">
+              <AlertCircle size={14} /> Attention : Taux d'annulation anormal
+            </div>
+          )}
         </div>
 
       </div>
-
     </div>
+  );
+}
+
+// Sous-composant pour les actions rapides
+function QuickAction({ label, icon: Icon, onClick }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group"
+    >
+      <div className="flex items-center gap-3">
+        <Icon size={16} className="text-secondary group-hover:scale-110 transition-transform" />
+        <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+      </div>
+      <ArrowUpRight size={14} className="text-white/20 group-hover:text-secondary group-hover:translate-x-1 transition-all" />
+    </button>
   );
 }

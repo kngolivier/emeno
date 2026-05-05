@@ -1,47 +1,68 @@
 // FILE: src/routes/AppRoutes.jsx
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+// import { useAuth } from "../context/AuthContext";
 
+// Layouts et Pages
+import LandingPage from "../pages/LandingPage"; // À créer
 import AdminLayout from "../layout/AdminLayout";
+import ClientLayout from "../layout/ClientLayout";
+import Login from "../pages/auth/Login";
+import ChangePassword from "../pages/auth/ChangePassword";
+import Unauthorized from "../pages/Unauthorized";
+
+// Admin Pages
 import AdminDashboard from "../pages/dashbaord/AdminDashboard";
 import OrdersList from "../pages/orders/OrdersList";
 import OrderTracking from "../pages/orders/OrderTracking";
 import Drivers from "../pages/drivers/DriversList";
 import ClientsList from "../pages/clients/ClientsList";
-import Login from "../pages/auth/Login";
-import ChangePassword from "../pages/auth/ChangePassword";
 import ClientDetails from "../pages/clients/ClientDetails";
-
-
-import ProtectedRoute from "./ProtectedRoutes";
 import DriverDetails from "../pages/drivers/DriverDetails";
 import PricingList from "../pages/pricing/PricingList";
 import AdminList from "../pages/admins/AdminList";
 import AdminDetails from "../pages/admins/AdminDetails";
-import Unauthorized from "../pages/Unauthorized";
-import ClientLayout from "../layout/ClientLayout";
+
+// Client Pages
 import ClientDashboard from "../pages/client-portal/ClientDashboard";
 import ClientOrders from "../pages/client-portal/ClientOrders";
 import ClientOrderDetails from "../pages/client-portal/ClientOrderDetails";
 import ClientProfile from "../pages/client-portal/ClientProfile";
 import ClientCreateOrder from "../pages/client-portal/ClientCreateOrder";
 
+// Guards
+import ProtectedRoute from "./ProtectedRoutes";
+import PublicRoute from "./PublicRoute";
+import PricingPage from "../pages/PricingPages";
+import RegisterPage from "../pages/auth/RegisterPage";
+
 export default function AppRoutes() {
+  // const { user } = useAuth();
+
   return (
     <BrowserRouter>
       <Routes>
+        {/* ===================== */}
+        {/*   ZONE PUBLIQUE (SITE) */}
+        {/* ===================== */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/tarifs" element={<PricingPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* ===================== */}
-        {/* PUBLIC ROUTES */}
+        {/*   AUTH (PUBLIC ONLY)  */}
         {/* ===================== */}
-        <Route path="/login" element={<Login />} />
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<Login />} />
+        </Route>
+        
+        {/* Route accessible pour changer le mot de passe (souvent via lien mail) */}
         <Route path="/change-password" element={<ChangePassword />} />
 
         {/* ===================== */}
-        {/* PROTECTED ROUTES ADMIN*/}
+        {/*   ESPACE ADMIN (/admin) */}
         {/* ===================== */}
         <Route
-          path="/"
+          path="/admin"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminLayout />
@@ -52,18 +73,17 @@ export default function AppRoutes() {
           <Route path="deliveries" element={<OrdersList />} />
           <Route path="deliveries/:id" element={<OrderTracking />} />
           <Route path="drivers" element={<Drivers />} />
+          <Route path="drivers/:id" element={<DriverDetails />} />
           <Route path="clients" element={<ClientsList />} />
           <Route path="clients/client-details/:id" element={<ClientDetails />} />
-          <Route path="/drivers/:id" element={<DriverDetails />} />
           <Route path="pricing" element={<PricingList />} />
           <Route path="admins" element={<AdminList />} />
           <Route path="admins/:id" element={<AdminDetails />} />
         </Route>
 
         {/* ===================== */}
-        {/* PROTECTED ROUTES CLIENT */}
+        {/*   ESPACE CLIENT (/client) */}
         {/* ===================== */}
-
         <Route
           path="/client"
           element={
@@ -79,10 +99,14 @@ export default function AppRoutes() {
           <Route path="new-order" element={<ClientCreateOrder />} />
         </Route>
 
-        {/* fallback */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* ===================== */}
+        {/*   AUTRES / FALLBACKS  */}
+        {/* ===================== */}
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/driver" element={<div>Driver Dashboard</div>} />
+        <Route path="/driver" element={<div>Driver Dashboard en construction</div>} />
+        
+        {/* Redirection intelligente : si user tape n'importe quoi */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
