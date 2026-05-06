@@ -45,4 +45,14 @@ export const ENDPOINTS = {
   OTP_SEND: "/api/otp/send",
   OTP_VERIFY: "/api/otp/verify",
 
+  // ======================
+  // DRIVER SPECIFIC (LOCATION & STATUS)
+  // ======================
+  DRIVER_ME_LOCATION: "/api/delivery-location/me",
+  DRIVER_AVAILABILITY: "/api/delivery-location/availability",
+  DRIVER_ACTIVE_DELIVERIES: "/api/deliveries/driver/active",
+
+  // USER DEBT
+  USER_DEBT: (id) => `/api/users/${id}/debt`,
+
 };

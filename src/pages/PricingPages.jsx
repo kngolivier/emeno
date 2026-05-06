@@ -120,7 +120,7 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ SECTION */}
-        {/* <section className="max-w-4xl mx-auto">
+        <section className="max-w-4xl mx-auto">
           <div className="flex flex-col items-center mb-16 text-center">
              <HelpCircle className="text-secondary mb-4" size={40} />
              <h2 className="text-3xl font-black text-primary tracking-tighter uppercase italic">Des questions sur nos prix ?</h2>
@@ -144,7 +144,7 @@ export default function PricingPage() {
               answer="En cas d'absence, le colis est retourné à notre centre de tri. Une seconde tentative peut être programmée avec des frais de livraison réduits."
             />
           </div>
-        </section> */}
+        </section>
 
         {/* WHATSAPP CTA */}
         <section className="max-w-5xl mx-auto mt-32">

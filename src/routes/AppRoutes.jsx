@@ -34,6 +34,12 @@ import ProtectedRoute from "./ProtectedRoutes";
 import PublicRoute from "./PublicRoute";
 import PricingPage from "../pages/PricingPages";
 import RegisterPage from "../pages/auth/RegisterPage";
+import DriverLayout from "../layout/DriverLayout";
+import DriverDashboard from "../pages/driver-portal/DriverDashboard";
+import DriverDeliveries from "../pages/driver-portal/DriverDeliveries";
+// import DeliveryDetail from "../pages/driver-portal/DeliveryDetail";
+import DriverProfile from "../pages/driver-portal/DriverProfile";
+import DriverMap from "../pages/driver-portal/DriverMap";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -99,11 +105,24 @@ export default function AppRoutes() {
           <Route path="new-order" element={<ClientCreateOrder />} />
         </Route>
 
+        {/* ESPACE LIVREUR (/driver) */}
+        <Route path="/driver" element={
+            <ProtectedRoute allowedRoles={["DRIVER"]}>
+              <DriverLayout />
+            </ProtectedRoute>
+            }
+          >
+            <Route index element={<DriverDashboard />} />
+            <Route path="deliveries" element={<DriverDeliveries />} />
+            {/* <Route path="deliveries/:id" element={<DeliveryDetail />} /> */}
+            <Route path="profile" element={<DriverProfile />} />
+            <Route path="map" element={<DriverMap />} />
+          </Route>
+
         {/* ===================== */}
         {/*   AUTRES / FALLBACKS  */}
         {/* ===================== */}
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/driver" element={<div>Driver Dashboard en construction</div>} />
         
         {/* Redirection intelligente : si user tape n'importe quoi */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -48,7 +48,8 @@ export default function LandingPage() {
               La solution logistique de <span className="text-primary font-bold">EMENO</span> qui redéfinit la rapidité au Gabon.
             </p>
 
-            <div className="flex flex-wrap items-center gap-8 pt-8 border-t border-slate-200">
+            {/* STATS */}
+            {/* <div className="flex flex-wrap items-center gap-8 pt-8 border-t border-slate-200">
               <StatItem value="500+" label="Colis/Mois" />
               <StatItem value="15min" label="Ramassage" />
               <div className="flex flex-col">
@@ -57,7 +58,7 @@ export default function LandingPage() {
                 </div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Note moyenne</p>
               </div>
-            </div>
+            </div> */}
           </motion.div>
 
           <motion.div 
