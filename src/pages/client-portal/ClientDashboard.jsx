@@ -78,24 +78,52 @@ export default function ClientDashboard() {
           ) : deliveries.length === 0 ? (
             <div className="p-12 text-center text-slate-400 font-medium">Aucune commande</div>
           ) : (
-            <div className="space-y-2">
-              {deliveries.slice(0, 5).map((d) => (
-                <div key={d._id} onClick={() => navigate(`/client/orders/${d._id}`)} className="group flex justify-between items-center p-5 rounded-3xl transition-all hover:bg-slate-50 cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                      <Package size={20} />
+            <div className="space-y-3 p-3"> {/* Augmentation de l'espacement entre les cartes */}
+            {deliveries.slice(0, 5).map((d) => (
+              <div 
+                key={d._id} 
+                onClick={() => navigate(`/client/orders/${d._id}`)} 
+                className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 bg-white border border-slate-50 sm:border-none rounded-[2rem] sm:rounded-3xl transition-all hover:bg-slate-50 cursor-pointer gap-4 shadow-sm sm:shadow-none"
+              >
+                <div className="flex items-center gap-4">
+                  {/* Icône masquée sur très petits écrans pour gagner de la place */}
+                  <div className="hidden xs:flex w-12 h-12 rounded-2xl bg-slate-50 text-primary items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
+                    <Package size={20} />
+                  </div>
+                  
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-black text-primary italic leading-none text-base">#{d.orderNumber}</p>
+                      {/* Badge déplacé ici sur mobile pour l'équilibre visuel */}
+                      <span className={`sm:hidden text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${getStatusStyle(d.status)}`}>
+                        {d.status}
+                      </span>
                     </div>
-                    <div>
-                      <p className="font-black text-primary italic leading-none mb-1">#{d.orderNumber}</p>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{d.pickupLocation} → {d.dropoffLocation}</p>
+                    
+                    {/* Adresses sur deux lignes sur mobile pour éviter l'étroitement */}
+                    <div className="flex flex-col gap-0.5">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                        De: {d.pickupLocation}
+                      </p>
+                      <p className="text-[10px] font-bold text-secondary uppercase tracking-tighter truncate">
+                        À: {d.dropoffLocation}
+                      </p>
                     </div>
                   </div>
-                  <span className={`text-[10px] font-black uppercase px-4 py-1.5 rounded-full border ${getStatusStyle(d.status)}`}>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-none pt-3 sm:pt-0">
+                  <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1">
+                    <Clock size={12} /> {new Date(d.createdAt).toLocaleDateString()}
+                  </span>
+                  <span className={`hidden sm:block text-[10px] font-black uppercase px-4 py-1.5 rounded-full border ${getStatusStyle(d.status)}`}>
                     {d.status}
                   </span>
+                  <ChevronRight size={18} className="text-slate-200 group-hover:text-primary transition-colors" />
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
           )}
         </div>
       </div>

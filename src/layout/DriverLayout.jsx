@@ -129,11 +129,11 @@ export default function DriverLayout() {
       </main>
 
       {/* --- BARRE DE NAVIGATION FLOTTANTE --- */}
-      <nav className="fixed bottom-8 left-6 right-6 h-20 bg-primary dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-around z-50 border border-white/10 backdrop-blur-xl px-4">
+      <nav className="fixed bottom-8 left-6 right-6 h-20 bg-secondary/70 dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-around z-50 border border-white/10 backdrop-blur-xl px-4 dark:bg-primary">
         <NavIcon to="/driver" icon={<Home size={22} />} label="Home" active={location.pathname === "/driver"} />
         <NavIcon to="/driver/deliveries" icon={<Package size={22} />} label="Orders" active={location.pathname === "/driver/deliveries"} />
-        <NavIcon to="/driver/map" icon={<MapPin size={22} />} label="Map" active={location.pathname === "/driver/map"} />
-        <NavIcon to="/driver/profile" icon={<UserIcon size={22} />} label="User" active={location.pathname === "/driver/profile"} />
+        {/* <NavIcon to="/driver/map" icon={<MapPin size={22} />} label="Map" active={location.pathname === "/driver/map"} /> */}
+        <NavIcon to="/driver/profile" icon={<UserIcon size={22} />} label="Profile" active={location.pathname === "/driver/profile"} />
       </nav>
     </div>
   );
@@ -155,11 +155,11 @@ function NavIcon({ to, icon, label, active }) {
         />
       )}
       
-      <div className={`relative z-10 transition-colors duration-300 ${active ? 'text-secondary' : 'text-white/40'}`}>
+      <div className={`relative z-10 transition-colors duration-300 ${active ? 'text-primary' : 'dark:text-secondary'}`}>
         {icon}
       </div>
       
-      <span className={`relative z-10 text-[7px] font-black uppercase tracking-tighter mt-1 transition-colors duration-300 ${active ? 'text-white' : 'text-white/20'}`}>
+      <span className={`relative z-10 text-[10px] font-black uppercase tracking-tighter mt-1 transition-colors duration-300 ${active ? 'text-white' : 'text-white/20'}`}>
         {label}
       </span>
 
@@ -167,7 +167,7 @@ function NavIcon({ to, icon, label, active }) {
       {active && (
         <motion.div 
           layoutId="nav-dot"
-          className="absolute -bottom-1 w-1 h-1 bg-secondary rounded-full"
+          className="absolute -bottom-1 w-1 h-1 bg-primary dark:bg-secondary rounded-full"
         />
       )}
     </NavLink>

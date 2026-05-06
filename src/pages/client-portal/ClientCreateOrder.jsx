@@ -215,6 +215,41 @@ export default function ClientCreateOrder() {
                         </p>
                     </div>
                 </div>
+                {/* SÉLECTEUR DE PAYEUR - Intégré à l'Étape 2 */}
+                <div className="space-y-4 pt-4 border-t border-slate-50 mt-4">
+                    <SectionTitle icon={<Banknote className="text-secondary" size={16} />} title="Responsable du paiement" />
+                    
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <button 
+                          type="button"
+                          onClick={() => setForm({...form, payerType: 'SENDER'})}
+                          className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${form.payerType === 'SENDER' ? 'border-secondary bg-secondary/5' : 'border-slate-50 bg-slate-50/50'}`}
+                      >
+                          {/* shrink-0 empêche la déformation en ovale */}
+                          <div className={`h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${form.payerType === 'SENDER' ? 'border-secondary bg-white' : 'border-slate-200'}`}>
+                              {form.payerType === 'SENDER' && <div className="w-2.5 h-2.5 bg-secondary rounded-full" />}
+                          </div>
+                          <div className="text-left min-w-0">
+                              <p className="text-[9px] font-black text-primary uppercase leading-none truncate">Expéditeur</p>
+                              <p className="text-[7px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Départ</p>
+                          </div>
+                      </button>
+
+                      <button 
+                          type="button"
+                          onClick={() => setForm({...form, payerType: 'RECEIVER'})}
+                          className={`p-3 sm:p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${form.payerType === 'RECEIVER' ? 'border-secondary bg-secondary/5' : 'border-slate-50 bg-slate-50/50'}`}
+                      >
+                          <div className={`h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${form.payerType === 'RECEIVER' ? 'border-secondary bg-white' : 'border-slate-200'}`}>
+                              {form.payerType === 'RECEIVER' && <div className="w-2.5 h-2.5 bg-secondary rounded-full" />}
+                          </div>
+                          <div className="text-left min-w-0">
+                              <p className="text-[9px] font-black text-primary uppercase leading-none truncate">Destinataire</p>
+                              <p className="text-[7px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Arrivée</p>
+                          </div>
+                      </button>
+                  </div>
+                </div>
             </div>
             
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-50">
@@ -223,9 +258,16 @@ export default function ClientCreateOrder() {
                   type="button" 
                   disabled={!form.pickupCommune || !form.dropoffCommune || loadingPrice} 
                   onClick={handleFetchPrice} 
-                  className="w-full md:w-auto bg-primary text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
+                  className="w-full md:w-auto bg-primary text-white px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-primary/10 hover:bg-secondary active:scale-95 transition-all"
                 >
-                  {loadingPrice ? <Loader2 className="animate-spin" /> : <><Eye size={18} /> Calculer le tarif</>}
+                  {loadingPrice ? (
+                    <Loader2 className="animate-spin" size={16} />
+                  ) : (
+                    <>
+                      <Eye size={14} /> 
+                      <span>Calculer le tarif</span>
+                    </>
+                  )}
                 </button>
             </div>
           </div>
@@ -275,9 +317,16 @@ export default function ClientCreateOrder() {
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full md:w-auto bg-secondary text-white px-12 py-5 rounded-2xl font-black uppercase tracking-[0.1em] text-xs flex items-center justify-center gap-3 shadow-xl shadow-secondary/40 hover:scale-105 active:scale-95 transition-all"
+                  className="w-full md:w-auto bg-secondary text-white px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.15em] text-[10px] sm:text-xs flex items-center justify-center gap-3 shadow-xl shadow-secondary/30 hover:bg-primary active:scale-95 transition-all"
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : "Valider la commande"}
+                    {loading ? (
+                      <Loader2 className="animate-spin" size={16} /> 
+                    ) : (
+                      <>
+                        <span>Valider la commande</span>
+                        <CheckCircle2 size={16} />
+                      </>
+                    )}
                 </button>
             </div>
           </div>

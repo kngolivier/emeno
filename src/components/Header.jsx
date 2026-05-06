@@ -1,10 +1,10 @@
 // FILE: src/components/layout/Header.jsx
-import { Bell, Search, Menu, ChevronRight, Sun, Moon } from "lucide-react";
+import { Bell, Search, Menu, ChevronRight, Sun, Moon, Truck, PackageCheck, AlertCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
 import { useNotifications } from "../hooks/useNotifications";
 import { useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 
 export default function Header({ toggleSidebar }) {
   const { user } = useAuth();
@@ -24,6 +24,14 @@ export default function Header({ toggleSidebar }) {
       return n.deliveryId ?? n?.data?.deliveryId;
     });
   }, [notifications]);
+
+  // Fonction pour déterminer l'icône selon le type de notification
+  const getNotifIcon = (message) => {
+    const msg = message?.toLowerCase() || "";
+    if (msg.includes("confirmé") || msg.includes("validé")) return <PackageCheck size={18} />;
+    if (msg.includes("attention") || msg.includes("erreur")) return <AlertCircle size={18} />;
+    return <Truck size={18} />;
+  };
 
   return (
     <header className="h-20 lg:h-24 bg-white/90 dark:bg-primary backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 px-4 lg:px-10 flex justify-between items-center sticky top-0 z-[90] transition-colors duration-300">
@@ -84,22 +92,41 @@ export default function Header({ toggleSidebar }) {
           </button>
 
           {openNotif && (
-            <div className="absolute right-0 top-16 w-[calc(100vw-2rem)] sm:w-96 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
-                <h4 className="font-black text-primary dark:text-white uppercase text-[10px] tracking-widest">Activités</h4>
-                <span className="bg-primary dark:bg-secondary text-white text-[10px] px-2.5 py-1 rounded-full font-black">{validNotifications.length}</span>
+            <div className="fixed sm:absolute right-4 sm:right-0 top-20 sm:top-16 w-[calc(100vw-2rem)] sm:w-80 md:w-96 bg-white dark:bg-slate-900 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300 z-[100]">
+              <div className="p-5 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                <h4 className="font-black text-primary dark:text-white uppercase text-[9px] tracking-[0.2em]">Flux d'activités</h4>
+                <span className="bg-primary dark:bg-secondary text-white text-[9px] px-2.5 py-1 rounded-full font-black italic">{validNotifications.length}</span>
               </div>
-              <div className="max-h-[400px] overflow-y-auto p-2">
+              
+              <div className="max-h-[350px] overflow-y-auto p-2 space-y-1">
                 {validNotifications.length === 0 ? (
-                  <div className="p-8 text-center text-slate-300 dark:text-slate-600 text-xs font-bold uppercase italic tracking-widest">Vide</div>
+                  <div className="p-10 text-center text-slate-300 dark:text-slate-600 text-[10px] font-black uppercase italic tracking-widest">Aucune alerte</div>
                 ) : (
-                  validNotifications.map((n, idx) => (
-                    <div key={idx} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-3xl transition-colors cursor-pointer mb-1 group">
-                       <p className="text-xs font-bold text-primary dark:text-slate-300 group-hover:text-secondary transition-colors line-clamp-2">
-                         {n.message || "Notification sans message"}
-                       </p>
-                    </div>
-                  ))
+                  validNotifications.map((n, idx) => {
+                    const deliveryId = n.deliveryId || n.data?.deliveryId;
+                    return (
+                      <Link 
+                        key={idx} 
+                        to={`/client/orders/${deliveryId}`}
+                        onClick={() => setOpenNotif(false)}
+                        className="flex gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-[1.5rem] transition-all group"
+                      >
+                        <div className="shrink-0 w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-secondary/10 group-hover:text-secondary transition-colors">
+                          {getNotifIcon(n.message)}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-bold text-primary dark:text-slate-300 group-hover:text-primary dark:group-hover:text-white transition-colors leading-relaxed line-clamp-2">
+                            {n.message || "Notification sans message"}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[8px] font-black text-secondary uppercase italic">Détails de la course</span>
+                            <ChevronRight size={10} className="text-secondary opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })
                 )}
               </div>
             </div>

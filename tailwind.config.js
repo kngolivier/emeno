@@ -47,15 +47,15 @@ export default {
         // },
 
         // ============= VIOLET + ROSE ===================
-        primary: {
-          DEFAULT: "#2D1B4E", // Violet Royal très sombre
-          light: "#3D2B5E",
-          dark: "#1A0F2E",
-        },
-        secondary: {
-          DEFAULT: "#F43F5E", // Rose Corail (donne énormément de "peps")
-          light: "#FFF1F2",
-        },
+        // primary: {
+        //   DEFAULT: "#2D1B4E", // Violet Royal très sombre
+        //   light: "#3D2B5E",
+        //   dark: "#1A0F2E",
+        // },
+        // secondary: {
+        //   DEFAULT: "#F43F5E", // Rose Corail (donne énormément de "peps")
+        //   light: "#FFF1F2",
+        // },
 
       //   success: "#10B981",
       //   warning: "#F59E0B",
@@ -67,16 +67,16 @@ export default {
       // },
 
       // ============== BLEU CYAN + BLEU ARDOISE =========================
-      // primary: {
-      //   DEFAULT: "#0F172A", // Un bleu ardoise très sombre (presque noir) pour le côté chic
-      //   light: "#1E293B",
-      //   dark: "#020617",
-      // },
+      primary: {
+        DEFAULT: "#0F172A", // Un bleu ardoise très sombre (presque noir) pour le côté chic
+        light: "#1E293B",
+        dark: "#020617",
+      },
 
-      // secondary: {
-      //   DEFAULT: "#06B6D4", // Le Cyan vibrant (Cyan 500 de Tailwind)
-      //   light: "#CFFAFE",   // Pour les fonds d'étiquettes ou halos
-      // },
+      secondary: {
+        DEFAULT: "#06B6D4", // Le Cyan vibrant (Cyan 500 de Tailwind)
+        light: "#CFFAFE",   // Pour les fonds d'étiquettes ou halos
+      },
 
       success: "#10B981",
       warning: "#F59E0B",
@@ -98,7 +98,7 @@ export default {
       // BORDER RADIUS
       // ======================
       borderRadius: {
-        xl: "1rem",
+        "xl": "1rem",
         "2xl": "1.5rem",
         "3xl": "2rem",
       },
@@ -107,11 +107,11 @@ export default {
       // FONT SIZE (UI SCALE CLEAN)
       // ======================
       fontSize: {
-        xs: "0.95rem",
-        sm: "1rem",
-        base: "1.1rem",
-        lg: "1.25rem",
-        xl: "1.4rem",
+        "xs": "0.95rem",
+        "sm": "1rem",
+        "base": "1.1rem",
+        "lg": "1.25rem",
+        "xl": "1.4rem",
         "2xl": "1.5rem",
         "3xl": "1.875rem",
       },

@@ -37,18 +37,10 @@ export default function DriverDashboard() {
     
     setIsValidating(true);
     try {
-      // On valide la livraison
       await validateDelivery(activeOrder._id, verificationCode);
-      
-      // Si on arrive ici, la livraison est OK en base de données
       setVerificationCode("");
       setShowDetails(false);
-      
-      // Optionnel : Forcer un rechargement local des stats si le serveur crash sur /me
-      // window.location.reload(); // Solution radicale si le crash bloque tout
     } catch (error) {
-      // Si l'erreur est juste le refresh (500) mais que la livraison est passée
-      // on ferme quand même le modal pour ne pas frustrer le livreur
       if (error.message?.includes('500') || error.message?.includes('autorisé')) {
         setShowDetails(false);
         setVerificationCode("");
@@ -81,7 +73,7 @@ export default function DriverDashboard() {
     <div className="min-h-screen bg-slate-50 dark:bg-primary-dark transition-colors duration-300">
       <div className="max-w-md mx-auto p-4 space-y-6 pb-32">
         
-        {/* 1. Header (Identique) */}
+        {/* 1. Header */}
         <header className="flex justify-between items-center bg-white dark:bg-primary-light p-6 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-white/5">
           <div>
             <h1 className="text-xl font-black text-primary dark:text-white italic tracking-tighter">
@@ -98,7 +90,7 @@ export default function DriverDashboard() {
           </button>
         </header>
 
-        {/* 2. Statistiques (Identiques) */}
+        {/* 2. Statistiques */}
         <div className="grid grid-cols-2 gap-4">
           <StatCard icon={<TrendingUp size={16}/>} label="Gains Jour" value={stats.dailyEarnings?.toLocaleString('fr-FR') || "0"} unit="FCFA" color="secondary" />
           <StatCard icon={<CheckCircle size={16}/>} label="Livraisons" value={stats.completedToday?.toString().padStart(2, '0') || "00"} unit="Courses" color="primary" />
@@ -113,7 +105,6 @@ export default function DriverDashboard() {
           
           {activeOrder ? (
             <div className="space-y-4">
-              {/* CARTE PRINCIPALE AMÉLIORÉE */}
               <motion.div 
                 layoutId={activeOrder._id}
                 onClick={() => setShowDetails(true)}
@@ -129,27 +120,27 @@ export default function DriverDashboard() {
                     </span>
                   </div>
                   
-                  <h4 className="text-2xl font-black text-white italic leading-none mb-1">{activeOrder.pickupLocation}</h4>
+                  <h4 className="text-2xl font-black text-white italic leading-none mb-1 truncate">{activeOrder.pickupLocation}</h4>
                   <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest flex items-center gap-2 mb-8">
                     <MapPin size={12} className="text-secondary" /> Vers {activeOrder.dropoffLocation}
                   </p>
                   
-                  {/* INPUT DE VALIDATION DIRECTEMENT SUR LA CARTE SI IN_PROGRESS */}
+                  {/* INPUT DE VALIDATION CORRIGÉ SUR LA CARTE */}
                   {activeOrder.status === 'IN_PROGRESS' ? (
                     <div className="bg-white/10 p-3 rounded-3xl backdrop-blur-md border border-white/10 space-y-3">
-                      <p className="text-[9px] font-black text-center text-white/70 uppercase tracking-widest">Saisir le code client pour valider</p>
-                      <div className="flex gap-2">
+                      <p className="text-[9px] font-black text-center text-white/70 uppercase tracking-widest">Code client requis</p>
+                      <div className="flex gap-2 w-full overflow-hidden">
                         <input 
-                          type="text" maxLength="6" placeholder="000000" 
+                          type="text" inputMode="numeric" maxLength="6" placeholder="000000" 
                           value={verificationCode} 
                           onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))} 
                           onClick={(e) => e.stopPropagation()}
-                          className="flex-1 bg-white text-primary font-black text-center py-3 rounded-xl tracking-[0.4em] outline-none text-lg" 
+                          className="flex-1 min-w-0 bg-white text-primary font-black text-center py-3 rounded-xl tracking-[0.4em] outline-none text-lg" 
                         />
                         <button 
                           onClick={handleVerify} 
                           disabled={verificationCode.length !== 6 || isValidating}
-                          className="bg-secondary text-white px-5 rounded-xl active:scale-95 transition-transform"
+                          className="shrink-0 bg-secondary text-white px-5 rounded-xl active:scale-95 transition-transform flex items-center justify-center"
                         >
                           {isValidating ? <Loader2 className="animate-spin" size={20}/> : <ShieldCheck size={20}/>}
                         </button>
@@ -167,7 +158,6 @@ export default function DriverDashboard() {
                 <Package size={150} className="absolute -right-10 -bottom-10 text-white/5 rotate-12" />
               </motion.div>
 
-              {/* MODAL DE DÉTAILS AVEC FIX CLAVIER */}
               <AnimatePresence>
                 {showDetails && (
                   <motion.div 
@@ -181,7 +171,6 @@ export default function DriverDashboard() {
                       className="bg-white dark:bg-primary-dark w-full max-w-lg rounded-[3.5rem] shadow-2xl relative flex flex-col"
                       style={{ maxHeight: '92vh' }}
                     >
-                      {/* Header Fixe */}
                       <div className="p-8 pb-4 flex justify-between items-center shrink-0">
                         <div>
                           <p className="text-[10px] font-black text-secondary uppercase tracking-[0.3em]">Fiche de route</p>
@@ -190,7 +179,6 @@ export default function DriverDashboard() {
                         <button onClick={() => setShowDetails(false)} className="p-3 bg-slate-100 dark:bg-white/5 rounded-2xl"><X size={20}/></button>
                       </div>
 
-                      {/* Contenu Scrollable */}
                       <div className="px-8 pb-4 space-y-6 overflow-y-auto">
                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-3xl flex gap-4 items-center">
                           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white"><Package size={20}/></div>
@@ -201,39 +189,38 @@ export default function DriverDashboard() {
                           <div>
                             <p className="text-[9px] font-black text-muted uppercase">Ramassage - {activeOrder.pickupCommune}</p>
                             <p className="text-sm font-black text-primary dark:text-white">{activeOrder.pickupLocation}</p>
-                            <a href={`tel:${activeOrder.pickupContact?.phone}`} className="inline-flex items-center gap-2 text-[10px] font-black text-secondary"><Phone size={12}/> Appeler {activeOrder.pickupContact?.name} : {activeOrder.pickupContact?.phone}</a>
+                            <a href={`tel:${activeOrder.pickupContact?.phone}`} className="inline-flex items-center gap-2 text-[10px] font-black text-secondary mt-1"><Phone size={12}/> Appeler Expéditeur</a>
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-muted uppercase">Livraison - {activeOrder.dropoffCommune}</p>
                             <p className="text-sm font-black text-primary dark:text-white">{activeOrder.dropoffLocation}</p>
-                            <a href={`tel:${activeOrder.dropoffContact?.phone}`} className="inline-flex items-center gap-2 text-[10px] font-black text-primary dark:text-white"><Phone size={12}/> Appeler {activeOrder.dropoffContact?.name} : {activeOrder.dropoffContact?.phone}</a>
+                            <a href={`tel:${activeOrder.dropoffContact?.phone}`} className="inline-flex items-center gap-2 text-[10px] font-black text-primary dark:text-white mt-1"><Phone size={12}/> Appeler Destinataire</a>
                           </div>
                         </div>
 
                         <div className="p-5 rounded-[2rem] bg-secondary/10 border border-secondary/20 flex justify-between items-center">
                           <p className="text-xl font-black text-secondary italic">{activeOrder.totalAmount} FCFA</p>
                           <span className="text-[8px] font-black uppercase bg-primary text-white px-3 py-1 rounded-full">
-                            {activeOrder.isPaid ? 'Payé' : 'À encaisser'} {activeOrder.payerType == "SENDER" ? ' au ramassage' : ' à la livraison'}
+                            {activeOrder.isPaid ? 'Payé' : 'À encaisser'} {activeOrder.payerType === "SENDER" ? " au ramassage" : " à la livraison"}
                           </span>
                         </div>
-                        {/* Petit spacer pour le scroll quand le clavier est ouvert */}
                         <div className="h-10 shrink-0" />
                       </div>
 
-                      {/* Barre d'action fixe en bas du modal */}
+                      {/* INPUT DE VALIDATION CORRIGÉ DANS LE MODAL */}
                       <div className="p-6 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 shrink-0">
                         {activeOrder.status === 'IN_PROGRESS' ? (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 w-full">
                             <input 
-                              type="text" maxLength="6" placeholder="Code" 
+                              type="text" inputMode="numeric" maxLength="6" placeholder="Code" 
                               value={verificationCode} 
                               onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))} 
-                              className="flex-1 bg-white text-primary font-black text-center py-4 rounded-2xl tracking-[0.4em] outline-none border-2 border-primary/10" 
+                              className="flex-1 min-w-0 bg-white text-primary font-black text-center py-4 rounded-2xl tracking-[0.4em] outline-none border-2 border-primary/10 text-lg" 
                             />
                             <button 
                               onClick={handleVerify} 
                               disabled={verificationCode.length !== 6 || isValidating}
-                              className="bg-secondary text-white px-6 rounded-2xl"
+                              className="shrink-0 bg-secondary text-white px-6 rounded-2xl flex items-center justify-center min-w-[70px]"
                             >
                               {isValidating ? <Loader2 className="animate-spin" size={24}/> : <ShieldCheck size={24}/>}
                             </button>

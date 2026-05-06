@@ -62,31 +62,41 @@ export default function ClientOrderDetails() {
     <div className="max-w-6xl mx-auto p-6 space-y-8 animate-in slide-in-from-bottom-4 duration-500 relative">
       
       {/* HEADER CARD */}
-      <div className="bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between shadow-soft gap-6">
-        <div className="flex items-center gap-6 w-full md:w-auto">
-          <button onClick={() => navigate("/client/orders")} className="p-4 rounded-2xl bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm">
-            <ChevronLeft size={24} strokeWidth={3} />
+      <div className="bg-white border-2 border-slate-50 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 flex flex-col md:flex-row items-center justify-between shadow-soft gap-4 sm:gap-6">
+        <div className="flex items-center gap-4 sm:gap-6 w-full md:w-auto">
+          {/* Bouton retour plus compact sur mobile */}
+          <button 
+            onClick={() => navigate("/client/orders")} 
+            className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm shrink-0"
+          >
+            <ChevronLeft size={20} sm:size={24} strokeWidth={3} />
           </button>
-          <div>
-            <h1 className="text-3xl font-black text-primary italic tracking-tighter">Commande - #{delivery.orderNumber}</h1>
-            <p className="text-xs font-black uppercase text-slate-300 tracking-widest mt-1 flex items-center gap-2">
-              <Clock size={12} /> {new Date(delivery.createdAt).toLocaleString()}
+          
+          <div className="min-w-0"> {/* min-w-0 permet au texte de tronquer si besoin */}
+            <h1 className="text-xl sm:text-3xl font-black text-primary italic tracking-tighter truncate">
+              Commande <span className="text-secondary">#</span>{delivery.orderNumber}
+            </h1>
+            <p className="text-[9px] sm:text-xs font-black uppercase text-slate-300 tracking-widest mt-1 flex items-center gap-2">
+              <Clock size={10} sm:size={12} /> {new Date(delivery.createdAt).toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* BOUTON ANNULER */}
+        {/* BLOC ACTIONS : Ajusté pour être compact et flexible */}
+        <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-end">
+          {/* BOUTON ANNULER : Plus petit et sans texte sur très petits écrans si nécessaire */}
           {canCancel && (
             <button 
               onClick={() => setShowCancelModal(true)}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-red-500 border-2 border-red-50 hover:bg-red-500 hover:text-white transition-all"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-xs font-black uppercase tracking-widest text-red-500 border-2 border-red-50 hover:bg-red-500 hover:text-white transition-all flex-1 md:flex-none"
             >
-              <XCircle size={16} /> Annuler la commande
+              <XCircle size={14} sm:size={16} /> 
+              <span>Annuler</span> {/* Texte raccourci pour mobile */}
             </button>
           )}
 
-          <span className={`px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest border-2 
+          {/* BADGE STATUT : Moins de padding horizontal */}
+          <span className={`flex-1 md:flex-none text-center px-4 py-2.5 sm:px-8 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-xs font-black uppercase tracking-widest border-2 whitespace-nowrap 
             ${delivery.status === 'DELIVERED' ? 'bg-success/10 text-success border-success/20' : 
               delivery.status === 'CANCELLED' ? 'bg-slate-100 text-slate-400 border-slate-200' :
               'bg-secondary/10 text-secondary border-secondary/20'}`}>
@@ -128,14 +138,23 @@ export default function ClientOrderDetails() {
               <InfoBox label="Fragile" value={delivery.packageDetails?.isFragile ? "OUI" : "NON"} isAlert={delivery.packageDetails?.isFragile} />
             </div>
 
-            {/* CODE DE SÉCURITÉ - Masqué si annulé */}
+            {/* CODE DE SÉCURITÉ - Version ultra-compacte */}
             {delivery.verificationCode && delivery.status !== 'CANCELLED' && (
-              <div className="bg-secondary/5 border-2 border-secondary/10 rounded-[2rem] p-6 flex items-center justify-between">
-                <div className="flex items-center gap-4 text-secondary">
-                  <ShieldCheck size={24} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Code de sécurité</span>
+              <div className="bg-secondary/5 border-2 border-secondary/10 rounded-[1.5rem] p-3.5 sm:p-6 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-4 text-secondary shrink-0">
+                  <ShieldCheck size={18} sm:size={24} className="shrink-0" />
+                  <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider leading-tight">
+                    Code <br className="sm:hidden" /> Sécurité
+                  </span>
                 </div>
-                <span className="text-2xl font-black text-primary tracking-widest">{delivery.verificationCode}</span>
+                
+                {/* 
+                  Réduction de text-xl à text-lg sur mobile 
+                  Réduction du tracking de 0.2em à normal sur mobile
+                */}
+                <span className="text-lg sm:text-2xl font-black text-primary tracking-normal sm:tracking-widest tabular-nums bg-white/50 px-3 py-1 rounded-lg border border-secondary/5">
+                  {delivery.verificationCode}
+                </span>
               </div>
             )}
 

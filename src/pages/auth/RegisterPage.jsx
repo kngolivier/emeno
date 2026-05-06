@@ -75,7 +75,7 @@ export default function RegisterPage() {
         localStorage.setItem("user", JSON.stringify(response.data.user));
         
         // Redirection vers le dashboard
-        navigate("/dashboard");
+        navigate("/client");
       }
     } catch (err) {
       setError(err.message || "Erreur lors de l'inscription");
@@ -176,40 +176,49 @@ export default function RegisterPage() {
               initial={{ opacity: 0, x: 20 }} 
               animate={{ opacity: 1, x: 0 }} 
               onSubmit={handleFinalRegister} 
-              className="space-y-4"
+              className="space-y-3" // Réduction de l'espace entre les lignes
             >
-              <div className="grid grid-cols-2 gap-4">
+              {/* 
+                On remplace grid-cols-2 par une colonne par défaut.
+                Le 'sm:grid-cols-2' ne s'active que sur les écrans plus larges.
+              */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <InputGroup 
-                  icon={<User size={18} />} 
+                  icon={<User size={16} />} 
                   placeholder="Nom" 
                   value={formData.nom}
                   onChange={(e) => setFormData({...formData, nom: e.target.value})}
                   required
                 />
                 <InputGroup 
-                  icon={<User size={18} />} 
+                  icon={<User size={16} />} 
                   placeholder="Prénom" 
                   value={formData.prenom}
                   onChange={(e) => setFormData({...formData, prenom: e.target.value})}
                   required
                 />
               </div>
+              
               <InputGroup 
-                icon={<Mail size={18} />} 
+                icon={<Mail size={16} />} 
                 type="email" 
                 placeholder="Email (optionnel)" 
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
+              
               <InputGroup 
-                icon={<Lock size={18} />} 
+                icon={<Lock size={16} />} 
                 type="password" 
                 placeholder="Mot de passe (min 6 car.)" 
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
               />
-              <SubmitButton loading={loading} text="Créer mon compte" />
+              
+              <div className="pt-2">
+                <SubmitButton loading={loading} text="Créer mon compte" />
+              </div>
             </motion.form>
           )}
         </AnimatePresence>
@@ -239,14 +248,30 @@ function InputGroup({ icon, ...props }) {
 }
 
 function SubmitButton({ loading, text, onClick }) {
+  // On simplifie le texte pour le bouton final s'il est trop long
+  const buttonText = text === "Créer mon compte" ? "S'inscrire" : text;
+
   return (
     <button
       type={onClick ? "button" : "submit"}
       onClick={onClick}
       disabled={loading}
-      className="w-full py-5 bg-primary text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 mt-4 hover:bg-secondary transition-all disabled:opacity-50"
+      className="w-full py-4 sm:py-5 bg-primary text-white font-black uppercase rounded-xl sm:rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-2 mt-4 hover:bg-secondary transition-all disabled:opacity-50"
     >
-      {loading ? "Traitement..." : <>{text} <ArrowRight size={18} /></>}
+      {loading ? (
+        <span className="text-[10px] tracking-widest">Traitement...</span>
+      ) : (
+        <>
+          {/* 
+             text-[10px] sur mobile pour garantir une seule ligne.
+             tracking-widest réduit à tracking-normal sur mobile.
+          */}
+          <span className="text-[10px] sm:text-[11px] tracking-normal sm:tracking-[0.2em] whitespace-nowrap">
+            {buttonText}
+          </span>
+          <ArrowRight size={16} className="shrink-0" />
+        </>
+      )}
     </button>
   );
 }

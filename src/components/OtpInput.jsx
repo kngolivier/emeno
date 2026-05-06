@@ -1,13 +1,10 @@
 // FILE: src/components/OtpInput.jsx
-
 import { useRef, useState, useEffect } from "react";
 
 export default function OtpInput({ length = 6, onComplete }) {
-  // On initialise un tableau de 6 chaînes vides
   const [otp, setOtp] = useState(new Array(length).fill(""));
   const inputRefs = useRef([]);
 
-  // On s'assure que le premier input prend le focus au montage
   useEffect(() => {
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
@@ -16,27 +13,21 @@ export default function OtpInput({ length = 6, onComplete }) {
 
   const handleChange = (e, index) => {
     const value = e.target.value;
-    
-    // On n'accepte que les chiffres
     if (!/^\d*$/.test(value)) return;
 
     const newOtp = [...otp];
-    // On ne prend que le dernier caractère tapé (pour éviter les bugs de saisie)
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
 
-    // Notifier le parent du changement
     const combinedOtp = newOtp.join("");
     onComplete(combinedOtp);
 
-    // Focus automatique sur la cellule suivante si on a tapé un chiffre
     if (value && index < length - 1) {
       inputRefs.current[index + 1].focus();
     }
   };
 
   const handleKeyDown = (e, index) => {
-    // Si on appuie sur "Retour arrière" et que la case est vide, on va à la précédente
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1].focus();
     }
@@ -49,18 +40,17 @@ export default function OtpInput({ length = 6, onComplete }) {
       const newOtp = [...otp];
       data.forEach((char, index) => {
         newOtp[index] = char;
-        if (inputRefs.current[index]) inputRefs.current[index].value = char;
       });
       setOtp(newOtp);
       onComplete(newOtp.join(""));
-      // Focus le dernier input rempli ou le suivant
       const nextIndex = data.length < length ? data.length : length - 1;
       inputRefs.current[nextIndex].focus();
     }
   };
 
   return (
-    <div className="flex justify-center gap-3 py-4">
+    /* Changement : Utilisation de gap-2 au lieu de gap-3 et w-full */
+    <div className="flex justify-between items-center gap-2 py-4 w-full">
       {otp.map((digit, index) => (
         <input
           key={index}
@@ -72,7 +62,12 @@ export default function OtpInput({ length = 6, onComplete }) {
           onChange={(e) => handleChange(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
-          className="w-12 h-14 sm:w-14 sm:h-16 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center text-xl font-black text-primary focus:border-secondary focus:ring-4 focus:ring-secondary/10 outline-none transition-all shadow-sm"
+          /* 
+             Correction CSS : 
+             - w-full avec aspect-square pour que les cases soient carrées mais flexibles
+             - max-w-[45px] pour ne pas qu'elles soient trop grandes sur tablette
+          */
+          className="w-full aspect-square max-w-[46px] bg-slate-50 border-2 border-slate-100 rounded-xl text-center text-lg font-black text-primary focus:border-secondary focus:ring-4 focus:ring-secondary/10 outline-none transition-all shadow-sm sm:text-xl sm:rounded-2xl"
         />
       ))}
     </div>
