@@ -1,6 +1,8 @@
+// FILE: src/pages/drivers/DriversList.jsx
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Edit, UserX } from "lucide-react";
+import { Plus, Edit, Phone, ShieldCheck, MoreVertical, ExternalLink } from "lucide-react";
 import NewDriverForm from "./NewDriverForm";
 import { Pagination } from "../../components/Pagination";
 import { fetchDrivers, updateUserStatus, createDriver } from "../../api/users.api";
@@ -51,101 +53,175 @@ export default function DriversList() {
   if (loading) return <PageLoader />;
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-8 font-sans pb-10">
       {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-primary font-display italic tracking-tighter">
+          <h1 className="text-3xl lg:text-4xl font-black text-primary font-display italic tracking-tighter">
             Livreurs
           </h1>
-          <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-[0.1em]">
+          <p className="text-slate-400 text-[10px] font-bold mt-1 uppercase tracking-[0.2em]">
             Gestion de la flotte logistique
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <TotalCard title="Actifs" value={meta?.total || 0} subtitle="Livreurs" />
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:block">
+            <TotalCard title="Actifs" value={meta?.total || 0} subtitle="Livreurs" />
+          </div>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-8 py-4 rounded-[1.5rem] bg-primary text-white hover:bg-secondary transition-all shadow-xl hover:shadow-secondary/20 text-xs font-black uppercase tracking-widest"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-primary text-white hover:bg-secondary transition-all shadow-xl hover:shadow-secondary/20 text-[10px] font-black uppercase tracking-widest"
           >
-            <Plus size={18} strokeWidth={3} />
-            Ajouter
+            <Plus size={16} strokeWidth={3} />
+            Ajouter un livreur
           </button>
         </div>
       </div>
 
       {/* FILTERS */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
         {["ALL", "ACTIVE", "INACTIVE", "BLOCKED"].map((s) => (
           <button
             key={s}
             onClick={() => setStatus(s)}
-            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap
-              ${status === s ? "bg-primary text-white border-primary shadow-lg" : "bg-white text-slate-400 border-slate-100"}`}
+            className={`whitespace-nowrap px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all
+              ${status === s ? "bg-primary text-white border-primary shadow-md" : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"}`}
           >
-            {s === "ALL" ? "Tous" : s}
+            {s === "ALL" ? "Tous les livreurs" : s}
           </button>
         ))}
       </div>
 
-      {/* TABLE */}
-      <div className="bg-white border border-slate-50 rounded-[2rem] shadow-soft overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50/50 border-b border-slate-50">
-              <tr>
-                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identité</th>
-                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</th>
-                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Statut</th>
-                <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {drivers.map((d) => (
-                <tr key={d._id} className={`hover:bg-slate-50/50 transition-colors group ${d.status === "DELETED" ? "opacity-30" : ""}`}>
-                  <td className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center font-display font-black text-primary italic shadow-inner">
-                        {d.nom?.charAt(0)}{d.prenom?.charAt(0)}
-                      </div>
-                      <Link to={`/admin/drivers/${d._id}`} className="font-display font-black text-primary italic text-lg tracking-tight hover:text-secondary transition-colors">
+      {/* --- VUE MOBILE : CARDS --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden">
+        {drivers.map((d) => (
+          <div key={d._id} className={`bg-white p-5 rounded-[2.5rem] border border-slate-50 shadow-sm transition-all ${d.status === "DELETED" ? "opacity-40 grayscale" : ""}`}>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center font-display font-black text-primary italic border border-slate-100 shadow-inner">
+                  {d.nom?.charAt(0)}{d.prenom?.charAt(0)}
+                </div>
+                <div>
+                  <Link to={`/admin/drivers/${d._id}`} className="text-sm font-black text-primary uppercase tracking-tighter flex items-center gap-1 hover:text-secondary">
+                    {d.nom} {d.prenom}
+                    <ExternalLink size={10} />
+                  </Link>
+                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getStatusStyle(d.status)}`}>
+                    {d.status}
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => { setEditingDriver(d); setShowForm(true); }} className="p-2 bg-slate-50 rounded-xl text-slate-400">
+                <Edit size={16} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-5">
+               <div className="p-3 bg-slate-50/50 rounded-2xl">
+                  <div className="flex items-center gap-2 text-slate-400 mb-1">
+                    <Phone size={12} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Contact</span>
+                  </div>
+                  <p className="text-[10px] font-bold text-primary italic">{d.telephone}</p>
+               </div>
+               <div className="p-3 bg-slate-50/50 rounded-2xl">
+                  <div className="flex items-center gap-2 text-slate-400 mb-1">
+                    <ShieldCheck size={12} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">ID Verifié</span>
+                  </div>
+                  <p className="text-[10px] font-bold text-emerald-600 italic uppercase">Oui</p>
+               </div>
+            </div>
+
+            <button 
+              onClick={() => toggleDriverStatus(d)}
+              className={`w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border
+                ${d.status === "ACTIVE" 
+                  ? "bg-white border-rose-100 text-rose-500 hover:bg-rose-50" 
+                  : "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-200"}`}
+            >
+              {d.status === "ACTIVE" ? "Suspendre l'accès" : "Réactiver le compte"}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* --- VUE DESKTOP : TABLEAU --- */}
+      <div className="hidden lg:block bg-white border border-slate-50 rounded-[2.5rem] shadow-sm overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-slate-50/50 border-b border-slate-50">
+            <tr>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identité</th>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</th>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Statut</th>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {drivers.map((d) => (
+              <tr key={d._id} className={`hover:bg-slate-50/30 transition-colors group ${d.status === "DELETED" ? "opacity-30" : ""}`}>
+                <td className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center font-display font-black text-primary italic border border-slate-100 shadow-inner group-hover:bg-white transition-colors">
+                      {d.nom?.charAt(0)}{d.prenom?.charAt(0)}
+                    </div>
+                    <div>
+                      <Link to={`/admin/drivers/${d._id}`} className="font-display font-black text-primary italic text-lg tracking-tighter hover:text-secondary transition-colors leading-none">
                         {d.nom} {d.prenom}
                       </Link>
+                      <p className="text-[9px] text-slate-400 font-black uppercase mt-1 tracking-tighter">Membre depuis {new Date(d.createdAt).toLocaleDateString()}</p>
                     </div>
-                  </td>
-                  <td className="p-6 text-sm font-bold text-slate-600 font-sans">{d.telephone}</td>
-                  <td className="p-6 text-center">
-                    <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter border ${getStatusStyle(d.status)}`}>
-                      {d.status}
-                    </span>
-                  </td>
-                  <td className="p-6 text-right space-x-2">
-                    <button onClick={() => { setEditingDriver(d); setShowForm(true); }} className="p-2 text-slate-400 hover:text-secondary transition-colors">
+                  </div>
+                </td>
+                <td className="p-6">
+                  <span className="text-sm font-bold text-slate-600 italic bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                    {d.telephone}
+                  </span>
+                </td>
+                <td className="p-6">
+                  <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(d.status)}`}>
+                    {d.status}
+                  </span>
+                </td>
+                <td className="p-6 text-right">
+                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    <button 
+                      onClick={() => { setEditingDriver(d); setShowForm(true); }} 
+                      className="p-2.5 text-slate-400 hover:text-secondary hover:bg-secondary/5 rounded-xl transition-all"
+                      title="Modifier"
+                    >
                       <Edit size={18} />
                     </button>
                     <button 
                       onClick={() => toggleDriverStatus(d)} 
-                      className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${d.status === "ACTIVE" ? "border-primary/20 text-primary hover:bg-primary hover:text-white" : "border-emerald-200 text-emerald-600 hover:bg-emerald-500 hover:text-white"}`}
+                      className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all 
+                        ${d.status === "ACTIVE" 
+                          ? "border-rose-100 text-rose-500 hover:bg-rose-500 hover:text-white" 
+                          : "border-emerald-200 text-emerald-600 hover:bg-emerald-500 hover:text-white"}`}
                     >
                       {d.status === "ACTIVE" ? "Suspendre" : "Activer"}
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
       <Pagination meta={meta} setPage={setPage} />
 
+      {/* FORM MODAL */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-md p-4">
-          <NewDriverForm 
-            driver={editingDriver} 
-            onSave={handleSave} 
-            onCancel={() => { setShowForm(false); setEditingDriver(null); }} 
-          />
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-primary/40 backdrop-blur-xl p-4 animate-in fade-in duration-300">
+          <div className="w-full max-w-xl transform animate-in slide-in-from-bottom-8 duration-500">
+            <NewDriverForm 
+              driver={editingDriver} 
+              onSave={handleSave} 
+              onCancel={() => { setShowForm(false); setEditingDriver(null); }} 
+            />
+          </div>
         </div>
       )}
     </div>

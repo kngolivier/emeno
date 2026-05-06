@@ -3,7 +3,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
-
+  darkMode: "class",
   theme: {
     extend: { 
 
@@ -13,16 +13,16 @@ export default {
       colors: {
         // ========== VERT + DORE =============
 
-        primary: {
-          DEFAULT: "#002E1B", // vert principal
-          light: "#0A3D2A",
-          dark: "#00140C",
-        },
+        // primary: {
+        //   DEFAULT: "#002E1B", // vert principal
+        //   light: "#0A3D2A",
+        //   dark: "#00140C",
+        // },
 
-        secondary: {
-          DEFAULT: "#B08D3E", // doré accent
-          light: "#FFF7D6",
-        },
+        // secondary: {
+        //   DEFAULT: "#B08D3E", // doré accent
+        //   light: "#FFF7D6",
+        // },
 
         // ============= BLEU NUIT + EMERAUDE
         // primary: {
@@ -47,15 +47,15 @@ export default {
         // },
 
         // ============= VIOLET + ROSE ===================
-      //   primary: {
-      //     DEFAULT: "#2D1B4E", // Violet Royal très sombre
-      //     light: "#3D2B5E",
-      //     dark: "#1A0F2E",
-      //   },
-      //   secondary: {
-      //     DEFAULT: "#F43F5E", // Rose Corail (donne énormément de "peps")
-      //     light: "#FFF1F2",
-      //   },
+        primary: {
+          DEFAULT: "#2D1B4E", // Violet Royal très sombre
+          light: "#3D2B5E",
+          dark: "#1A0F2E",
+        },
+        secondary: {
+          DEFAULT: "#F43F5E", // Rose Corail (donne énormément de "peps")
+          light: "#FFF1F2",
+        },
 
       //   success: "#10B981",
       //   warning: "#F59E0B",

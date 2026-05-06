@@ -4,16 +4,19 @@ import AppRoutes from "./routes/AppRoutes";
 import AuthProvider from "./context/AuthProvider";
 import { NotificationProvider } from "./context/Notifications/NotificationProvider";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "./context/Theme/ThemeProvider";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <AppRoutes />
+    <ThemeProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <AppRoutes />
 
-        {/* GLOBAL TOASTER (notifications) */}
-        <Toaster position="top-right" />
-      </NotificationProvider>
-    </AuthProvider>
+          {/* GLOBAL TOASTER (notifications) */}
+          <Toaster position="top-right" />
+        </NotificationProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
