@@ -1,8 +1,7 @@
 // FILE: src/pages/orders/OrdersList.jsx
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Plus, Search, MapPin, Calendar, User } from "lucide-react";
+import { Eye, Plus, MapPin, User } from "lucide-react";
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { Pagination } from "../../components/Pagination";
 import { fetchAdminDeliveries, createDelivery } from "../../api/deliveries.api";
@@ -13,8 +12,18 @@ import { notifySuccess, notifyError } from "../../utils/notify";
 
 export default function OrdersList() {
   const [showForm, setShowForm] = useState(false);
-  const { data: orders = [], meta, loading, setPage } = usePaginatedFetch(fetchAdminDeliveries, 10);
-  const [filter, setFilter] = useState("ALL");
+  
+  // Ajout de 'refresh' pour actualiser la liste après création
+  const { data: orders = [], meta, loading, setPage, setStatus, status, refresh } = usePaginatedFetch(fetchAdminDeliveries, 10);
+
+  const statusTranslations = {
+    PENDING: "Créée",
+    ASSIGNED: "Assignée",
+    PICKED_UP: "Récupérée",
+    IN_PROGRESS: "En cours",
+    DELIVERED: "Livrée",
+    CANCELLED: "Annulée",
+  };
 
   const statusStyles = {
     PENDING: "bg-primary/5 text-primary border-primary/20",
@@ -30,6 +39,7 @@ export default function OrdersList() {
       await createDelivery(data);
       notifySuccess("Commande créée avec succès");
       setShowForm(false);
+      refresh(); // <--- Crucial : recharge la liste des commandes
     } catch (err) {
       notifyError(err?.response?.data?.message || err.message);
     }
@@ -39,13 +49,12 @@ export default function OrdersList() {
 
   return (
     <div className="space-y-8 font-sans pb-10">
-      {/* HEADER : Adaptatif pour mobile */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-black text-primary font-display italic tracking-tighter">
+          <h1 className="text-3xl lg:text-4xl font-black text-primary font-display italic tracking-tighter uppercase">
             Livraisons
           </h1>
-          <p className="text-slate-400 text-[10px] font-bold mt-1 uppercase tracking-[0.2em]">
+          <p className="text-slate-400 text-[10px] font-black mt-1 uppercase tracking-[0.2em]">
             Flux opérationnel en temps réel
           </p>
         </div>
@@ -64,21 +73,19 @@ export default function OrdersList() {
         </div>
       </div>
 
-      {/* FILTERS : Scroll horizontal fluide sur mobile */}
       <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
         {["ALL", "PENDING", "ASSIGNED", "IN_PROGRESS", "DELIVERED", "CANCELLED"].map((s) => (
           <button
             key={s}
-            onClick={() => setFilter(s)}
+            onClick={() => setStatus(s)}
             className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all
-              ${filter === s ? "bg-primary text-white border-primary shadow-md" : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"}`}
+              ${status === s ? "bg-primary text-white border-primary shadow-md" : "bg-white text-slate-400 border-slate-100 hover:border-slate-200"}`}
           >
-            {s === "ALL" ? "Tous" : s}
+            {s === "ALL" ? "Tous" : statusTranslations[s]}
           </button>
         ))}
       </div>
 
-      {/* --- VUE MOBILE : CARTES (Affiche jusqu'à lg) --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden">
         {orders.map((order) => (
           <Link 
@@ -94,7 +101,7 @@ export default function OrdersList() {
                 </span>
               </div>
               <span className={`px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest border ${statusStyles[order.status]}`}>
-                {order.status}
+                {statusTranslations[order.status]}
               </span>
             </div>
 
@@ -116,7 +123,7 @@ export default function OrdersList() {
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-none">Destination</p>
                   <p className="text-xs font-bold text-primary truncate max-w-[200px]">
-                    {order.destinationAddress || "Libreville, Gabon"}
+                    {order.dropoffCommune || "Libreville, Gabon"}
                   </p>
                 </div>
               </div>
@@ -125,7 +132,6 @@ export default function OrdersList() {
         ))}
       </div>
 
-      {/* --- VUE DESKTOP : TABLEAU ÉPURÉ (Affiche à partir de lg) --- */}
       <div className="hidden lg:block bg-white border border-slate-50 rounded-[2.5rem] shadow-sm overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-slate-50/50 border-b border-slate-50">
@@ -156,12 +162,12 @@ export default function OrdersList() {
                       <span className="text-sm font-bold text-slate-600">{order.driverId.prenom}</span>
                     </div>
                   ) : (
-                    <span className="text-[10px] font-black text-slate-300 uppercase italic">Non assigné</span>
+                    <span className="text-[10px] font-black text-slate-300 uppercase italic">Non assignée</span>
                   )}
                 </td>
                 <td className="p-6">
                   <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${statusStyles[order.status]}`}>
-                    {order.status}
+                    {statusTranslations[order.status]}
                   </span>
                 </td>
                 <td className="p-6 text-right">
@@ -180,7 +186,6 @@ export default function OrdersList() {
 
       <Pagination meta={meta} setPage={setPage} />
 
-      {/* MODALE FORMULAIRE */}
       {showForm && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-primary/40 backdrop-blur-xl p-4 animate-in fade-in duration-300">
           <div className="w-full max-w-2xl transform animate-in slide-in-from-bottom-8 duration-500">

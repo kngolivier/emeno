@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Phone, Mail, Clock, Trash2, CheckCircle, Ban } from "lucide-react";
+import { ArrowLeft, Shield, Phone, Mail, Clock, Trash2, CheckCircle, Ban, Calendar } from "lucide-react";
 import { fetchClientById, updateUserStatus, deleteUser } from "../../api/users.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
@@ -12,14 +12,21 @@ export default function AdminDetails() {
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // États pour le modal de suppression
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const loadAdmin = async () => {
     try {
       setLoading(true);
       const res = await fetchClientById(id);
       setAdmin(res.data);
-    } catch (err) { notifyError("Erreur chargement admin"); } finally { setLoading(false); }
+    } catch (err) { 
+      notifyError("Erreur lors du chargement de l'admin"); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   useEffect(() => { loadAdmin(); }, [id]);
@@ -28,86 +35,190 @@ export default function AdminDetails() {
     try {
       await updateUserStatus(id, status);
       loadAdmin();
-      notifySuccess("Statut mis à jour");
-    } catch (err) { notifyError("Erreur mise à jour"); }
+      notifySuccess(`Le compte est désormais ${status}`);
+    } catch (err) { 
+      notifyError("Erreur lors de la mise à jour"); 
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteUser(id);
+      notifySuccess("Le compte administrateur a été supprimé");
+      navigate("/admin/admins"); 
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Erreur lors de la suppression";
+      notifyError(errorMsg);
+      setShowDeleteModal(false);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) return <PageLoader />;
-  if (!admin) return <div className="p-8 text-center font-black text-rose-500 uppercase tracking-widest">Admin introuvable</div>;
+  if (!admin) return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+       <div className="p-6 bg-rose-50 rounded-full text-rose-500"><Shield size={48} /></div>
+       <p className="font-black text-rose-500 uppercase tracking-widest italic">Admin introuvable</p>
+       <button onClick={() => navigate(-1)} className="text-xs font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 pb-1">Retourner à la liste</button>
+    </div>
+  );
 
-  const cardClass = "bg-white border border-slate-50 rounded-[2rem] p-8 shadow-soft";
-  const labelClass = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 mb-4 block";
+  const cardClass = "bg-white border border-slate-100 rounded-[2.5rem] p-6 md:p-8 shadow-soft transition-all hover:shadow-xl hover:shadow-slate-200/20";
+  const labelClass = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 mb-6 block";
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 font-sans">
-      {/* TOP NAV */}
-      <div className="flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">
-          <ArrowLeft size={16} strokeWidth={3} /> Retour
+    <div className="max-w-5xl mx-auto space-y-6 md:space-y-10 font-sans pb-12">
+      {/* NAVIGATION BAR */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-primary transition-all group">
+          <div className="p-2 bg-white rounded-xl shadow-sm group-hover:-translate-x-1 transition-transform">
+            <ArrowLeft size={16} strokeWidth={3} /> 
+          </div>
+          Retour
         </button>
-        <div className="flex gap-2">
-          <button onClick={() => handleAction("ACTIVE")} className="p-4 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"><CheckCircle size={20}/></button>
-          <button onClick={() => handleAction("BLOCKED")} className="p-4 bg-rose-500 text-white rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-105 transition-all"><Ban size={20}/></button>
-          <button onClick={() => setShowDeleteModal(true)} className="p-4 bg-slate-800 text-white rounded-2xl shadow-lg hover:bg-black transition-all"><Trash2 size={20}/></button>
+        
+        <div className="flex items-center gap-2 bg-white/50 p-1.5 rounded-[1.5rem] border border-slate-100 backdrop-blur-sm shadow-sm">
+          <button onClick={() => handleAction("ACTIVE")} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
+            <CheckCircle size={16} /> Activer
+          </button>
+          <button onClick={() => handleAction("BLOCKED")} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20 active:scale-95">
+            <Ban size={16} /> Bloquer
+          </button>
+          <button onClick={() => setShowDeleteModal(true)} className="p-3 bg-slate-900 text-white rounded-xl hover:bg-rose-600 transition-all shadow-lg shadow-slate-900/20 active:scale-95" title="Supprimer définitivement">
+            <Trash2 size={18} />
+          </button>
         </div>
       </div>
 
-      {/* IDENTITY HEADER */}
-      <div className={`${cardClass} flex flex-col md:flex-row justify-between items-center gap-8 border-l-[12px] border-l-primary`}>
-        <div className="flex items-center gap-6">
-          <div className="h-24 w-24 rounded-[2rem] bg-slate-100 flex items-center justify-center text-4xl font-black text-primary italic border-4 border-white shadow-xl">
-            {admin.nom?.charAt(0)}
-          </div>
-          <div>
-            <h1 className="text-4xl font-black text-slate-900 font-display italic tracking-tighter uppercase">{admin.nom} {admin.prenom}</h1>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="px-3 py-1 rounded-lg bg-primary text-white text-[9px] font-black uppercase tracking-widest italic">{admin.role}</span>
-              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">ID: {admin._id}</span>
+      {/* MAIN IDENTITY CARD */}
+      <div className={`${cardClass} relative overflow-hidden border-l-[12px] border-l-primary`}>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+            <div className="h-28 w-28 rounded-[2.5rem] bg-gradient-to-br from-primary to-secondary p-1 shadow-2xl">
+              <div className="h-full w-full rounded-[2.3rem] bg-white flex items-center justify-center text-4xl font-black text-primary italic border-4 border-white">
+                {admin.nom?.charAt(0)}
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="text-center md:text-right">
-          <span className={`inline-block px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest border ${admin.status === "ACTIVE" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-100 text-slate-400 border-slate-200"}`}>
-            Compte {admin.status}
-          </span>
-        </div>
-      </div>
-
-      {/* INFO GRID */}
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className={cardClass}>
-          <span className={labelClass}>Coordonnées</span>
-          <div className="space-y-4 font-bold text-slate-700">
-            <div className="flex items-center gap-4"><div className="p-2 bg-slate-50 rounded-lg"><Phone size={16} className="text-primary"/></div> {admin.telephone}</div>
-            <div className="flex items-center gap-4"><div className="p-2 bg-slate-50 rounded-lg"><Mail size={16} className="text-primary"/></div> {admin.email || "—"}</div>
-          </div>
-        </div>
-
-        <div className={cardClass}>
-          <span className={labelClass}>Historique</span>
-          <div className="space-y-4 text-sm font-bold text-slate-600">
-            <div className="flex justify-between">
-              <span className="text-slate-300 uppercase text-[9px]">Création</span>
-              <span>{new Date(admin.createdAt).toLocaleDateString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-300 uppercase text-[9px]">Dernière Connexion</span>
-              <span className="text-secondary">{admin.lastLogin ? new Date(admin.lastLogin).toLocaleDateString() : "Jamais"}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={cardClass}>
-          <span className={labelClass}>Sécurité</span>
-          <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-            <Shield className="text-primary" size={24}/>
             <div>
-              <p className="text-[10px] font-black text-primary uppercase">Niveau d'accès</p>
-              <p className="text-xs font-bold text-slate-600">Administrateur Système</p>
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-2">
+                <h1 className="text-3xl md:text-5xl font-black text-slate-900 font-display italic tracking-tighter uppercase leading-none">
+                  {admin.nom} {admin.prenom}
+                </h1>
+              </div>
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
+                <span className="px-4 py-1.5 rounded-xl bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest italic border border-primary/10">
+                  {admin.role || 'ADMINISTRATEUR'}
+                </span>
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Membre Staff • ID {admin._id?.slice(-6)}</span>
+              </div>
+            </div>
+          </div>
+          <div className="w-full md:w-auto">
+            <div className={`text-center px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest border-2 ${admin.status === "ACTIVE" ? "bg-emerald-50/50 text-emerald-600 border-emerald-100" : "bg-rose-50/50 text-rose-500 border-rose-100"}`}>
+              {admin.status === "ACTIVE" ? "Accès Autorisé" : "Accès Révoqué"}
             </div>
           </div>
         </div>
+        <Shield className="absolute -right-10 -bottom-10 text-slate-50 opacity-50" size={200} strokeWidth={1} />
       </div>
+
+      {/* DETAILS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <div className={cardClass}>
+          <span className={labelClass}>Contact Direct</span>
+          <div className="space-y-6">
+            <div className="flex items-center gap-5 group">
+              <div className="p-4 bg-slate-50 text-primary rounded-2xl group-hover:bg-primary group-hover:text-white transition-all">
+                <Phone size={20} />
+              </div> 
+              <div>
+                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Téléphone</p>
+                <p className="text-sm font-black text-slate-700 italic">{admin.telephone}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-5 group">
+              <div className="p-4 bg-slate-50 text-primary rounded-2xl group-hover:bg-primary group-hover:text-white transition-all">
+                <Mail size={20} />
+              </div> 
+              <div className="min-w-0">
+                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Email Pro</p>
+                <p className="text-sm font-black text-slate-700 truncate italic">{admin.email || "Non renseigné"}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={cardClass}>
+          <span className={labelClass}>Activité Compte</span>
+          <div className="space-y-5">
+            <div className="flex justify-between items-center p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
+              <div className="flex items-center gap-3">
+                <Calendar size={16} className="text-slate-300" />
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Enregistré le</span>
+              </div>
+              <span className="text-xs font-black text-slate-600">{new Date(admin.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div className="flex justify-between items-center p-4 bg-slate-50/50 rounded-2xl border border-slate-50">
+              <div className="flex items-center gap-3">
+                <Clock size={16} className="text-secondary" />
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Dernier accès</span>
+              </div>
+              <span className="text-xs font-black text-secondary uppercase italic">
+                {admin.lastLogin ? new Date(admin.lastLogin).toLocaleDateString() : "Aucun"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className={cardClass}>
+          <span className={labelClass}>Sécurité Système</span>
+          <div className="p-5 bg-primary rounded-3xl text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
+            <div className="relative z-10 flex flex-col gap-4">
+              <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                <Shield size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Privilèges</p>
+                <p className="text-lg font-black italic tracking-tight uppercase leading-none">Accès Total <br/>Dashboard</p>
+              </div>
+            </div>
+            <div className="absolute -right-4 -top-4 h-24 w-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* MODAL SUPPRESSION */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-primary/40 backdrop-blur-md p-0 md:p-4">
+          <div className="bg-white p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-sm text-center space-y-6 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95">
+            <div className="w-16 h-1 w-12 bg-slate-100 rounded-full mx-auto md:hidden -mt-4 mb-4" />
+            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto rotate-3">
+              <Trash2 size={32} />
+            </div>
+            <div>
+              <h2 className="font-display font-black text-2xl italic text-primary uppercase">Supprimer ?</h2>
+              <p className="text-slate-400 text-xs md:text-sm mt-2 px-4">Cette action est irréversible. Toutes les données de cet administrateur seront effacées.</p>
+            </div>
+            <div className="flex flex-col md:flex-row gap-3 pt-2">
+              <button 
+                onClick={handleDelete} 
+                disabled={deleting} 
+                className="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center"
+              >
+                {deleting ? "Suppression..." : "Confirmer la suppression"}
+              </button>
+              <button 
+                onClick={() => setShowDeleteModal(false)} 
+                className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

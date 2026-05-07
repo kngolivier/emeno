@@ -6,10 +6,10 @@ import { ENDPOINTS } from "./endpoints";
 // ======================
 // GET ALL PRICING
 // ======================
-export const fetchPricing = (page = 1, limit = 10) => {
-  return API.get(`${ENDPOINTS.PRICING}?page=${page}&limit=${limit}`);
+export const fetchPricing = async (params) => {
+  const response = await API.get(ENDPOINTS.PRICING, { params });
+  return response;
 };
-
 // ======================
 // CREATE PRICING RULE
 // ======================

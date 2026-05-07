@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Phone, Mail, Activity, ShieldOff, Trash2, ShoppingBag, CreditCard } from "lucide-react";
+import { ChevronLeft, Phone, Mail, Activity, ShieldOff, Trash2, ShoppingBag, CreditCard, Clock, ExternalLink, ShieldCheck } from "lucide-react";
 import { fetchClientById, deleteUser, updateUserStatus } from "../../api/users.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
@@ -27,12 +27,19 @@ export default function ClientDetails() {
     loadClient();
   }, [id]);
 
+  // Formatage de la date EMENO Style
+  const formatJoinDate = (dateString) => {
+    if (!dateString) return "Date inconnue";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date);
+  };
+
   const handleBlockToggle = async () => {
     try {
       const newStatus = client.status === "BLOCKED" ? "ACTIVE" : "BLOCKED";
       await updateUserStatus(client._id, newStatus);
       setClient(prev => ({ ...prev, status: newStatus }));
-      notifySuccess("Statut mis à jour");
+      notifySuccess(newStatus === "ACTIVE" ? "Client débloqué" : "Client bloqué");
     } catch (err) { notifyError("Erreur de statut"); }
   };
 
@@ -41,99 +48,151 @@ export default function ClientDetails() {
     try {
       await deleteUser(client._id);
       notifySuccess("Client supprimé");
-      navigate("/clients");
+      navigate("/admin/clients");
     } catch (err) { notifyError("Erreur de suppression"); }
     finally { setDeleting(false); }
   };
 
   if (loading) return <PageLoader />;
-  if (!client) return <div className="p-20 text-center font-display italic text-primary">Client introuvable</div>;
+  if (!client) return <div className="p-20 text-center font-display italic text-primary uppercase font-black">Client introuvable</div>;
 
   return (
-    <div className="space-y-8 font-sans">
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <button onClick={() => navigate(-1)} className="p-4 bg-white rounded-2xl border border-slate-100 hover:shadow-lg transition-all text-primary">
-            <ChevronLeft size={24} strokeWidth={3} />
+    <div className="p-4 md:p-0 space-y-6 md:space-y-10 font-sans max-w-7xl mx-auto animate-in fade-in duration-500">
+      
+      {/* HEADER : Anti-coupure et Responsive */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-4 md:gap-6">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="p-3 md:p-4 bg-white rounded-xl md:rounded-2xl border border-slate-100 hover:shadow-lg transition-all text-primary active:scale-90"
+          >
+            <ChevronLeft size={20} md:size={24} strokeWidth={3} />
           </button>
-          <div>
-            <h1 className="text-4xl font-black text-primary font-display italic tracking-tighter uppercase">
+          <div className="min-w-0 py-1">
+            <h1 className="text-2xl md:text-5xl font-black text-primary font-display italic tracking-tighter leading-[1.1] pr-2 uppercase">
               {client.nom} {client.prenom}
             </h1>
-            <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mt-1">ID: {client._id}</p>
+            <div className="flex items-center gap-2 mt-1">
+                <span className={`px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest border shrink-0 
+                ${client.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                ● {client.status}
+                </span>
+                <span className="text-[8px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest italic truncate">ID: {client._id}</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <button onClick={handleBlockToggle} className="px-6 py-4 bg-white border border-slate-100 text-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all flex items-center gap-2">
-            <ShieldOff size={16} /> {client.status === "BLOCKED" ? "Débloquer" : "Bloquer"}
+        {/* ACTIONS */}
+        <div className="flex gap-3 w-full md:w-auto">
+          <button 
+            onClick={handleBlockToggle} 
+            className="flex-1 md:flex-none px-4 md:px-6 py-4 bg-white border border-slate-100 text-primary rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            {client.status === "BLOCKED" ? <ShieldCheck size={16} className="text-secondary" /> : <ShieldOff size={16} />} 
+            {client.status === "BLOCKED" ? "Débloquer" : "Bloquer"}
           </button>
-          <button onClick={() => setShowDeleteModal(true)} className="px-6 py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-red-200 hover:bg-red-600 transition-all flex items-center gap-2">
+          <button 
+            onClick={() => setShowDeleteModal(true)} 
+            className="flex-1 md:flex-none px-4 md:px-6 py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-xl shadow-red-200 hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+          >
             <Trash2 size={16} /> Supprimer
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         {/* CONTACT INFO */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft space-y-6">
-          <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Contact</h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl border border-white">
-              <Phone className="text-secondary" size={20} />
-              <span className="font-bold text-slate-700">{client.telephone}</span>
+        <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft space-y-6">
+          <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Profil Contact</h3>
+          <div className="space-y-3">
+            <a href={`tel:${client.telephone}`} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl hover:bg-white hover:shadow-md transition-all group border border-transparent hover:border-slate-100">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-white rounded-xl shadow-sm text-secondary group-hover:scale-110 transition-transform"><Phone size={18} /></div>
+                    <span className="font-bold text-slate-700 text-sm md:text-base">{client.telephone}</span>
+                </div>
+                <ExternalLink size={14} className="text-slate-300" />
+            </a>
+            <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl border border-transparent">
+              <div className="p-2 bg-white rounded-xl shadow-sm text-secondary"><Mail size={18} /></div>
+              <span className="font-bold text-slate-700 text-sm md:text-base break-all">{client.email || "Email non renseigné"}</span>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl border border-white">
-              <Mail className="text-secondary" size={20} />
-              <span className="font-bold text-slate-700 break-all">{client.email || "—"}</span>
-            </div>
+          </div>
+          <div className="pt-4 border-t border-dashed border-slate-100">
+             <p className="text-[9px] font-black text-slate-300 uppercase mb-2 ml-1">Adresse enregistrée</p>
+             <p className="text-sm font-bold text-primary italic bg-slate-50/50 p-4 rounded-2xl">{client.adresse || "Libreville, Gabon"}</p>
           </div>
         </div>
 
-        {/* STATS */}
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* STATS : Grid 1 col mobile / 3 col desktop */}
+        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           {[
-            { label: "Commandes", val: "0", icon: ShoppingBag, col: "bg-blue-500" },
-            { label: "Dépenses", val: "0 FCFA", icon: CreditCard, col: "bg-emerald-500" },
-            { label: "Dernier achat", val: "N/A", icon: Activity, col: "bg-secondary" },
+            { label: "Commandes", val: "0", icon: ShoppingBag, col: "bg-primary" },
+            { label: "Dépenses", val: "0 FCFA", icon: CreditCard, col: "bg-secondary" },
+            { label: "Performance", val: "N/A", icon: Activity, col: "bg-emerald-500" },
           ].map((item, i) => (
-            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft flex flex-col items-center text-center space-y-4">
-              <div className={`w-14 h-14 ${item.col} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
-                <item.icon size={24} />
+            <div key={i} className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft flex flex-row sm:flex-col items-center justify-between sm:justify-center text-left sm:text-center gap-4">
+              <div className={`w-12 h-12 md:w-16 md:h-16 ${item.col} rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0`}>
+                <item.icon size={24} md:size={28} />
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">{item.label}</p>
-                <p className="font-display font-black text-2xl text-primary italic">{item.val}</p>
+                <p className="text-[8px] md:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">{item.label}</p>
+                <p className="font-display font-black text-2xl md:text-4xl text-primary italic leading-none">{item.val}</p>
               </div>
             </div>
           ))}
+
+          {/* DATE D'INSCRIPTION */}
+          <div className="sm:col-span-3 bg-primary text-white p-6 rounded-[2rem] flex items-center justify-between overflow-hidden relative group">
+              <div className="relative z-10">
+                <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1">Client fidèle depuis</p>
+                <p className="text-lg md:text-2xl font-display italic font-black capitalize">
+                  {formatJoinDate(client.createdAt)}
+                </p>
+              </div>
+              <Clock className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 group-hover:rotate-12 transition-transform duration-700" />
+          </div>
         </div>
       </div>
 
-      {/* HISTORY PLACEHOLDER */}
-      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft">
-        <h2 className="font-display font-black text-xl italic text-primary mb-6">Historique des commandes</h2>
-        <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem]">
-            <p className="text-slate-300 text-xs font-black uppercase tracking-widest italic">Aucune commande enregistrée pour le moment</p>
+      {/* HISTORIQUE */}
+      <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft">
+        <div className="flex items-center justify-between mb-6">
+            <h2 className="font-display font-black text-xl md:text-2xl italic text-primary uppercase">Historique des commandes</h2>
+            <div className="hidden md:block h-px flex-1 bg-slate-50 mx-6"></div>
+        </div>
+        <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
+            <ShoppingBag size={32} className="text-slate-200 mb-2" />
+            <p className="text-slate-300 text-[10px] font-black uppercase tracking-[0.2em] italic text-center px-4">
+                Aucune commande enregistrée pour le moment
+            </p>
         </div>
       </div>
 
-      {/* DELETE MODAL */}
+      {/* DELETE MODAL : Bottom Sheet sur mobile */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-md p-4">
-          <div className="bg-white p-8 rounded-[2.5rem] max-w-sm w-full text-center space-y-6 shadow-2xl">
-            <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto">
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-primary/40 backdrop-blur-md p-0 md:p-4">
+          <div className="bg-white p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-sm text-center space-y-6 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95">
+            <div className="w-16 h-1 bg-slate-100 rounded-full mx-auto md:hidden -mt-4 mb-4" />
+            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto rotate-3">
               <Trash2 size={32} />
             </div>
             <div>
               <h2 className="font-display font-black text-2xl italic text-primary uppercase">Supprimer ?</h2>
-              <p className="text-slate-400 text-sm mt-2">Le client sera désactivé définitivement. Cette action est irréversible.</p>
+              <p className="text-slate-400 text-xs md:text-sm mt-2 px-4 italic">Le compte client sera supprimé définitivement. Cette action ne peut pas être annulée.</p>
             </div>
-            <div className="flex gap-4">
-              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Annuler</button>
-              <button onClick={handleDelete} disabled={deleting} className="flex-1 py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">
-                {deleting ? "..." : "Confirmer"}
+            <div className="flex flex-col md:flex-row gap-3 pt-2">
+              <button 
+                onClick={handleDelete} 
+                disabled={deleting} 
+                className="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+              >
+                {deleting ? "Suppression..." : "Confirmer la suppression"}
+              </button>
+              <button 
+                onClick={() => setShowDeleteModal(false)} 
+                className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 font-bold"
+              >
+                Annuler
               </button>
             </div>
           </div>

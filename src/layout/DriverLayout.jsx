@@ -155,7 +155,7 @@ function NavIcon({ to, icon, label, active }) {
         />
       )}
       
-      <div className={`relative z-10 transition-colors duration-300 ${active ? 'text-primary' : 'dark:text-secondary'}`}>
+      <div className={`relative z-10 transition-colors duration-300 ${active ? 'text-secondary' : 'dark:text-secondary'}`}>
         {icon}
       </div>
       

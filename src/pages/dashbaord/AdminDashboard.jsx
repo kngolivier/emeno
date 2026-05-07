@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 
 import {
-  LineChart, Line, XAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, CartesianGrid
 } from "recharts";
 
 const fullConfig = resolveConfig(tailwindConfig);
@@ -30,8 +30,9 @@ export default function AdminDashboard() {
   const [recentDeliveries, setRecentDeliveries] = useState([]);
   const navigate = useNavigate();
 
-  const PRIMARY_COLOR = themeColors.primary?.DEFAULT || themeColors.primary;
-  const SECONDARY_COLOR = themeColors.secondary?.DEFAULT || themeColors.secondary;
+  // Extraction sécurisée des couleurs de ton thème EMENO
+  const PRIMARY_COLOR = themeColors.primary?.DEFAULT || themeColors.primary || "#002D15";
+  const SECONDARY_COLOR = themeColors.secondary?.DEFAULT || themeColors.secondary || "#fcb045";
   const DANGER_COLOR = themeColors.danger?.DEFAULT || themeColors.danger || "#ef4444";
   
   const PIE_COLORS = [SECONDARY_COLOR, "#3b82f6", DANGER_COLOR];
@@ -43,11 +44,14 @@ export default function AdminDashboard() {
         fetchAdminDeliveries()
       ]);
       setStats(statsRes?.data || statsRes);
+      
       const deliveries = deliveriesRes?.data?.data || deliveriesRes?.data || deliveriesRes;
-      const sorted = [...deliveries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+      const sorted = Array.isArray(deliveries) 
+        ? [...deliveries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
+        : [];
       setRecentDeliveries(sorted);
     } catch (err) {
-      console.error("Erreur de chargement:", err);
+      console.error("Erreur de chargement Dashboard:", err);
     }
   };
 
@@ -63,6 +67,9 @@ export default function AdminDashboard() {
   const userStats = stats?.users || {};
   const total = deliveryStats.total || 0;
   const successRate = total ? Math.round((deliveryStats.livree / total) * 100) : 0;
+
+  // Correction ici : On cible stats?.deliveries?.deliveriesOverTime
+  const chartData = stats?.deliveries?.deliveriesOverTime || [];
 
   const statusData = [
     { name: "Livrées", value: deliveryStats.livree || 0 },
@@ -99,36 +106,56 @@ export default function AdminDashboard() {
 
       {/* KPI GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard title="En attente" value={deliveryStats.enAttente} icon={PackageCheck} color="bg-amber-50 text-amber-500" />
-        <StatCard title="En cours" value={deliveryStats.enCours} icon={Activity} color="bg-cyan-50 text-secondary" />
-        <StatCard title="Livreurs" value={userStats.driversActive} icon={Truck} color="bg-indigo-50 text-indigo-500" />
-        <StatCard title="Revenus" value={`${stats?.revenue || 0} F`} icon={CreditCard} color="bg-primary text-white" />
+        <StatCard title="En attente" value={deliveryStats.enAttente || 0} icon={PackageCheck} color="bg-amber-50 text-amber-500" />
+        <StatCard title="En cours" value={deliveryStats.enCours || 0} icon={Activity} color="bg-cyan-50 text-secondary" />
+        <StatCard title="Livreurs" value={userStats.driversActive || 0} icon={Truck} color="bg-indigo-50 text-indigo-500" />
+        <StatCard title="Revenus" value={`${(stats?.revenue || 0).toLocaleString()} F`} icon={CreditCard} color="bg-primary text-white" />
         <StatCard title="Succès" value={`${successRate}%`} icon={CheckCircle} color="bg-emerald-50 text-emerald-500" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* LINE CHART: ACTIVITÉ */}
+        {/* LINE CHART: ACTIVITÉ - FIX APPLIED */}
         <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft">
           <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8">
-            <Activity size={16} className="text-secondary" /> Flux d'activité
+            <Activity size={16} className="text-secondary" /> Flux d'activité des livraisons
           </h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={stats.deliveriesOverTime || []}>
-              <XAxis dataKey="date" hide />
-              <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }} />
-              <Line 
-                type="monotone" 
-                dataKey="total" 
-                stroke={SECONDARY_COLOR} 
-                strokeWidth={4} 
-                dot={{ r: 4, fill: SECONDARY_COLOR, strokeWidth: 2, stroke: '#fff' }} 
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="h-[280px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 'bold', fill: '#94a3b8' }}
+                  dy={10}
+                />
+                <YAxis hide />
+                <Tooltip 
+                  contentStyle={{ 
+                    borderRadius: '20px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                    fontFamily: 'inherit',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="total" 
+                  stroke={SECONDARY_COLOR} 
+                  strokeWidth={4} 
+                  dot={{ r: 6, fill: SECONDARY_COLOR, strokeWidth: 3, stroke: '#fff' }}
+                  activeDot={{ r: 8, strokeWidth: 0 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* ACTIONS RAPIDES (Redirection des flux) */}
+        {/* ACTIONS RAPIDES */}
         <div className="bg-primary p-8 rounded-[2.5rem] shadow-xl shadow-primary/20 text-white flex flex-col">
           <h3 className="font-black uppercase text-[10px] tracking-widest text-secondary mb-2 italic">Gestion des flux</h3>
           <p className="text-white/40 text-xs mb-8 font-medium italic">Accès direct aux modules clés</p>
@@ -152,24 +179,28 @@ export default function AdminDashboard() {
             <button onClick={() => navigate("/admin/deliveries")} className="text-[9px] font-black text-secondary underline uppercase tracking-widest">Voir tout</button>
           </div>
           <div className="space-y-3">
-            {recentDeliveries.map((d) => (
-              <div key={d._id} onClick={() => navigate(`/admin/deliveries/${d._id}`)} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 cursor-pointer group transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:text-secondary transition-colors">
-                    <Truck size={18} />
+            {recentDeliveries.length > 0 ? (
+              recentDeliveries.map((d) => (
+                <div key={d._id} onClick={() => navigate(`/admin/deliveries/${d._id}`)} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 cursor-pointer group transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:text-secondary transition-colors">
+                      <Truck size={18} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{d.pickupContact?.name || "Client"}</p>
+                      <p className="text-[10px] text-slate-400 font-bold">#{d.orderNumber || "EM-000"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{d.pickupContact?.name || "Client"}</p>
-                    <p className="text-[10px] text-slate-400 font-bold">#{d.orderNumber || "EM-000"}</p>
-                  </div>
+                  <ArrowUpRight size={16} className="text-slate-300 group-hover:text-secondary transition-all" />
                 </div>
-                <ArrowUpRight size={16} className="text-slate-300 group-hover:text-secondary transition-all" />
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-center py-10 text-[10px] font-black uppercase text-slate-300 tracking-widest">Aucune livraison récente</p>
+            )}
           </div>
         </div>
 
-        {/* RÉPARTITION (PieChart) & PERFORMANCE */}
+        {/* RÉPARTITION & PERFORMANCE */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-soft">
           <h3 className="font-black text-primary uppercase text-[10px] tracking-widest mb-6 italic text-center">Répartition & Alertes</h3>
           <div className="flex flex-col md:flex-row items-center gap-8">
@@ -181,7 +212,9 @@ export default function AdminDashboard() {
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '15px', border: 'none', fontSize: '10px', fontWeight: 'bold' }} 
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -203,7 +236,6 @@ export default function AdminDashboard() {
   );
 }
 
-// Sous-composant pour les actions rapides
 function QuickAction({ label, icon: Icon, onClick }) {
   return (
     <button 

@@ -1,9 +1,12 @@
 // src/pages/PricingPage.jsx
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom"; // Correction de l'import
+import { Link } from "react-router-dom";
 import Navbar from "../components/landing/Navbar";
-import { HelpCircle, Phone, Info, MapPin, ArrowRight, Wallet } from "lucide-react";
+import { 
+  HelpCircle, Phone, Info, MapPin, 
+  LucideArrowRightLeft, Wallet // Utilisation de ArrowsLeftRight pour la bidirectionnalité
+} from "lucide-react";
 import { fetchPricing } from "../api/pricing.api";
 
 export default function PricingPage() {
@@ -13,7 +16,7 @@ export default function PricingPage() {
   useEffect(() => {
     const getPrices = async () => {
       try {
-        const response = await fetchPricing(1, 100);
+        const response = await fetchPricing({ page: 1, limit: 100, status: 'true' });
         const allData = response.data?.data || response.data || [];
         const activePrices = allData.filter(zone => zone.isActive === true);
         setPricingData(activePrices);
@@ -31,7 +34,6 @@ export default function PricingPage() {
       <Navbar />
 
       <main className="pt-32 pb-20 px-6 lg:px-8 relative z-10">
-        {/* EFFETS DE FOND */}
         <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/5 blur-[120px] rounded-full -z-10" />
 
         {/* HEADER SECTION */}
@@ -44,11 +46,11 @@ export default function PricingPage() {
             NOS <span className="text-secondary italic font-black">TARIFS</span>
           </motion.h1>
           <p className="text-slate-500 font-bold text-sm lg:text-lg italic uppercase tracking-widest opacity-70 px-4">
-            Zones actives et tarifs de base à Libreville, Akanda & Owendo.
+            Zones actives et tarifs de base • Trajets aller-retour identiques.
           </p>
         </section>
 
-        {/* SECTION DES TARIFS - RESPONSIVE DESIGN */}
+        {/* SECTION DES TARIFS */}
         <section className="max-w-6xl mx-auto mb-32">
           {loading ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
@@ -58,7 +60,7 @@ export default function PricingPage() {
              </div>
           ) : pricingData.length > 0 ? (
             <>
-              {/* VUE MOBILE : Cartes empilées (Caché sur Desktop) */}
+              {/* VUE MOBILE : Cartes empilées */}
               <div className="grid grid-cols-1 gap-4 lg:hidden">
                 {pricingData.map((zone) => (
                   <div key={zone._id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm active:scale-95 transition-transform">
@@ -72,14 +74,16 @@ export default function PricingPage() {
                     </div>
                     
                     <div className="flex flex-col gap-1 mb-6">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trajet</p>
-                      <h3 className="text-xl font-black text-primary italic uppercase tracking-tighter">
-                        {zone.from} <ArrowRight className="inline mx-2 text-secondary" size={16} /> {zone.to}
-                      </h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trajet (Bidirectionnel)</p>
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-xl font-black text-primary italic uppercase tracking-tighter">{zone.from}</h3>
+                        <LucideArrowRightLeft size={18} className="text-secondary shrink-0" />
+                        <h3 className="text-xl font-black text-primary italic uppercase tracking-tighter">{zone.to}</h3>
+                      </div>
                     </div>
 
                     <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tarif de base</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Prix de base</p>
                       <p className="text-2xl font-black text-secondary">
                         {zone.basePrice?.toLocaleString('fr-FR')} <span className="text-xs font-bold text-slate-300 ml-1 italic">FCFA</span>
                       </p>
@@ -88,25 +92,31 @@ export default function PricingPage() {
                 ))}
               </div>
 
-              {/* VUE DESKTOP : Tableau classique (Caché sur Mobile) */}
+              {/* VUE DESKTOP : Tableau optimisé */}
               <div className="hidden lg:block bg-white rounded-[3.5rem] shadow-2xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-primary text-white">
-                      <th className="p-10 font-black uppercase tracking-[0.2em] text-[10px]">Zone de Départ</th>
-                      <th className="p-10 font-black uppercase tracking-[0.2em] text-[10px]">Zone d'Arrivée</th>
-                      <th className="p-10 font-black uppercase tracking-[0.2em] text-[10px]">Type de Calcul</th>
+                      <th className="p-10 font-black uppercase tracking-[0.2em] text-[10px] w-1/2">Zones Desservies (Aller-Retour)</th>
+                      <th className="p-10 font-black uppercase tracking-[0.2em] text-[10px]">Méthode</th>
                       <th className="p-10 font-black uppercase tracking-[0.2em] text-[10px] text-right">Prix de Base</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pricingData.map((zone) => (
                       <tr key={zone._id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors group">
-                        <td className="p-10 font-black text-primary italic uppercase tracking-tighter text-xl">{zone.from}</td>
-                        <td className="p-10 font-black text-primary italic uppercase tracking-tighter text-xl">{zone.to}</td>
+                        <td className="p-10">
+                          <div className="flex items-center gap-6">
+                             <span className="font-black text-primary italic uppercase tracking-tighter text-2xl">{zone.from}</span>
+                             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 text-secondary group-hover:scale-110 transition-transform">
+                                <LucideArrowRightLeft size={20} />
+                             </div>
+                             <span className="font-black text-primary italic uppercase tracking-tighter text-2xl">{zone.to}</span>
+                          </div>
+                        </td>
                         <td className="p-10">
                           <span className="px-5 py-2 bg-slate-100 text-[10px] font-black rounded-full text-slate-500 uppercase tracking-widest">
-                            {zone.pricingType === 'COMMUNE' ? 'Forfait Commune' : 'Par Distance'}
+                            {zone.pricingType === 'COMMUNE' ? 'Forfait' : 'Distance'}
                           </span>
                         </td>
                         <td className="p-10 text-right">
@@ -130,7 +140,7 @@ export default function PricingPage() {
           
           <div className="mt-8 flex items-center justify-center gap-4 text-slate-400 text-[10px] font-bold italic uppercase tracking-[0.15em] px-6 text-center">
             <Info size={14} className="text-secondary shrink-0" />
-            Les tarifs indiqués sont des prix de départ. Ils peuvent varier selon le volume du colis.
+            Note : Les tarifs A vers B sont identiques aux trajets B vers A.
           </div>
         </section>
 
@@ -177,7 +187,7 @@ export default function PricingPage() {
         </section>
       </main>
 
-      {/* FOOTER - VERSION PREMIUM CORRIGÉE */}
+      {/* FOOTER */}
       <footer className="bg-white border-t border-slate-100 pt-20 pb-10 px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-12 mb-16">
@@ -202,21 +212,12 @@ export default function PricingPage() {
             </div>
 
             <div className="flex flex-col items-center md:items-end gap-6">
-              <div className="flex items-center gap-4">
-                 <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all cursor-pointer border border-slate-100">
-                    <Wallet size={18} />
-                 </div>
-                 <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all cursor-pointer border border-slate-100">
-                    <MapPin size={18} />
-                 </div>
-              </div>
               <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Libreville • Gabon</p>
             </div>
           </div>
           
-          <div className="pt-8 border-t border-slate-50 flex flex-col md:row items-center justify-between gap-4">
+          <div className="pt-8 border-t border-slate-50 flex flex-col md:row items-center justify-between gap-4 text-center">
             <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">© 2026 EMENO DELIVERY SERVICE</p>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Built with precision for the Estuary</p>
           </div>
         </div>
       </footer>

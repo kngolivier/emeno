@@ -20,10 +20,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
     if (!telephone.trim()) {
       newErrors.telephone = "Téléphone requis";
     } else if (!/^\+241[0-9]{8}$/.test(telephone)) {
-      newErrors.telephone = "Format attendu: +241XXXXXXXX";
-    }
-    if (email && !/^\S+@\S+\.\S+$/.test(email)) {
-      newErrors.email = "Email invalide";
+      newErrors.telephone = "Format: +241XXXXXXXX";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -48,38 +45,44 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
     }
   };
 
+  // Classes optimisées pour le mobile
   const inputClass = (field) =>
-    `w-full bg-slate-50/50 border-2 rounded-2xl p-4 text-sm font-bold text-primary outline-none transition-all ${
+    `w-full bg-slate-50/50 border-2 rounded-xl md:rounded-2xl p-3 md:p-4 text-xs md:text-sm font-bold text-primary outline-none transition-all ${
       errors[field]
         ? "border-red-200 focus:border-red-400 focus:bg-white"
         : "border-slate-50 focus:border-secondary/20 focus:bg-white"
     }`;
 
-  const labelClass = "text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-2";
+  const labelClass = "text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block ml-1 md:ml-2";
 
   return (
-    <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden font-sans animate-in zoom-in-95 duration-300">
-      <div className="p-8 border-b bg-slate-50/50 flex justify-between items-center">
+    <div className="bg-white w-full max-w-lg md:rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col max-h-screen md:max-h-[90vh] overflow-hidden font-sans animate-in zoom-in-95 duration-300">
+      
+      {/* HEADER : Plus compact sur mobile */}
+      <div className="p-5 md:p-8 border-b bg-slate-50/50 flex justify-between items-center shrink-0">
         <div>
-          <h2 className="text-2xl font-black text-primary italic tracking-tight">
-            {driver ? "Modifier le profil" : "Nouveau Livreur"}
+          <h2 className="text-xl md:text-2xl font-black text-primary italic tracking-tight uppercase">
+            {driver ? "Modifier Profil" : "Nouveau Livreur"}
           </h2>
-          <p className="text-[10px] font-black uppercase tracking-widest text-secondary mt-1">Identification Staff</p>
+          <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-secondary mt-1">Identification Staff</p>
         </div>
-        <button onClick={onCancel} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20}/></button>
+        <button onClick={onCancel} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"><X size={20}/></button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-8 space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+      {/* FORM : Scrollable pour éviter que le clavier mobile ne cache tout */}
+      <form onSubmit={handleSubmit} className="p-5 md:p-8 space-y-5 md:space-y-6 overflow-y-auto scrollbar-hide">
+        
+        {/* Grille Nom/Prénom responsive */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nom <span className="text-red-500">*</span></label>
             <input value={nom} onChange={(e) => setNom(e.target.value)} className={inputClass("nom")} placeholder="Ex: MBOUMBA" />
-            {errors.nom && <p className="text-red-500 text-[10px] font-bold mt-1 ml-2 uppercase">{errors.nom}</p>}
+            {errors.nom && <p className="text-red-500 text-[8px] font-bold mt-1 ml-1 uppercase">{errors.nom}</p>}
           </div>
           <div>
             <label className={labelClass}>Prénom <span className="text-red-500">*</span></label>
             <input value={prenom} onChange={(e) => setPrenom(e.target.value)} className={inputClass("prenom")} placeholder="Ex: Jean" />
-            {errors.prenom && <p className="text-red-500 text-[10px] font-bold mt-1 ml-2 uppercase">{errors.prenom}</p>}
+            {errors.prenom && <p className="text-red-500 text-[8px] font-bold mt-1 ml-1 uppercase">{errors.prenom}</p>}
           </div>
         </div>
 
@@ -87,33 +90,38 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           <div>
             <label className={labelClass}>Téléphone <span className="text-red-500">*</span></label>
             <input value={telephone} onChange={(e) => setTelephone(e.target.value)} className={inputClass("telephone")} placeholder="+241XXXXXXXX" />
-            {errors.telephone && <p className="text-red-500 text-[10px] font-bold mt-1 ml-2 uppercase">{errors.telephone}</p>}
+            {errors.telephone && <p className="text-red-500 text-[8px] font-bold mt-1 ml-1 uppercase">{errors.telephone}</p>}
           </div>
           <div>
-            <label className={labelClass}>Email</label>
+            <label className={labelClass}>Email (Optionnel)</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass("email")} placeholder="contact@livreur.ga" />
-            {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1 ml-2 uppercase">{errors.email}</p>}
           </div>
         </div>
 
         <div>
           <label className={labelClass}>Adresse de résidence</label>
-          <input value={adresse} onChange={(e) => setAdresse(e.target.value)} className={inputClass("adresse")} placeholder="Ex: Akanda, Cité Shell" />
+          <div className="relative">
+            <input value={adresse} onChange={(e) => setAdresse(e.target.value)} className={inputClass("adresse") + " pl-10"} placeholder="Ex: Akanda, Cité Shell" />
+            <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+          </div>
         </div>
 
         <div>
           <label className={labelClass}>Statut opérationnel</label>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass("status")}>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass("status") + " appearance-none cursor-pointer"}>
             <option value="ACTIVE">Actif (Prêt pour courses)</option>
             <option value="INACTIVE">Inactif (En repos)</option>
             <option value="BLOCKED">Bloqué (Accès restreint)</option>
           </select>
         </div>
 
-        <div className="flex gap-4 pt-4">
-          <button type="button" onClick={onCancel} className="flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs text-slate-400 hover:bg-slate-50 transition-all">Annuler</button>
-          <button type="submit" disabled={loading} className="flex-[2] bg-primary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:bg-secondary hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
-            {loading ? <Loader2 className="animate-spin" size={18} /> : (driver ? "Mettre à jour" : "Enregistrer le livreur")}
+        {/* FOOTER : Boutons pleins pour mobile */}
+        <div className="flex flex-col md:flex-row gap-3 pt-4 border-t border-slate-50 mt-4">
+          <button type="submit" disabled={loading} className="w-full md:flex-[2] order-1 md:order-2 bg-primary text-white py-4 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs shadow-xl shadow-primary/10 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center gap-2">
+            {loading ? <Loader2 className="animate-spin" size={16} /> : (driver ? "Mettre à jour" : "Enregistrer")}
+          </button>
+          <button type="button" onClick={onCancel} className="w-full md:flex-1 order-2 md:order-1 py-4 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs text-slate-400 hover:bg-slate-50 transition-all">
+            Annuler
           </button>
         </div>
       </form>
