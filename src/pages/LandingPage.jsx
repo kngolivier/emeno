@@ -1,210 +1,139 @@
 // src/pages/LandingPage.jsx
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom"; // Import nécessaire pour la navigation
+import { Link } from "react-router-dom";
 import Navbar from "../components/landing/Navbar";
-import PriceEstimator from "../components/landing/PriceEstimator";
-import { 
-  ShieldCheck, Zap, BellRing, 
-  CheckCircle2, ArrowRight, Wallet, Map 
-} from "lucide-react";
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: "easeOut" }
-};
+import Hero from "../components/landing/Hero";
+import FeatureCard from "../components/landing/Feature";
+import Footer from "../components/landing/Footer";
+import { Zap, ShieldCheck, BellRing, ArrowRight, Wallet, MapPin } from "lucide-react";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] selection:bg-secondary selection:text-white overflow-x-hidden">
-      {/* EFFET DE FOND (Glow) */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/5 blur-[120px] rounded-full z-0" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full z-0" />
+    <div className="min-h-screen bg-white dark:bg-primary-dark text-slate-600 dark:text-slate-200 selection:bg-secondary/30 selection:text-white transition-colors duration-500 overflow-x-hidden">
+      {/* Background Glows Dynamiques */}
+      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary/10 dark:bg-secondary/5 blur-[120px] rounded-full z-0 pointer-events-none" />
+      <div className="fixed bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 dark:bg-primary/10 blur-[120px] rounded-full z-0 pointer-events-none" />
 
       <Navbar />
 
       <main className="relative z-10">
-        {/* HERO SECTION */}
-        <section className="max-w-7xl mx-auto pt-32 lg:pt-48 pb-20 px-8 flex flex-col lg:row items-center gap-16">
-          <motion.div 
-            className="flex-1 space-y-8"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white shadow-sm border border-slate-100 rounded-full">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
-              </span>
-              <span className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">
-                Libreville • Akanda • Owendo
-              </span>
+        {/* HERO SECTION avec filigrane moto */}
+        <section className="relative">
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20 dark:opacity-10">
+                <motion.div 
+                    initial={{ x: "-20%", opacity: 0 }}
+                    animate={{ x: "120%", opacity: [0, 1, 1, 0] }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="absolute top-1/2 -translate-y-1/2"
+                >
+                    <svg width="600" height="300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.3" className="text-slate-400 dark:text-white">
+                        <path d="M10 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM21 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM10 18H7a3 3 0 0 1-3-3l1-8c0-1.1.9-2 2-2h3l2 3h4l2 3m-1 4h-1.2" />
+                    </svg>
+                </motion.div>
             </div>
-            
-            <h1 className="text-6xl lg:text-[90px] font-black text-primary leading-[0.85] tracking-tighter">
-              VOS COLIS <br />
-              <span className="text-secondary italic underline decoration-8 decoration-secondary/20">SANS EFFORT.</span>
-            </h1>
-            
-            <p className="text-lg text-slate-500 font-medium max-w-md leading-relaxed">
-              La solution logistique de <span className="text-primary font-bold">EMENO</span> qui redéfinit la rapidité au Gabon.
-            </p>
-          </motion.div>
-
-          <motion.div 
-            className="flex-1 flex justify-center w-full relative"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <div className="absolute -top-6 -right-6 bg-primary text-white p-5 rounded-3xl shadow-2xl z-20 hidden lg:block animate-bounce">
-              <CheckCircle2 size={28} />
-            </div>
-            <PriceEstimator />
-          </motion.div>
+            <Hero />
         </section>
 
         {/* FEATURES SECTION */}
-        <section className="max-w-7xl mx-auto py-16 px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="max-w-7xl mx-auto py-16 lg:py-24 px-6 relative">
+          <div className="text-center mb-12 lg:mb-16">
+            <h2 className="text-5xl lg:text-huge text-primary dark:text-white">
+              L'EXPÉRIENCE <span className="text-secondary">PREMIUM</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             <FeatureCard 
-              icon={<Zap size={28} />} 
-              title="Ultra Rapide" 
-              desc="Un livreur est à votre porte en moins de 15 minutes pour le retrait."
+              icon={<Zap size={32} />} 
+              title="Vitesse Éclair" 
+              desc="Ramassage en moins de 15 min partout à Libreville."
               delay={0.1}
             />
             <FeatureCard 
-              icon={<ShieldCheck size={28} />} 
-              title="Code Sécurisé" 
-              desc="Validation par code unique reçu par SMS à la réception."
+              icon={<ShieldCheck size={32} />} 
+              title="Sécurité Totale" 
+              desc="Suivi sécurisé par code unique à chaque étape de livraison."
               delay={0.2}
             />
             <FeatureCard 
-              icon={<BellRing size={28} />} 
-              title="Suivi Live" 
-              desc="Visualisez le trajet exact de votre colis sur la carte."
+              icon={<BellRing size={32} />} 
+              title="Notifications" 
+              desc="Alertes SMS en temps réel pour l'expéditeur et le destinataire."
               delay={0.3}
             />
           </div>
         </section>
 
-        {/* SECTION TARIFS - TAILLES AJUSTÉES */}
-        <section className="max-w-7xl mx-auto py-10 px-8">
-          <div className="bg-white border border-slate-100 rounded-[3rem] p-8 lg:p-14 flex flex-col lg:flex-row items-center gap-12 shadow-soft">
-            <div className="flex-1 space-y-5 text-center lg:text-left">
-              <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary mx-auto lg:mx-0">
-                <Wallet size={28} />
+        {/* PRICING PREVIEW OPTIMISÉ MOBILE */}
+        <section className="max-w-7xl mx-auto py-12 lg:py-16 px-4 lg:px-6">
+          <div className="bg-slate-50 dark:bg-surface backdrop-blur-xl border border-slate-200 dark:border-border-glass rounded-[2.5rem] lg:rounded-4xl p-6 lg:p-20 flex flex-col lg:flex-row items-center gap-10 lg:gap-16 shadow-xl dark:shadow-2xl transition-colors">
+            
+            <div className="flex-1 space-y-6 lg:space-y-8 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 rounded-full text-secondary text-[10px] font-black uppercase tracking-widest">
+                <Wallet size={14} /> Tarifs
               </div>
-              <h2 className="text-3xl lg:text-4xl font-black text-primary leading-tight tracking-tighter">
-                DES TARIFS <br/> <span className="text-secondary italic font-black">SANS SURPRISE.</span>
+              <h2 className="text-4xl lg:text-7xl font-black text-primary dark:text-white leading-[0.9] tracking-tighter uppercase italic">
+                PAYEZ <br className="hidden lg:block" /> <span className="text-secondary">LE JUSTE PRIX.</span>
               </h2>
-              <p className="text-slate-500 font-medium text-base leading-relaxed max-w-sm">
-                Une tarification juste basée sur la distance réelle parcourue.
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm lg:text-lg max-w-sm mx-auto lg:mx-0">
+                Pas de frais cachés. Nos tarifs sont les plus compétitifs du marché gabonais.
               </p>
               <Link 
                 to="/tarifs"
-                className="inline-flex items-center gap-3 text-primary font-black uppercase tracking-widest text-[10px] group"
+                className="inline-flex items-center gap-4 text-primary dark:text-white font-black uppercase tracking-widest text-[10px] lg:text-xs group"
               >
-                Consulter la grille complète 
-                <div className="w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform">
-                  <ArrowRight size={12} />
+                Voir tous les tarifs 
+                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-secondary text-white dark:text-primary-dark rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform shadow-lg shadow-secondary/20">
+                  <ArrowRight size={18} />
                 </div>
               </Link>
             </div>
             
-            <div className="flex-1 grid grid-cols-2 gap-3 w-full">
-              <PriceCard zone="Libreville" prix="1 500" />
-              <PriceCard zone="Akanda" prix="2 500" />
-              <PriceCard zone="Owendo" prix="2 000" />
-              <div className="bg-slate-50/50 rounded-2xl p-5 flex flex-col justify-center border border-dashed border-slate-200">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Plus de zones</p>
-                <p className="text-xs font-bold text-primary italic opacity-50">Bientôt...</p>
+            {/* Grille 2 colonnes sur mobile pour gagner de la place */}
+            <div className="flex-1 grid grid-cols-2 gap-3 lg:gap-4 w-full">
+              <MiniPriceCard zone="Libreville" prix="1 500" />
+              <MiniPriceCard zone="Akanda" prix="2 500" />
+              <MiniPriceCard zone="Owendo" prix="2 000" />
+              <div className="bg-white/40 dark:bg-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 flex flex-col justify-center border border-dashed border-slate-200 dark:border-white/10">
+                <p className="text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Bientôt</p>
+                <p className="text-xs lg:text-lg font-bold text-secondary italic opacity-50">Ntoum</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* CTA FINAL - BOUTON ET TEXTE OPTIMISÉS */}
-        <section className="max-w-7xl mx-auto py-20 px-8">
-          <div className="bg-primary rounded-[3.5rem] p-10 lg:p-20 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            
-            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
-              <div className="text-center lg:text-left space-y-3">
-                <h2 className="text-3xl lg:text-5xl font-black text-white leading-none tracking-tighter">
-                  PRÊT À ENVOYER <br />VOTRE COLIS ?
+        {/* CTA SECTION */}
+        <section className="max-w-7xl mx-auto py-20 lg:py-32 px-6">
+          <div className="bg-gradient-to-br from-secondary via-secondary to-emerald-600 rounded-[2.5rem] lg:rounded-4xl p-10 lg:p-24 text-center relative overflow-hidden shadow-2xl shadow-secondary/20">
+             <div className="relative z-10 space-y-8 lg:space-y-10">
+                <h2 className="text-4xl lg:text-8xl font-black text-white tracking-tighter leading-none uppercase italic">
+                  REJOIGNEZ <br/> LA RÉVOLUTION.
                 </h2>
-                <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[9px]">Inscription gratuite • Moins de 2 minutes</p>
-              </div>
-              
-              <Link 
-                to="/register"
-                className="group/btn flex-shrink-0 relative whitespace-nowrap px-8 py-5 bg-secondary text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:shadow-xl hover:shadow-secondary/30 transition-all flex items-center gap-3"
-              >
-                Créer un compte
-                <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+                <Link to="/register" className="inline-flex items-center gap-4 px-8 lg:px-12 py-5 lg:py-6 bg-white text-primary font-black uppercase tracking-widest text-xs lg:text-sm rounded-2xl hover:scale-105 transition-transform shadow-xl">
+                   Démarrer maintenant
+                   <ArrowRight size={18} />
+                </Link>
+             </div>
           </div>
         </section>
       </main>
 
-      {/* FOOTER - NAVIGATION FIXÉE */}
-      <footer className="py-14 border-t border-slate-100 bg-white px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
-          <div className="flex flex-col items-center md:items-start gap-1">
-            <p className="font-black text-primary tracking-tighter text-2xl italic">EMENO</p>
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.4em]">Logistique • Libreville, Gabon</p>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
-            <a href="#" className="hover:text-secondary transition-colors">Conditions</a>
-            <a href="#" className="hover:text-secondary transition-colors">Support</a>
-            <Link to="/tarifs" className="text-primary border-b-2 border-secondary/40 hover:border-secondary transition-all pb-1">
-              Grille Tarifaire
-            </Link>
-          </div>
-          
-          <div className="text-center md:text-right">
-            <p className="text-[9px] font-black text-primary uppercase tracking-widest italic opacity-40">EMENO © 2026</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
 
-// COMPOSANTS INTERNES
-function PriceCard({ zone, prix }) {
+function MiniPriceCard({ zone, prix }) {
   return (
-    <div className="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 hover:bg-white hover:shadow-lg transition-all group cursor-default">
-      <div className="flex items-center gap-2 mb-1">
-        <Map size={10} className="text-secondary" />
-        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">{zone}</p>
+    <div className="bg-white dark:bg-white/[0.03] backdrop-blur-md rounded-2xl lg:rounded-3xl p-4 lg:p-8 border border-slate-100 dark:border-white/5 hover:border-secondary/30 transition-all group shadow-sm dark:shadow-none">
+      <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-4">
+        <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+            <MapPin size={14} />
+        </div>
+        <p className="text-[8px] lg:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest truncate">{zone}</p>
       </div>
-      <p className="text-base font-black text-primary italic tracking-tighter group-hover:text-secondary transition-colors">
-        {prix} <span className="text-[8px] not-italic text-slate-400 uppercase">FCFA</span>
+      <p className="text-xl lg:text-3xl font-black text-primary dark:text-white italic tracking-tighter">
+        {prix} <span className="text-[10px] lg:text-[12px] not-italic text-secondary font-bold ml-1">XAF</span>
       </p>
     </div>
-  );
-}
-
-function FeatureCard({ icon, title, desc, delay }) {
-  return (
-    <motion.div 
-      variants={fadeInUp}
-      initial="initial"
-      whileInView="animate"
-      viewport={{ once: true }}
-      transition={{ delay }}
-      className="p-10 bg-white rounded-[2.5rem] border border-slate-50 hover:border-secondary/10 hover:shadow-soft transition-all group"
-    >
-      <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500">
-        {icon}
-      </div>
-      <h4 className="text-xl font-black text-primary mb-3 italic uppercase tracking-tighter group-hover:text-secondary transition-colors italic leading-none">{title}</h4>
-      <p className="text-slate-400 text-[13px] font-bold leading-relaxed">{desc}</p>
-    </motion.div>
   );
 }

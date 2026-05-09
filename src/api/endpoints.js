@@ -37,7 +37,7 @@ export const ENDPOINTS = {
   // ======================
   // STATS
   // ======================
-  ADMIN_STATS: "/api/admin/stats",
+  ADMIN_STATS: "/api/stats/admin",
 
   // ======================
   // OTP (Vérification Téléphone)
@@ -55,4 +55,9 @@ export const ENDPOINTS = {
   // USER DEBT
   USER_DEBT: (id) => `/api/users/${id}/debt`,
 
+  // ======================
+  // COMMUNES
+  // ======================
+  COMMUNES: "/api/communes",
+  COMMUNE_BY_ID: (id) => `/api/communes/${id}`,
 };

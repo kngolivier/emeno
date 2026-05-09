@@ -46,6 +46,7 @@ export default function ClientOrderDetails() {
 
   const handleCancelOrder = async () => {
     try {
+      // TODO: Ajouter la redirection vers le dashboard
       setIsCancelling(true);
       await cancelDelivery(id);
       notifySuccess("Commande annulée avec succès");

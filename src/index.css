@@ -2,123 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 @import "leaflet/dist/leaflet.css";
+
+/* ==========================================================================
+   SYSTÈME DE PALETTES DYNAMIQUES
+   ========================================================================== */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* --- PALETTE 1 : TECH EMERALD (L'originale optimisée) --- */
+  /* Idéal pour : Une sensation de rapidité, de modernité et de fluidité. */
+  /* --color-primary: #0F172A;
+  --color-primary-light: #1E293B;
+  --color-primary-dark: #020617;
+  --color-secondary: #10B981;
+  --color-secondary-light: #34D399;
+  --color-secondary-glow: rgba(16, 185, 129, 0.2);
+  --color-accent: #FBBF24;
+  --color-surface: rgba(255, 255, 255, 0.03);
+  --color-border-glass: rgba(255, 255, 255, 0.1); */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* 
+   --------------------------------------------------------------------------
+   PALETTE 2 : LUXE GABONAIS (VERT EMPIRE & DORÉ) 
+   Idéal pour : Le transport de colis de valeur ou une image institutionnelle.
+   --------------------------------------------------------------------------
+   */
+  /* --color-primary: #002E1B;
+  --color-primary-light: #064E3B;
+  --color-primary-dark: #001A0F;
+  --color-secondary: #B08D3E;
+  --color-secondary-light: #D4AF37;
+  --color-secondary-glow: rgba(176, 141, 62, 0.2);
+  --color-accent: #FFFFFF;
+  --color-surface: rgba(176, 141, 62, 0.05);
+  --color-border-glass: rgba(176, 141, 62, 0.2); */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
+  /* 
+   --------------------------------------------------------------------------
+   PALETTE 3 : CYBER PUNK (NOIR CARBONE & CYAN)
+   Idéal pour : Une application ultra-tech, orientée API et développeurs.
+   --------------------------------------------------------------------------
+  */
+  /* --color-primary: #0A0A0A;
+  --color-primary-light: #171717;
+  --color-primary-dark: #000000;
+  --color-secondary: #06B6D4;
+  --color-secondary-light: #22D3EE;
+  --color-secondary-glow: rgba(6, 182, 212, 0.2);
+  --color-accent: #EC4899;
+  --color-surface: rgba(6, 182, 212, 0.05);
+  --color-border-glass: rgba(255, 255, 255, 0.08); */
+
+
+/* 
+   --------------------------------------------------------------------------
+   PALETTE 4 : ROYAL VIOLET (VIOLET PROFOND & CORAIL)
+   Idéal pour : Se démarquer visuellement de tous les concurrents.
+   --------------------------------------------------------------------------
+   */
+  --color-primary: #1E1B4B;
+  --color-primary-light: #312E81;
+  --color-primary-dark: #0F172A;
+  --color-secondary: #F43F5E;
+  --color-secondary-light: #FB7185;
+  --color-secondary-glow: rgba(244, 63, 94, 0.2);
+  --color-accent: #818CF8;
+  --color-surface: rgba(244, 63, 94, 0.05);
+  --color-border-glass: rgba(255, 255, 255, 0.1);
+
+  /* 
+   --------------------------------------------------------------------------
+   PALETTE 5 : MIDNIGHT OCEAN (BLEU PROFOND & ARGENT)
+   Idéal pour : Une image de sérénité, de fiabilité et de calme.
+   --------------------------------------------------------------------------
+   */
+  /* --color-primary: #172554;
+  --color-primary-light: #1E3A8A;
+  --color-primary-dark: #080C1E;
+  --color-secondary: #94A3B8;
+  --color-secondary-light: #CBD5E1;
+  --color-secondary-glow: rgba(148, 163, 184, 0.2);
+  --color-accent: #38BDF8;
+  --color-surface: rgba(255, 255, 255, 0.02);
+  --color-border-glass: rgba(255, 255, 255, 0.05); */
+
+
+
+
+  /* --- VARIABLES DE COMPATIBILITÉ --- */
+  --text: #94A3B8;
+  --text-h: #F8FAFC;
+  --bg: var(--color-primary-dark);
+  --border: var(--color-border-glass);
+  --accent: var(--color-secondary);
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --heading: 'Inter', system-ui, sans-serif;
+
+  color-scheme: dark;
   background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--heading);
+  color: var(--text-h);
+  font-weight: 900;
+  text-transform: uppercase;
+  font-style: italic;
+  letter-spacing: -0.05em;
+}
+
+/* Scrollbar harmonisée */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: var(--color-primary-light);
   border-radius: 10px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-body {
-  margin: 0;
-}
-
 #root {
-  width: 100%;
-  max-width: 100%;
-  margin: 0 ;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
- 
+  display: flex;
   flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }

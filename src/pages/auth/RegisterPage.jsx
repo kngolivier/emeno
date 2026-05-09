@@ -1,31 +1,21 @@
-// FILE: src/pages/auth/RegisterPage.jsx
-
+// src/pages/auth/RegisterPage.jsx
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Lock, Phone, ArrowRight, ShieldCheck } from "lucide-react";
-
-// Imports API et Composants
+import { User, Mail, Lock, Phone, ArrowRight } from "lucide-react";
 import { sendOTP, verifyOTP } from "../../api/otp.api";
 import { registerClient } from "../../api/auth.api";
 import OtpInput from "../../components/OtpInput";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: Téléphone, 2: OTP, 3: Profil
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [formData, setFormData] = useState({
-    nom: "",
-    prenom: "",
-    telephone: "+241", 
-    email: "",
-    password: "",
-    otpCode: ""
+    nom: "", prenom: "", telephone: "+241", email: "", password: "", otpCode: ""
   });
 
-  // Étape 1 : Demande d'envoi du code au backend
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -33,245 +23,107 @@ export default function RegisterPage() {
     try {
       await sendOTP({ phone: formData.telephone });
       setStep(2);
-    } catch (err) {
-      setError(err.message || "Erreur lors de l'envoi du code");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(err.message || "Erreur d'envoi"); }
+    finally { setLoading(false); }
   };
 
-  // Étape 2 : Vérification du code saisi
   const handleVerifyOTP = async (e) => {
-    e?.preventDefault(); // Optionnel si appelé par onComplete
-    if (formData.otpCode.length !== 6) {
-        setError("Veuillez entrer le code complet");
-        return;
-    }
-
+    e?.preventDefault();
+    if (formData.otpCode.length !== 6) return setError("Code incomplet");
     setLoading(true);
-    setError("");
     try {
       await verifyOTP({ phone: formData.telephone, code: formData.otpCode });
       setStep(3);
-    } catch (err) {
-      setError(err.message || "Code incorrect ou expiré");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError("Code incorrect"); }
+    finally { setLoading(false); }
   };
 
-  // Étape 3 : Création finale et LOGIN AUTOMATIQUE
   const handleFinalRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
     try {
-      // Ton service backend renvoie { user, token }
       const response = await registerClient(formData);
-      
       if (response.data?.token) {
-        // Stockage immédiat pour connecter l'utilisateur
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        
-        // Redirection vers le dashboard
         navigate("/client");
       }
-    } catch (err) {
-      setError(err.message || "Erreur lors de l'inscription");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(err.message || "Erreur d'inscription"); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-8">
-      {/* Background Decor */}
-      <div className="fixed inset-0 overflow-hidden -z-10">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/5 blur-[120px] rounded-full" />
-      </div>
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-primary-dark flex items-center justify-center p-4">
+      <motion.div layout className="w-full max-w-md bg-white dark:bg-surface p-6 lg:p-10 rounded-[2rem] lg:rounded-[3rem] shadow-xl border border-slate-50 dark:border-white/5">
+        
+        {/* Progress Bar */}
+        <div className="flex gap-1 mb-8">
+            {[1, 2, 3].map(i => (
+                <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${step >= i ? 'bg-secondary' : 'bg-slate-100 dark:bg-white/10'}`} />
+            ))}
+        </div>
 
-      <motion.div layout className="w-full max-w-md bg-white p-10 rounded-[3rem] shadow-xl border border-slate-50">
-        <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-black text-primary tracking-tighter italic mb-4 block">
-            EMENO<span className="text-secondary">.</span>
-          </Link>
-          <h1 className="text-xl font-black text-primary uppercase italic tracking-tighter">
-            {step === 1 && "Vérification mobile"}
-            {step === 2 && "Code de sécurité"}
-            {step === 3 && "Finalisez votre profil"}
+        <div className="text-center mb-6">
+          <Link to="/" className="text-2xl font-black text-primary dark:text-white italic mb-2 block">EMENO<span className="text-secondary">.</span></Link>
+          <h1 className="text-xs lg:text-sm font-black text-slate-400 uppercase tracking-widest">
+            {step === 1 ? "Vérification mobile" : step === 2 ? "Code de sécurité" : "Profil"}
           </h1>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-500 text-[10px] font-black rounded-2xl border border-red-100 uppercase tracking-widest text-center">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 p-3 bg-red-50 text-red-500 text-[9px] font-black rounded-xl text-center uppercase tracking-widest">{error}</div>}
 
         <AnimatePresence mode="wait">
-          {/* ÉTAPE 1: NUMÉRO DE TÉLÉPHONE */}
           {step === 1 && (
-            <motion.form 
-              key="step1" 
-              initial={{ opacity: 0, x: 20 }} 
-              animate={{ opacity: 1, x: 0 }} 
-              exit={{ opacity: 0, x: -20 }} 
-              onSubmit={handleSendOTP} 
-              className="space-y-4"
-            >
-              <p className="text-slate-400 text-[11px] font-bold uppercase text-center mb-6">
-                Un code vous sera envoyé par SMS
-              </p>
-              <InputGroup 
-                icon={<Phone size={18} />} 
-                type="tel" 
-                placeholder="+241XXXXXXXX" 
-                value={formData.telephone}
-                onChange={(e) => setFormData({...formData, telephone: e.target.value})}
-                required
-              />
-              <SubmitButton loading={loading} text="Envoyer le code" />
+            <motion.form key="s1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} onSubmit={handleSendOTP} className="space-y-4">
+              <InputGroup icon={<Phone size={18} />} type="tel" value={formData.telephone} onChange={(e) => setFormData({...formData, telephone: e.target.value})} required />
+              <SubmitButton loading={loading} text="Suivant" />
             </motion.form>
           )}
 
-          {/* ÉTAPE 2: CODE OTP (CELLULES DÉCOMPOSÉES) */}
           {step === 2 && (
-            <motion.div 
-              key="step2" 
-              initial={{ opacity: 0, x: 20 }} 
-              animate={{ opacity: 1, x: 0 }} 
-              exit={{ opacity: 0, x: -20 }} 
-              className="space-y-4"
-            >
-              <p className="text-slate-400 text-[11px] font-bold uppercase text-center mb-6">
-                Code envoyé au <span className="text-primary">{formData.telephone}</span>
-              </p>
-              
-              <OtpInput
-                length={6} 
-                onComplete={(code) => setFormData({ ...formData, otpCode: code })} 
-              />
-
-              <SubmitButton 
-                loading={loading} 
-                text="Vérifier le code" 
-                onClick={handleVerifyOTP} 
-              />
-              
-              <button 
-                type="button" 
-                onClick={() => setStep(1)} 
-                className="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 hover:text-primary transition-colors"
-              >
-                Modifier le numéro
-              </button>
+            <motion.div key="s2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 text-center">
+              <OtpInput length={6} onComplete={(code) => setFormData({ ...formData, otpCode: code })} />
+              <SubmitButton loading={loading} text="Vérifier" onClick={handleVerifyOTP} />
+              <button onClick={() => setStep(1)} className="text-[10px] font-black text-slate-400 uppercase">Retour</button>
             </motion.div>
           )}
 
-          {/* ÉTAPE 3: INFORMATIONS PROFIL */}
           {step === 3 && (
-            <motion.form 
-              key="step3" 
-              initial={{ opacity: 0, x: 20 }} 
-              animate={{ opacity: 1, x: 0 }} 
-              onSubmit={handleFinalRegister} 
-              className="space-y-3" // Réduction de l'espace entre les lignes
-            >
-              {/* 
-                On remplace grid-cols-2 par une colonne par défaut.
-                Le 'sm:grid-cols-2' ne s'active que sur les écrans plus larges.
-              */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <InputGroup 
-                  icon={<User size={16} />} 
-                  placeholder="Nom" 
-                  value={formData.nom}
-                  onChange={(e) => setFormData({...formData, nom: e.target.value})}
-                  required
-                />
-                <InputGroup 
-                  icon={<User size={16} />} 
-                  placeholder="Prénom" 
-                  value={formData.prenom}
-                  onChange={(e) => setFormData({...formData, prenom: e.target.value})}
-                  required
-                />
+            <motion.form key="s3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} onSubmit={handleFinalRegister} className="space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                <InputGroup icon={<User size={16} />} placeholder="Nom" value={formData.nom} onChange={(e) => setFormData({...formData, nom: e.target.value})} required />
+                <InputGroup icon={<User size={16} />} placeholder="Prénom" value={formData.prenom} onChange={(e)   => setFormData({...formData, prenom: e.target.value})} required />
               </div>
-              
-              <InputGroup 
-                icon={<Mail size={16} />} 
-                type="email" 
-                placeholder="Email (optionnel)" 
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
-              
-              <InputGroup 
-                icon={<Lock size={16} />} 
-                type="password" 
-                placeholder="Mot de passe (min 6 car.)" 
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                required
-              />
-              
-              <div className="pt-2">
-                <SubmitButton loading={loading} text="Créer mon compte" />
-              </div>
+              <InputGroup icon={<Mail size={16} />} type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+              <InputGroup icon={<Lock size={16} />} type="password" placeholder="Mot de passe" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} required />
+              <SubmitButton loading={loading} text="Terminer" />
             </motion.form>
           )}
         </AnimatePresence>
 
-        <p className="text-center mt-8 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-          Déjà inscrit ? <Link to="/login" className="text-secondary underline underline-offset-4">Connexion</Link>
+        <p className="text-center mt-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Inscrit ? <Link to="/login" className="text-secondary underline">Connexion</Link>
         </p>
       </motion.div>
     </div>
   );
 }
 
-// --- SOUS-COMPOSANTS INTERNES ---
-
 function InputGroup({ icon, ...props }) {
   return (
     <div className="relative group">
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
         {icon}
       </div>
-      <input 
-        {...props}
-        className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary placeholder:text-slate-300 transition-all"
-      />
+      <input {...props} className="w-full pl-11 pr-4 py-4 bg-slate-50 dark:bg-white/5 border-none rounded-xl outline-none focus:ring-2 focus:ring-secondary/20 text-xs font-bold text-primary dark:text-white transition-all" />
     </div>
   );
 }
 
 function SubmitButton({ loading, text, onClick }) {
-  // On simplifie le texte pour le bouton final s'il est trop long
-  const buttonText = text === "Créer mon compte" ? "S'inscrire" : text;
-
   return (
-    <button
-      type={onClick ? "button" : "submit"}
-      onClick={onClick}
-      disabled={loading}
-      className="w-full py-4 sm:py-5 bg-primary text-white font-black uppercase rounded-xl sm:rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-2 mt-4 hover:bg-secondary transition-all disabled:opacity-50"
-    >
-      {loading ? (
-        <span className="text-[10px] tracking-widest">Traitement...</span>
-      ) : (
-        <>
-          {/* 
-             text-[10px] sur mobile pour garantir une seule ligne.
-             tracking-widest réduit à tracking-normal sur mobile.
-          */}
-          <span className="text-[10px] sm:text-[11px] tracking-normal sm:tracking-[0.2em] whitespace-nowrap">
-            {buttonText}
-          </span>
-          <ArrowRight size={16} className="shrink-0" />
-        </>
-      )}
+    <button type={onClick ? "button" : "submit"} onClick={onClick} disabled={loading} className="w-full py-4 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-secondary transition-all disabled:opacity-50">
+      {loading ? "..." : <>{text} <ArrowRight size={14} /></>}
     </button>
   );
 }

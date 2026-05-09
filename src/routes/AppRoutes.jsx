@@ -40,6 +40,7 @@ import DriverDeliveries from "../pages/driver-portal/DriverDeliveries";
 // import DeliveryDetail from "../pages/driver-portal/DeliveryDetail";
 import DriverProfile from "../pages/driver-portal/DriverProfile";
 import DriverMap from "../pages/driver-portal/DriverMap";
+import CommuneList from "../pages/communes/CommuneList";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -70,7 +71,7 @@ export default function AppRoutes() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+            <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -85,6 +86,7 @@ export default function AppRoutes() {
           <Route path="pricing" element={<PricingList />} />
           <Route path="admins" element={<AdminList />} />
           <Route path="admins/:id" element={<AdminDetails />} />
+          <Route path="communes" element={<CommuneList />} />
         </Route>
 
         {/* ===================== */}

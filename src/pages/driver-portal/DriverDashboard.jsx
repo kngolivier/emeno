@@ -91,8 +91,8 @@ export default function DriverDashboard() {
         </header>
 
         {/* 2. Statistiques */}
-        <div className="grid grid-cols-2 gap-4">
-          <StatCard icon={<TrendingUp size={16}/>} label="Gains Jour" value={stats.dailyEarnings?.toLocaleString('fr-FR') || "0"} unit="FCFA" color="secondary" />
+        <div className="grid grid-cols-1 gap-4">
+          {/* <StatCard icon={<TrendingUp size={16}/>} label="Gains Jour" value={stats.dailyEarnings?.toLocaleString('fr-FR') || "0"} unit="FCFA" color="secondary" /> */}
           <StatCard icon={<CheckCircle size={16}/>} label="Livraisons" value={stats.completedToday?.toString().padStart(2, '0') || "00"} unit="Courses" color="primary" />
         </div>
 

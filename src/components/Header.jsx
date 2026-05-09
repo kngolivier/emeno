@@ -47,13 +47,13 @@ export default function Header({ toggleSidebar }) {
         </button>
 
         {/* BREADCRUMB CHIC */}
-        <div className="hidden xl:flex items-center gap-2 text-slate-300 dark:text-secondary">
+        {/* <div className="hidden xl:flex items-center gap-2 text-slate-300 dark:text-secondary">
            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{role}</span>
            <ChevronRight size={14} />
            <span className="text-primary dark:text-white/80 font-black italic capitalize tracking-tighter">
              {location.pathname.split('/').pop() || 'Dashboard'}
            </span>
-        </div>
+        </div> */}
 
         {/* BARRE DE RECHERCHE */}
         <div className="relative w-full max-w-[280px] group hidden md:block ml-4">
