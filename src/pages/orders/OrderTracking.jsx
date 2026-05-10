@@ -17,8 +17,10 @@ import {
   XCircle,
   AlertCircle,
   Trash2,
-  ShieldCheck, // Ajouté pour le code de sécurité
-  Lock
+  ShieldCheck,
+  Lock,
+  Star,
+  MessageSquareQuote
 } from "lucide-react";
 
 import {
@@ -28,13 +30,110 @@ import {
 } from "../../api/deliveries.api";
 
 import { fetchAvailableDrivers } from "../../api/users.api";
+import { fetchFeedbacksByDelivery } from "../../api/feedback.api";
 import PageLoader from "../../components/ui/PageLoader";
 import { notifySuccess, notifyError } from "../../utils/notify";
+
+/**
+ * COMPOSANTS HELPERS POUR LES FEEDBACKS
+ */
+const FeedbackCard = ({ feedback, type }) => {
+  const isClient = type === "CLIENT";
+  if (!feedback) return (
+    <div className="p-8 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2.5rem] flex flex-col items-center justify-center opacity-30">
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Aucun avis {isClient ? 'client' : 'livreur'}</p>
+    </div>
+  );
+
+  return (
+    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft h-full flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div className={`w-12 h-12 ${isClient ? 'bg-blue-500' : 'bg-emerald-500'} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
+            {isClient ? <User size={24} /> : <Truck size={24} />}
+          </div>
+          <div className="flex text-secondary gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={14} fill={i < feedback.rating ? "currentColor" : "none"} />
+            ))}
+          </div>
+        </div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{isClient ? 'Le Client' : 'Le Livreur'}</p>
+        <p className="text-base text-slate-700 dark:text-slate-200 font-medium italic leading-relaxed border-l-4 border-secondary/20 pl-4 mb-4">
+          "{feedback.comment || "Pas de commentaire écrit."}"
+        </p>
+      </div>
+
+      {/* Affichage des Tags sur Desktop */}
+      {feedback.tags?.length > 0 && (
+        <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-50 dark:border-slate-800">
+          {feedback.tags.map((tag, i) => (
+            <span key={i} className="text-[9px] px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const FeedbackAccordion = ({ feedback, type }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const isClient = type === "CLIENT";
+  
+  if (!feedback) return null;
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden mb-4">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-5 flex items-center justify-between transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/50"
+      >
+        <div className="flex items-center gap-4">
+            <div className={`w-10 h-10 ${isClient ? 'bg-blue-500' : 'bg-emerald-500'} rounded-xl flex items-center justify-center text-white shadow-sm`}>
+                {isClient ? <User size={20} /> : <Truck size={20} />}
+            </div>
+            <div className="text-left">
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary dark:text-white">Avis {isClient ? 'Client' : 'Livreur'}</p>
+                <div className="flex text-secondary gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={10} fill={i < feedback.rating ? "currentColor" : "none"} />
+                    ))}
+                </div>
+            </div>
+        </div>
+        <ChevronLeft size={20} className={`text-slate-300 transition-transform duration-300 ${isOpen ? '-rotate-90' : ''}`} />
+      </button>
+      
+      {isOpen && (
+        <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
+          <div className="pt-4 border-t border-slate-50 dark:border-slate-800 space-y-4">
+            <p className="text-base text-slate-600 dark:text-slate-300 italic leading-relaxed pl-2 border-l-2 border-secondary/30">
+                "{feedback.comment || "Aucun commentaire écrit."}"
+            </p>
+            {/* Affichage des Tags sur Mobile */}
+            {feedback.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {feedback.tags.map((tag, i) => (
+                  <span key={i} className="text-[8px] px-2 py-1 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-400 dark:text-slate-500 font-black uppercase">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function OrderTracking() {
   const { id } = useParams();
 
   const [order, setOrder] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [selectedDriver, setSelectedDriver] = useState("");
 
@@ -43,15 +142,17 @@ export default function OrderTracking() {
   const [showAssignBox, setShowAssignBox] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // ======================
-  // FETCH DATA
-  // ======================
-  const loadOrder = async () => {
+  // CHARGEMENT DES DONNÉES
+  const loadOrderData = async () => {
     try {
-      const res = await fetchDeliveryById(id);
-      setOrder(res.data);
+      const [orderRes, feedbackRes] = await Promise.all([
+        fetchDeliveryById(id),
+        fetchFeedbacksByDelivery(id)
+      ]);
+      setOrder(orderRes.data);
+      setFeedbacks(feedbackRes.data?.data || []);
     } catch (err) {
-      console.error("Erreur chargement commande:", err.message);
+      console.error("Erreur chargement:", err.message);
     } finally {
       setLoading(false);
     }
@@ -68,13 +169,11 @@ export default function OrderTracking() {
   };
 
   useEffect(() => {
-    loadOrder();
+    loadOrderData();
     loadDrivers();
-  }, [id]); // Retrait de 'order' pour éviter les boucles infinies de re-render
+  }, [id]);
 
-  // ======================
-  // ACTIONS logic
-  // ======================
+  // ACTIONS
   const handleAssign = async () => {
     if (!selectedDriver) return;
     setActionLoading(true);
@@ -83,8 +182,7 @@ export default function OrderTracking() {
       notifySuccess("Livreur assigné avec succès");
       setShowAssignBox(false);
       setSelectedDriver("");
-      await loadOrder();
-      await loadDrivers();
+      await loadOrderData();
     } catch (err) {
       notifyError(err.message);
     } finally {
@@ -98,7 +196,7 @@ export default function OrderTracking() {
       await cancelDelivery(order._id);
       notifySuccess("Livraison annulée");
       setShowCancelModal(false);
-      await loadOrder();
+      await loadOrderData();
     } catch (err) {
       notifyError(err.message);
     } finally {
@@ -114,19 +212,15 @@ export default function OrderTracking() {
         <AlertCircle size={48} className="text-slate-300 mb-4" />
         <p className="text-slate-500 font-bold italic">Commande introuvable</p>
         <Link to="/admin/deliveries" className="text-primary font-black uppercase text-xs mt-4 tracking-widest hover:text-secondary">
-          Retour aux commandes
+          Retour
         </Link>
       </div>
     );
   }
 
-  // ======================
-  // BUSINESS LOGIC
-  // ======================
   const formatPrice = (price) => price?.toLocaleString() + " FCFA";
-  
-  const canAssign = ["PENDING", "ASSIGNED"].includes(order.status);
-  const canCancel = ["PENDING", "ASSIGNED"].includes(order.status);
+  const clientFeedback = feedbacks.find(f => f.authorRole === "CLIENT");
+  const driverFeedback = feedbacks.find(f => f.authorRole === "DRIVER");
 
   const steps = [
     { label: "Créée", done: true, time: order.createdAt },
@@ -137,7 +231,7 @@ export default function OrderTracking() {
   ];
 
   return (
-    <div className="space-y-8 font-sans transition-colors duration-300">
+    <div className="space-y-8 font-sans pb-10">
       
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -149,7 +243,7 @@ export default function OrderTracking() {
             <h1 className="text-4xl font-black text-primary font-display italic tracking-tighter uppercase">
               Commande <span className="text-secondary">#</span>{order.orderNumber}
             </h1>
-            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
               <Clock size={12} className="text-secondary" />
               {new Date(order.createdAt).toLocaleString()}
             </p>
@@ -157,7 +251,7 @@ export default function OrderTracking() {
         </div>
 
         <div className="flex gap-3">
-          {canAssign && (
+          {["PENDING", "ASSIGNED"].includes(order.status) && (
             <button 
               onClick={() => setShowAssignBox(!showAssignBox)} 
               className="px-6 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-secondary transition-all"
@@ -165,11 +259,10 @@ export default function OrderTracking() {
               Assigner livreur
             </button>
           )}
-          {canCancel && order.status !== "CANCELLED" && (
+          {["PENDING", "ASSIGNED"].includes(order.status) && (
             <button 
               onClick={() => setShowCancelModal(true)}
-              disabled={actionLoading}
-              className="px-6 py-4 bg-white dark:bg-slate-900 text-red-500 border border-red-100 dark:border-red-900/30 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-50 dark:hover:bg-red-500/10 transition-all flex items-center gap-2"
+              className="px-6 py-4 bg-white dark:bg-slate-900 text-red-500 border border-red-100 dark:border-red-900/30 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-50 transition-all flex items-center gap-2"
             >
               <XCircle size={14} /> Annuler
             </button>
@@ -177,23 +270,21 @@ export default function OrderTracking() {
         </div>
       </div>
 
-      {/* ASSIGN BOX */}
+      {/* BLOC D'ASSIGNATION */}
       {showAssignBox && (
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-50 dark:border-slate-800 shadow-soft animate-fadeIn space-y-6">
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-50 dark:border-slate-800 shadow-soft animate-in slide-in-from-top-4 duration-300 space-y-6">
           <div className="flex items-center gap-3 font-display font-black text-xl italic text-primary dark:text-white">
             <Truck className="text-secondary" />
-            Livreurs disponibles
+            Sélectionner un livreur
           </div>
           <select 
             value={selectedDriver} 
             onChange={(e) => setSelectedDriver(e.target.value)}
-            className="w-full p-4 rounded-2xl border border-slate-100 dark:border-slate-800 font-sans font-bold text-sm outline-none focus:ring-4 focus:ring-secondary/10 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+            className="w-full p-4 rounded-2xl border border-slate-100 dark:border-slate-800 font-bold text-sm outline-none bg-slate-50 dark:bg-slate-800"
           >
-            <option value="">-- Choisir un livreur --</option>
+            <option value="">-- Choisir --</option>
             {drivers.map(d => (
-              <option key={d._id} value={d._id}>
-                {d.prenom} {d.nom} {d.telephone ? `(${d.telephone})` : ""}
-              </option>
+              <option key={d._id} value={d._id}>{d.prenom} {d.nom}</option>
             ))}
           </select>
           <div className="flex justify-end gap-4">
@@ -209,10 +300,10 @@ export default function OrderTracking() {
         </div>
       )}
 
-      {/* MAIN CONTENT GRID */}
+      {/* GRILLE PRINCIPALE */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* LEFT COLUMN: PRIMARY INFOS */}
+        {/* COLONNE GAUCHE: INFOS GÉNÉRALES */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft space-y-4">
             {[
@@ -221,7 +312,7 @@ export default function OrderTracking() {
               { label: "Paiement", val: order.payerType === "SENDER" ? "Expéditeur" : "Destinataire", icon: Send, col: "bg-indigo-500" },
               { label: "Prix total", val: formatPrice(order.price), icon: CreditCard, col: "bg-secondary" },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-4 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-[1.5rem] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              <div key={i} className="flex items-center gap-4 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-[1.5rem]">
                 <div className={`w-12 h-12 ${item.col} rounded-xl flex items-center justify-center text-white shadow-lg`}>
                   <item.icon size={20} />
                 </div>
@@ -233,11 +324,10 @@ export default function OrderTracking() {
             ))}
           </div>
 
-          {/* DETAILED PACKAGE BOX */}
           <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft space-y-6">
              <div className="flex items-center justify-between">
-                <h3 className="font-display font-black text-xl italic text-primary dark:text-white uppercase">Détails Colis</h3>
-                <Package className="text-slate-200 dark:text-slate-700" size={24} />
+                <h3 className="font-display font-black text-xl italic text-primary dark:text-white uppercase">Le Colis</h3>
+                <Package className="text-slate-200" size={24} />
              </div>
              <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
@@ -246,162 +336,123 @@ export default function OrderTracking() {
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
                     <p className="text-[9px] font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest">Fragile</p>
-                    <p className={`font-bold ${order.packageDetails?.isFragile ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>
+                    <p className={`font-bold ${order.packageDetails?.isFragile ? 'text-red-500' : 'text-slate-700'}`}>
                         {order.packageDetails?.isFragile ? "OUI" : "NON"}
                     </p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl col-span-2">
-                    <p className="text-[9px] font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest">Poids estimé</p>
-                    <p className="font-bold text-slate-700 dark:text-slate-300">{order.packageDetails?.weight || "0"} kg</p>
-                </div>
              </div>
-             <div className="p-4 border-l-4 border-secondary bg-secondary/5 dark:bg-secondary/10 text-xs text-slate-500 dark:text-slate-400 italic font-sans">
-                "{order.packageDetails?.description || "Aucune description fournie"}"
-             </div>
+             <p className="text-xs text-slate-500 dark:text-slate-400 italic bg-secondary/5 p-4 rounded-2xl border-l-2 border-secondary">
+               "{order.packageDetails?.description || "Pas de description"}"
+             </p>
           </div>
         </div>
 
-        {/* CENTER COLUMN: LOGISTICS */}
+        {/* COLONNE CENTRE: ITINÉRAIRE & FEEDBACKS */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft h-full relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 dark:opacity-10 dark:text-white">
-                <MapPin size={120} />
-            </div>
-            
-            <h3 className="font-display font-black text-xl italic text-primary dark:text-white mb-10 uppercase">Itinéraire</h3>
-            
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft">
+            <h3 className="font-display font-black text-xl italic text-primary dark:text-white mb-10 uppercase">Trajet</h3>
             <div className="relative space-y-12">
               <div className="absolute left-6 top-2 bottom-2 w-0.5 border-l-2 border-dashed border-slate-100 dark:border-slate-800" />
 
               {/* Pickup */}
               <div className="relative flex gap-8">
-                <div className="w-12 h-12 bg-white dark:bg-slate-900 border-4 border-blue-500 rounded-full z-10 flex items-center justify-center shadow-xl shadow-blue-100 dark:shadow-none">
+                <div className="w-12 h-12 bg-white dark:bg-slate-900 border-4 border-blue-500 rounded-full z-10 flex items-center justify-center shadow-xl">
                     <div className="w-2 h-2 bg-blue-500 rounded-full" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Point d'enlèvement</p>
-                  <p className="font-bold text-slate-800 dark:text-slate-200 text-lg leading-tight mb-2">{order.pickupLocation}</p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 dark:text-slate-500 font-sans italic">
-                    <span className="flex items-center gap-1 font-bold text-slate-500 dark:text-slate-300"><User size={12} /> {order.pickupContact?.name}</span>
-                    <span className="flex items-center gap-1"><MapPin size={12} /> {order.pricingSnapshot?.from || "N/A"}</span>
-                    <span className="text-secondary font-black">{order.pickupContact?.phone}</span>
-                  </div>
+                <div>
+                  <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Enlèvement</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-200 text-lg leading-tight mb-1">{order.pickupLocation}, <span className="text-secondary">{order.pricingSnapshot.from}</span></p>
+                  <p className="text-xs text-slate-400 font-bold">{order.pickupContact?.name} • {order.pickupContact?.phone}</p>
                 </div>
               </div>
 
               {/* Dropoff */}
               <div className="relative flex gap-8">
-                <div className="w-12 h-12 bg-white dark:bg-slate-900 border-4 border-emerald-500 rounded-full z-10 flex items-center justify-center shadow-xl shadow-emerald-100 dark:shadow-none">
+                <div className="w-12 h-12 bg-white dark:bg-slate-900 border-4 border-emerald-500 rounded-full z-10 flex items-center justify-center shadow-xl">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Destination finale</p>
-                  <p className="font-bold text-slate-800 dark:text-slate-200 text-lg leading-tight mb-2">{order.dropoffLocation}</p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 dark:text-slate-500 font-sans italic">
-                    <span className="flex items-center gap-1 font-bold text-slate-500 dark:text-slate-300"><User size={12} /> {order.dropoffContact?.name}</span>
-                    <span className="flex items-center gap-1"><MapPin size={12} /> {order.pricingSnapshot?.to || "N/A"}</span>
-                    <span className="text-secondary font-black">{order.dropoffContact?.phone}</span>
-                  </div>
+                <div>
+                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Destination</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-200 text-lg leading-tight mb-1">{order.dropoffLocation}, <span className="text-secondary">{order.pricingSnapshot.to}</span></p>
+                  <p className="text-xs text-slate-400 font-bold">{order.dropoffContact?.name} • {order.dropoffContact?.phone}</p>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* SECTION FEEDBACKS ADAPTATIVE */}
+          {(clientFeedback || driverFeedback) && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-4">
+                <MessageSquareQuote size={24} className="text-secondary" />
+                <h3 className="font-display font-black text-xl italic text-primary uppercase">Avis clients & livreurs</h3>
+              </div>
+              {/* Desktop: Cartes */}
+              <div className="hidden md:grid grid-cols-2 gap-6">
+                <FeedbackCard feedback={clientFeedback} type="CLIENT" />
+                <FeedbackCard feedback={driverFeedback} type="DRIVER" />
+              </div>
+              {/* Mobile: Accordéons */}
+              <div className="md:hidden">
+                <FeedbackAccordion feedback={clientFeedback} type="CLIENT" />
+                <FeedbackAccordion feedback={driverFeedback} type="DRIVER" />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: SECURITY & TIMELINE */}
+        {/* COLONNE DROITE: STATUT & CODE */}
         <div className="lg:col-span-3 space-y-6">
-          
-          {/* SECURITY CODE BOX - Visible uniquement si non livré */}
           {order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
             <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border-2 border-dashed border-secondary/30 shadow-soft">
                <div className="flex items-center gap-2 mb-4">
                   <ShieldCheck size={18} className="text-secondary" />
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary dark:text-white">Code de Validation</h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary dark:text-white">Validation</h4>
                </div>
-               <div className="flex items-center justify-center bg-slate-50 dark:bg-slate-800 py-4 rounded-2xl relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+               <div className="flex items-center justify-center bg-slate-50 dark:bg-slate-800 py-4 rounded-2xl">
                   <span className="text-3xl font-black tracking-[0.3em] text-primary dark:text-secondary italic">
                     {order.verificationCode || "----"}
                   </span>
-                  <Lock size={12} className="absolute top-2 right-2 text-slate-300" />
                </div>
-               <p className="text-[9px] text-slate-400 text-center mt-3 font-medium leading-tight">
-                  À transmettre au livreur pour <br/> valider la livraison finale.
-               </p>
             </div>
           )}
 
-          {/* TRACKING TIMELINE */}
-          <div className="bg-primary dark:bg-[#001D0E] p-8 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
+          <div className="bg-primary dark:bg-[#001D0E] p-8 rounded-[2.5rem] shadow-2xl space-y-8 text-white relative overflow-hidden">
             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
-            
-            <h3 className="text-white font-display font-black text-2xl italic tracking-tight flex items-center gap-2 uppercase">
-              <PackageCheck size={24} className="text-secondary" />
-              Statut
+            <h3 className="font-display font-black text-2xl italic tracking-tight uppercase flex items-center gap-2">
+              <PackageCheck size={24} className="text-secondary" /> Suivi
             </h3>
-            
             <div className="space-y-6 relative">
               {steps.map((step, i) => (
-                <div key={i} className={`flex justify-between items-center transition-all ${step.done ? 'opacity-100' : 'opacity-20'}`}>
+                <div key={i} className={`flex justify-between items-center ${step.done ? 'opacity-100' : 'opacity-20'}`}>
                   <div className="flex items-center gap-4">
-                    <div className="relative">
-                        {step.done ? <CheckCircle size={20} className="text-secondary" /> : <Circle size={20} className="text-white" />}
-                    </div>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-white">
-                      {step.label}
-                    </span>
+                    {step.done ? <CheckCircle size={20} className="text-secondary" /> : <Circle size={20} className="text-white" />}
+                    <span className="text-[11px] font-black uppercase tracking-widest">{step.label}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-white/50 font-sans">
+                  <span className="text-[10px] font-bold text-white/50">
                     {step.time ? new Date(step.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "--:--"}
                   </span>
                 </div>
               ))}
             </div>
-
-            <div className="pt-6 border-t border-white/10">
-                <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl">
-                    <div className={`w-3 h-3 ${order.status === 'CANCELLED' ? 'bg-red-500' : 'bg-secondary animate-pulse'} rounded-full`} />
-                    <div>
-                        <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">Actuel</p>
-                        <p className="text-white font-bold text-sm tracking-wide">{order.status}</p>
-                    </div>
-                </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* MODAL D'ANNULATION */}
+      {/* MODAL ANNULATION */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-primary/40 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-800 transform animate-in zoom-in-95 duration-300">
-            <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6 mx-auto">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-primary/40 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-800">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-6 mx-auto">
                 <Trash2 size={32} />
             </div>
-            
-            <h3 className="text-2xl font-display font-black text-primary dark:text-white italic text-center uppercase tracking-tighter">
-              Annuler la livraison ?
-            </h3>
-            
-            <p className="text-slate-500 dark:text-slate-400 text-center text-sm mt-4 leading-relaxed font-sans">
-              Êtes-vous sûr de vouloir annuler la commande <span className="font-bold text-primary dark:text-slate-200">#{order.orderNumber}</span> ? 
-              Cette action est irréversible et notifiera le client.
+            <h3 className="text-2xl font-display font-black text-primary dark:text-white italic text-center uppercase">Annuler ?</h3>
+            <p className="text-slate-500 text-center text-sm mt-4 font-sans leading-relaxed">
+              Confirmez-vous l'annulation de la commande <span className="font-bold text-primary dark:text-white">#{order.orderNumber}</span> ?
             </p>
-
             <div className="grid grid-cols-2 gap-4 mt-8">
-              <button 
-                onClick={() => setShowCancelModal(false)}
-                className="px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
-              >
-                Retour
-              </button>
-              <button 
-                onClick={handleCancel}
-                disabled={actionLoading}
-                className="px-6 py-4 rounded-2xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all disabled:opacity-50"
-              >
-                {actionLoading ? "Annulation..." : "Confirmer"}
-              </button>
+              <button onClick={() => setShowCancelModal(false)} className="px-6 py-4 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest">Retour</button>
+              <button onClick={handleCancel} disabled={actionLoading} className="px-6 py-4 rounded-2xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">Confirmer</button>
             </div>
           </div>
         </div>

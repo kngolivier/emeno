@@ -93,7 +93,7 @@ export default function Login() {
             </div>
             <input
               type="text"
-              className="w-full pl-14 pr-6 py-4 lg:py-5 bg-white dark:bg-white/5 border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
+              className="w-full pl-14 pr-6 py-4 lg:py-5 bg-white  border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
               placeholder="EMAIL OU TÉLÉPHONE"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -125,10 +125,13 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 lg:py-5 bg-primary text-white font-black uppercase tracking-widest rounded-xl lg:rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 mt-4 hover:bg-secondary transition-all disabled:opacity-50 active:scale-95"
+            className="w-full py-5 bg-primary text-white font-black uppercase tracking-[0.2em] text-[11px] rounded-[1.5rem] shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 mt-6 hover:bg-[#002D15] transition-all relative overflow-hidden active:scale-95"
           >
-            {loading ? "Chargement..." : <span className="text-xs">Se connecter</span>}
-            {!loading && <ArrowRight size={18} />}
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>Se connecter <ArrowRight size={18} strokeWidth={3} /></>
+            )}
           </button>
         </form>
 

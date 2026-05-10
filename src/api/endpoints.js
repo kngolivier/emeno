@@ -63,4 +63,9 @@ export const ENDPOINTS = {
   // ======================
   COMMUNES: "/api/communes",
   COMMUNE_BY_ID: (id) => `/api/communes/${id}`,
+
+  // ======================
+  // FEEDBACKS
+  // ======================
+  FEEDBACKS: "/api/feedbacks",
 };

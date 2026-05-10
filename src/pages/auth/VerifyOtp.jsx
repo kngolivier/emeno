@@ -133,21 +133,19 @@ export default function VerifyOTP() {
 
         <form onSubmit={handleVerify} className="space-y-10">
           {/* Utilisation de ton composant OtpInput */}
-          <OtpInput 
-            length={6} 
-            onComplete={(code) => setOtpCode(code)} 
-          />
+          <div className="bg-slate-50 dark:bg-primary-dark/50 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 mb-8">
+            <OtpInput 
+              length={6} 
+              onComplete={(code) => setOtpCode(code)} 
+            />
+          </div>
 
           <button
             type="submit"
-            disabled={loading || otpCode.length < 4}
-            className="w-full py-5 bg-primary text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 hover:bg-secondary transition-all disabled:opacity-30 active:scale-95"
+            disabled={loading || otpCode.length < 6}
+            className="w-full py-5 bg-secondary text-primary-dark font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-secondary/10 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-30"
           >
-            {loading ? (
-              <RefreshCw className="animate-spin" size={20} />
-            ) : (
-              <><Check size={20} strokeWidth={3} /> Valider</>
-            )}
+            {loading ? <RefreshCw className="animate-spin" size={20} /> : "Vérifier le compte"}
           </button>
         </form>
 

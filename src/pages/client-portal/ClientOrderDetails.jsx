@@ -1,26 +1,38 @@
 // FILE: src/pages/client-portal/ClientOrderDetails.jsx
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchDeliveryById, cancelDelivery } from "../../api/deliveries.api";
 import { 
   Truck, MapPin, Package, Clock, ShieldCheck, 
-  ChevronLeft, XCircle, AlertTriangle, Loader2 
+  ChevronLeft, XCircle, AlertTriangle, Loader2, Star
 } from "lucide-react";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
+import FeedbackModal from "../../components/feedback/FeedbackModal";
 import { STATUS_COLORS, STATUS_LABELS, CATEGORY_LABELS } from "../../constants/constants";
 
 export default function ClientOrderDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+  
   const [delivery, setDelivery] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  
+  // État pour la modal de feedback
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const loadDelivery = async () => {
     try {
       const res = await fetchDeliveryById(id);
-      setDelivery(res?.data);
+      const data = res?.data;
+      setDelivery(data);
+
+      // Si la commande est livrée et n'a pas encore de feedback, on propose la modal
+      if (data?.status === "DELIVERED" && !data?.hasFeedback) {
+        setShowFeedbackModal(true);
+      }
     } catch (err) {
       notifyError("Erreur lors du chargement de la commande");
     }
@@ -28,7 +40,9 @@ export default function ClientOrderDetails() {
 
   useEffect(() => {
     loadDelivery();
-  }, [delivery]);
+    // On retire 'delivery' des dépendances pour éviter les boucles infinies, 
+    // on ne recharge que si l'ID change ou via un appel manuel
+  }, [id]);
 
   if (!delivery) return <PageLoader />;
   
@@ -71,7 +85,7 @@ export default function ClientOrderDetails() {
           </button>
           
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-3xl font-black text-primary dark:text-white italic tracking-tighter truncate uppercase">
+            <h1 className="text-xl sm:text-3xl font-black text-primary dark:text-white italic tracking-tighter uppercase">
               Commande <span className="text-secondary">#</span>{delivery.orderNumber}
             </h1>
             <p className="text-[9px] sm:text-xs font-black uppercase text-slate-300 dark:text-slate-600 tracking-widest mt-1 flex items-center gap-2 italic">
@@ -81,6 +95,17 @@ export default function ClientOrderDetails() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-end">
+          {/* Bouton Feedback manuel si déjà livré */}
+          {delivery.status === "DELIVERED" && (
+            <button 
+              onClick={() => setShowFeedbackModal(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-xs font-black uppercase tracking-widest text-secondary border-2 border-secondary/10 hover:bg-secondary hover:text-primary transition-all flex-1 md:flex-none"
+            >
+              <Star size={16} fill="currentColor" />
+              <span>{delivery.hasFeedback ? "Modifier Avis" : "Noter"}</span>
+            </button>
+          )}
+
           {canCancel && (
             <button 
               onClick={() => setShowCancelModal(true)}
@@ -131,7 +156,7 @@ export default function ClientOrderDetails() {
               <InfoBox label="Fragile" value={delivery.packageDetails?.isFragile ? "OUI" : "NON"} isAlert={delivery.packageDetails?.isFragile} />
             </div>
 
-            {delivery.verificationCode && delivery.status !== 'CANCELLED' && (
+            {delivery.verificationCode && delivery.status !== 'CANCELLED' && delivery.status !== 'DELIVERED' && (
               <div className="bg-secondary/5 dark:bg-secondary/10 border-2 border-secondary/10 dark:border-secondary/20 rounded-[1.5rem] p-4 sm:p-6 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 sm:gap-4 text-secondary shrink-0">
                   <ShieldCheck size={24} className="shrink-0" />
@@ -153,7 +178,15 @@ export default function ClientOrderDetails() {
         </div>
       </div>
 
-      {/* MODAL DARK MODE */}
+      {/* FEEDBACK MODAL */}
+      <FeedbackModal 
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        deliveryId={id}
+        role="CLIENT"
+      />
+
+      {/* MODAL ANNULATION */}
       {showCancelModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-primary/20 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-300">
