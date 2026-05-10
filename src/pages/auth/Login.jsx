@@ -25,16 +25,32 @@ export default function Login() {
       const res = await loginApi({ identifier, password });
       const { token, user, mustChangePassword } = res.data;
       if (!token) throw new Error("Erreur d'authentification");
+
+      // 1. Mise à jour du contexte Auth
       login({ user, token });
 
-      if (mustChangePassword) return navigate("/change-password", { replace: true });
+      // 2. PRIORITÉ : Vérification du statut PENDING (Validation OTP Gabon)
+      // On redirige vers l'OTP avant toute autre action
+      if (user.status === "PENDING") {
+        return navigate("/verify-otp", {
+          replace: true, 
+          state: { telephone: user.telephone } 
+        });
+      }
 
+      // 3. Sécurité : Changement de mot de passe requis (mot de passe généré par admin)
+      if (mustChangePassword) {
+        return navigate("/change-password", { replace: true });
+      }
+
+      // 4. Routage standard par rôle
       const routes = {
         SUPER_ADMIN: "/admin",
         ADMIN: "/admin",
         DRIVER: "/driver",
         CLIENT: "/client"
       };
+      
       navigate(routes[user?.role] || "/unauthorized", { replace: true });
     } catch (err) {
       setError(err.message || "Identifiants incorrects");
@@ -77,7 +93,7 @@ export default function Login() {
             </div>
             <input
               type="text"
-              className="w-full pl-14 pr-6 py-4 lg:py-5 bg-slate-50 dark:bg-white/5 border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
+              className="w-full pl-14 pr-6 py-4 lg:py-5 bg-white dark:bg-white/5 border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
               placeholder="EMAIL OU TÉLÉPHONE"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -91,7 +107,7 @@ export default function Login() {
             </div>
             <input
               type={showPassword ? "text" : "password"}
-              className="w-full pl-14 pr-14 py-4 lg:py-5 bg-slate-50 dark:bg-white/5 border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
+              className="w-full pl-14 pr-14 py-4 lg:py-5 bg-white dark:bg-white/5 border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
               placeholder="MOT DE PASSE"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

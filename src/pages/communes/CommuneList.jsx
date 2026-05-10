@@ -5,7 +5,7 @@ import { Plus, Edit, MapPin, Trash2, Hash, Filter } from "lucide-react";
 import { fetchCommunes, createCommune, updateCommune, deleteCommune } from "../../api/commune.api";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
-import TotalCard from "../../components/dashbord/TotalCard";
+import TotalCard from "../../components/dashboard/TotalCard";
 import CommuneForm from "./CommuneForm";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 

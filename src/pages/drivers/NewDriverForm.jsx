@@ -1,6 +1,7 @@
 // FILE: src/components/drivers/NewDriverForm.jsx
 import { useState } from "react";
-import { X, User, Phone, Mail, MapPin, ShieldCheck, Loader2 } from "lucide-react";
+import { X, User, Mail, MapPin, ShieldCheck, Loader2 } from "lucide-react";
+import PhoneInput from "../../components/forms/PhoneInput";
 
 export default function NewDriverForm({ onSave, onCancel, driver }) {
   const [nom, setNom] = useState(driver?.nom || "");
@@ -17,11 +18,14 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
     const newErrors = {};
     if (!nom.trim()) newErrors.nom = "Nom requis";
     if (!prenom.trim()) newErrors.prenom = "Prénom requis";
+    
+    // Validation du téléphone adaptée au format attendu par ton API (+241XXXXXXXX)
     if (!telephone.trim()) {
       newErrors.telephone = "Téléphone requis";
     } else if (!/^\+241[0-9]{8}$/.test(telephone)) {
-      newErrors.telephone = "Format: +241XXXXXXXX";
+      newErrors.telephone = "Format requis: +241XXXXXXXX";
     }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -45,7 +49,6 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
     }
   };
 
-  // Classes optimisées pour le mobile
   const inputClass = (field) =>
     `w-full bg-slate-50/50 border-2 rounded-xl md:rounded-2xl p-3 md:p-4 text-xs md:text-sm font-bold text-primary outline-none transition-all ${
       errors[field]
@@ -58,7 +61,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
   return (
     <div className="bg-white w-full max-w-lg md:rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col max-h-screen md:max-h-[90vh] overflow-hidden font-sans animate-in zoom-in-95 duration-300">
       
-      {/* HEADER : Plus compact sur mobile */}
+      {/* HEADER */}
       <div className="p-5 md:p-8 border-b bg-slate-50/50 flex justify-between items-center shrink-0">
         <div>
           <h2 className="text-xl md:text-2xl font-black text-primary italic tracking-tight uppercase">
@@ -66,13 +69,15 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           </h2>
           <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-secondary mt-1">Identification Staff</p>
         </div>
-        <button onClick={onCancel} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"><X size={20}/></button>
+        <button type="button" onClick={onCancel} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+          <X size={20}/>
+        </button>
       </div>
 
-      {/* FORM : Scrollable pour éviter que le clavier mobile ne cache tout */}
+      {/* FORM */}
       <form onSubmit={handleSubmit} className="p-5 md:p-8 space-y-5 md:space-y-6 overflow-y-auto scrollbar-hide">
         
-        {/* Grille Nom/Prénom responsive */}
+        {/* Grille Nom/Prénom */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nom <span className="text-red-500">*</span></label>
@@ -86,10 +91,15 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <label className={labelClass}>Téléphone <span className="text-red-500">*</span></label>
-            <input value={telephone} onChange={(e) => setTelephone(e.target.value)} className={inputClass("telephone")} placeholder="+241XXXXXXXX" />
+            {/* Remplacement par le composant PhoneInput */}
+            <PhoneInput 
+              value={telephone} 
+              onChange={setTelephone} 
+              error={errors.telephone}
+            />
             {errors.telephone && <p className="text-red-500 text-[8px] font-bold mt-1 ml-1 uppercase">{errors.telephone}</p>}
           </div>
           <div>
@@ -115,7 +125,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           </select>
         </div>
 
-        {/* FOOTER : Boutons pleins pour mobile */}
+        {/* FOOTER */}
         <div className="flex flex-col md:flex-row gap-3 pt-4 border-t border-slate-50 mt-4">
           <button type="submit" disabled={loading} className="w-full md:flex-[2] order-1 md:order-2 bg-primary text-white py-4 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs shadow-xl shadow-primary/10 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center gap-2">
             {loading ? <Loader2 className="animate-spin" size={16} /> : (driver ? "Mettre à jour" : "Enregistrer")}

@@ -2,31 +2,62 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Phone, Activity, Truck, Package, ShieldOff, Trash2, Mail, ExternalLink, ShieldCheck, Clock } from "lucide-react";
+import { 
+  ChevronLeft, Phone, Activity, Truck, Package, 
+  ShieldOff, Trash2, Mail, ExternalLink, ShieldCheck, Clock 
+} from "lucide-react";
+
+// API Services
 import { fetchDriverById, updateUserStatus, deleteUser } from "../../api/users.api";
+import { fetchDriverStats } from "../../api/stats.api"; //
+
+// Utils
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
 
 export default function DriverDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // États pour les données
   const [driver, setDriver] = useState(null);
+  const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, distance: 0 }); //
   const [loading, setLoading] = useState(true);
+  
+  // États pour les actions
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const loadDriver = async () => {
+  /**
+   * Chargement combiné du profil et des statistiques
+   */
+  const loadData = async () => {
     try {
-      const res = await fetchDriverById(id);
-      setDriver(res?.data?.data || res?.data || res);
+      const [driverRes, statsRes] = await Promise.all([
+        fetchDriverById(id),
+        fetchDriverStats(id, "MONTH") // Statistique mensuelle par défaut
+      ]);
+      
+      setDriver(driverRes?.data?.data || driverRes?.data || driverRes);
+      setStats(statsRes?.data?.data || statsRes?.data || statsRes);
     } catch (err) {
-      notifyError("Impossible de charger le livreur");
-    } finally { setLoading(false); }
+      notifyError("Impossible de charger les données du livreur");
+    } finally { 
+      setLoading(false); 
+    }
   };
 
-  useEffect(() => { loadDriver(); }, [id]);
+  useEffect(() => { 
+    loadData(); 
+  }, [id]);
 
-  // Fonction pour formater la date de création
+  /**
+   * Calcul du taux de réussite (Performance)
+   */
+  const performanceRate = stats.total > 0 
+    ? Math.round((stats.completed / stats.total) * 100) + "%" 
+    : "0%";
+
   const formatJoinDate = (dateString) => {
     if (!dateString) return "Date inconnue";
     const date = new Date(dateString);
@@ -39,17 +70,22 @@ export default function DriverDetails() {
       await updateUserStatus(driver._id, newStatus);
       setDriver(prev => ({ ...prev, status: newStatus }));
       notifySuccess(newStatus === "ACTIVE" ? "Livreur débloqué" : "Livreur bloqué");
-    } catch (err) { notifyError("Erreur de statut"); }
+    } catch (err) { 
+      notifyError("Erreur lors du changement de statut"); 
+    }
   };
 
   const handleDelete = async () => {
     setDeleting(true);
     try {
       await deleteUser(driver._id);
-      notifySuccess("Livreur supprimé");
+      notifySuccess("Livreur supprimé avec succès");
       navigate("/admin/drivers");
-    } catch (err) { notifyError("Erreur de suppression"); }
-    finally { setDeleting(false); }
+    } catch (err) { 
+      notifyError("Erreur de suppression"); 
+    } finally { 
+      setDeleting(false); 
+    }
   };
 
   if (loading) return <PageLoader />;
@@ -58,14 +94,14 @@ export default function DriverDetails() {
   return (
     <div className="p-4 md:p-0 space-y-6 md:space-y-10 font-sans max-w-7xl mx-auto animate-in fade-in duration-500">
       
-      {/* HEADER RESPONSIVE */}
+      {/* HEADER SECTION */}
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4 md:gap-6">
           <button 
             onClick={() => navigate(-1)} 
             className="p-3 md:p-4 bg-white rounded-xl md:rounded-2xl border border-slate-100 hover:shadow-lg transition-all text-primary active:scale-90"
           >
-            <ChevronLeft size={20} md:size={24} strokeWidth={3} />
+            <ChevronLeft size={20} strokeWidth={3} />
           </button>
           <div className="min-w-0 py-1"> 
               <h1 className="text-3xl md:text-5xl font-black text-primary font-display italic tracking-tighter leading-[1.1] pr-2">
@@ -78,8 +114,8 @@ export default function DriverDetails() {
                   </span>
                   <span className="text-[8px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest italic">ID: {driver._id.slice(-6)}</span>
               </div>
-            </div>
           </div>
+        </div>
 
         <div className="flex gap-3 w-full md:w-auto">
           <button 
@@ -98,10 +134,9 @@ export default function DriverDetails() {
         </div>
       </div>
 
-      {/* GRID PRINCIPAL */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         
-        {/* CARTE CONTACT */}
+        {/* CONTACT CARD */}
         <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Contact & Localisation</h3>
@@ -131,16 +166,16 @@ export default function DriverDetails() {
           </div>
         </div>
 
-        {/* STATISTIQUES */}
+        {/* REAL-TIME STATISTICS */}
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           {[
-            { label: "Livraisons", val: "0", icon: Truck, col: "bg-primary" },
-            { label: "Réussies", val: "0", icon: Package, col: "bg-secondary" },
-            { label: "Performance", val: "N/A", icon: Activity, col: "bg-emerald-500" },
+            { label: "Livraisons", val: stats.total, icon: Truck, col: "bg-primary" },
+            { label: "Réussies", val: stats.completed, icon: Package, col: "bg-secondary" },
+            { label: "Performance", val: performanceRate, icon: Activity, col: "bg-emerald-500" },
           ].map((item, i) => (
             <div key={i} className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft flex flex-row sm:flex-col items-center justify-between sm:justify-center text-left sm:text-center gap-4">
               <div className={`w-12 h-12 md:w-16 md:h-16 ${item.col} rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0`}>
-                <item.icon size={24} md:size={28} />
+                <item.icon size={24} />
               </div>
               <div>
                 <p className="text-[8px] md:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">{item.label}</p>
@@ -149,7 +184,7 @@ export default function DriverDetails() {
             </div>
           ))}
 
-          {/* CARTE DATE D'INSCRIPTION DYNAMIQUE */}
+          {/* JOIN DATE CARD */}
           <div className="sm:col-span-3 bg-primary text-white p-6 rounded-[2rem] flex items-center justify-between overflow-hidden relative group">
               <div className="relative z-10">
                 <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1 font-sans">Membre du staff depuis</p>
@@ -162,7 +197,7 @@ export default function DriverDetails() {
         </div>
       </div>
 
-      {/* MODAL SUPPRESSION */}
+      {/* DELETE MODAL */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-primary/40 backdrop-blur-md p-0 md:p-4">
           <div className="bg-white p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-sm text-center space-y-6 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95">

@@ -5,10 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   CheckCircle, Clock, TrendingUp, Power, MapPin, 
   Package, Loader2, ChevronRight, X, Phone, ShieldCheck,
-  Navigation, CreditCard
+  Navigation
 } from "lucide-react";
 import { useDriver } from "../../hooks/useDriver";
 import { useAuth } from "../../context/AuthContext";
+
+// Import du composant global
+import StatCard from "../../components/dashboard/StatCard";
 
 export default function DriverDashboard() {
   const { user } = useAuth();
@@ -64,7 +67,7 @@ export default function DriverDashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="animate-spin text-primary" size={40} />
-        <p className="text-xs font-black uppercase tracking-widest text-muted">Chargement EMENO...</p>
+        <p className="text-xs font-black uppercase tracking-widest text-muted text-center">Chargement EMENO...</p>
       </div>
     );
   }
@@ -90,10 +93,20 @@ export default function DriverDashboard() {
           </button>
         </header>
 
-        {/* 2. Statistiques */}
-        <div className="grid grid-cols-1 gap-4">
-          {/* <StatCard icon={<TrendingUp size={16}/>} label="Gains Jour" value={stats.dailyEarnings?.toLocaleString('fr-FR') || "0"} unit="FCFA" color="secondary" /> */}
-          <StatCard icon={<CheckCircle size={16}/>} label="Livraisons" value={stats.completedToday?.toString().padStart(2, '0') || "00"} unit="Courses" color="primary" />
+        {/* 2. Statistiques (Utilisation du composant global) */}
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard 
+            title="Gains Jour" 
+            value={`${stats.dailyEarnings?.toLocaleString('fr-FR') || "0"} F`} 
+            icon={TrendingUp} 
+            color="bg-secondary/10 text-secondary" 
+          />
+          <StatCard 
+            title="Livraisons" 
+            value={stats.completedToday?.toString().padStart(2, '0') || "00"} 
+            icon={CheckCircle} 
+            color="bg-primary/10 text-primary dark:text-white" 
+          />
         </div>
 
         {/* 3. Section Mission */}
@@ -125,7 +138,6 @@ export default function DriverDashboard() {
                     <MapPin size={12} className="text-secondary" /> Vers {activeOrder.dropoffLocation}
                   </p>
                   
-                  {/* INPUT DE VALIDATION CORRIGÉ SUR LA CARTE */}
                   {activeOrder.status === 'IN_PROGRESS' ? (
                     <div className="bg-white/10 p-3 rounded-3xl backdrop-blur-md border border-white/10 space-y-3">
                       <p className="text-[9px] font-black text-center text-white/70 uppercase tracking-widest">Code client requis</p>
@@ -207,7 +219,6 @@ export default function DriverDashboard() {
                         <div className="h-10 shrink-0" />
                       </div>
 
-                      {/* INPUT DE VALIDATION CORRIGÉ DANS LE MODAL */}
                       <div className="p-6 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 shrink-0">
                         {activeOrder.status === 'IN_PROGRESS' ? (
                           <div className="flex gap-2 w-full">
@@ -252,28 +263,6 @@ export default function DriverDashboard() {
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value, unit, color }) {
-  const themes = {
-    secondary: "bg-white dark:bg-primary-light text-secondary border-slate-100 dark:border-white/5",
-    primary: "bg-white dark:bg-primary-light text-primary dark:text-white border-slate-100 dark:border-white/5"
-  };
-
-  return (
-    <div className={`p-6 rounded-[2.5rem] border shadow-sm ${themes[color]}`}>
-      <div className="flex items-center gap-2 mb-4 opacity-50">
-        <div className={`p-2 rounded-lg ${color === 'secondary' ? 'bg-secondary/10' : 'bg-primary/10 dark:bg-white/10'}`}>
-          {icon}
-        </div>
-        <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
-      </div>
-      <p className="text-2xl font-black tracking-tighter italic leading-none">
-        {value} <br/>
-        <span className="text-[10px] not-italic opacity-50 uppercase tracking-widest">{unit}</span>
-      </p>
     </div>
   );
 }

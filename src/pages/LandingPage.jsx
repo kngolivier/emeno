@@ -132,7 +132,7 @@ function MiniPriceCard({ zone, prix }) {
         <p className="text-[8px] lg:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest truncate">{zone}</p>
       </div>
       <p className="text-xl lg:text-3xl font-black text-primary dark:text-white italic tracking-tighter">
-        {prix} <span className="text-[10px] lg:text-[12px] not-italic text-secondary font-bold ml-1">XAF</span>
+        {prix} <span className="text-[10px] lg:text-[12px] not-italic text-secondary font-bold ml-1">CFA</span>
       </p>
     </div>
   );

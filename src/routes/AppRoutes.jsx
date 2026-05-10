@@ -41,6 +41,7 @@ import DriverDeliveries from "../pages/driver-portal/DriverDeliveries";
 import DriverProfile from "../pages/driver-portal/DriverProfile";
 import DriverMap from "../pages/driver-portal/DriverMap";
 import CommuneList from "../pages/communes/CommuneList";
+import VerifyOTP from "../pages/auth/VerifyOtp";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -64,6 +65,7 @@ export default function AppRoutes() {
         
         {/* Route accessible pour changer le mot de passe (souvent via lien mail) */}
         <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
 
         {/* ===================== */}
         {/*   ESPACE ADMIN (/admin) */}

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Navbar from "../components/landing/Navbar";
 import Footer from "../components/landing/Footer";
 import { fetchPricing } from "../api/pricing.api";
-import { MapPin, ArrowLeftRight, HelpCircle, ArrowDown } from "lucide-react";
+import { MapPin, ArrowLeftRight, HelpCircle, ArrowDown, ArrowUpDown } from "lucide-react";
 
 export default function PricingPage() {
   const [pricingData, setPricingData] = useState([]);
@@ -73,7 +73,7 @@ export default function PricingPage() {
                         {p.from?.name || 'Départ'}
                     </span>
                     <ArrowLeftRight size={16} className="text-secondary shrink-0 hidden lg:block" />
-                    <ArrowDown size={14} className="text-secondary shrink-0 lg:hidden" />
+                    <ArrowUpDown size={14} className="text-secondary shrink-0 lg:hidden" />
                     <span className="text-sm lg:text-2xl font-black text-primary dark:text-white uppercase italic tracking-tighter truncate">
                         {p.to?.name || 'Arrivée'}
                     </span>
@@ -82,7 +82,7 @@ export default function PricingPage() {
                   <div className="flex flex-col lg:flex-row lg:items-end justify-between border-t border-slate-200 dark:border-white/10 pt-4 lg:pt-8 gap-1">
                     <span className="text-[8px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest italic">Forfait</span>
                     <p className="text-xl lg:text-4xl font-black text-primary dark:text-white tracking-tighter">
-                      {p.basePrice?.toLocaleString()} <span className="text-[10px] lg:text-xs text-secondary font-bold ml-1">XAF</span>
+                      {p.basePrice?.toLocaleString()} <span className="text-[10px] lg:text-xs text-secondary font-bold ml-1">CFA</span>
                     </p>
                   </div>
                 </motion.div>

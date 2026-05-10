@@ -9,7 +9,7 @@ import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import NewAdminForm from "./NewAdminForm";
 import PageLoader from "../../components/ui/PageLoader";
-import TotalCard from "../../components/dashbord/TotalCard";
+import TotalCard from "../../components/dashboard/TotalCard";
 
 export default function AdminList() {
   const { data: admins = [], meta, loading, setPage, refresh } = usePaginatedFetch(fetchAdmins, 10);

@@ -38,12 +38,15 @@ export const ENDPOINTS = {
   // STATS
   // ======================
   ADMIN_STATS: "/api/stats/admin",
+  STATS: "/api/stats",
 
   // ======================
   // OTP (Vérification Téléphone)
   // ======================
   OTP_SEND: "/api/otp/send",
   OTP_VERIFY: "/api/otp/verify",
+
+  USERS_ACTIVATE: "/api/users/activate",
 
   // ======================
   // DRIVER SPECIFIC (LOCATION & STATUS)

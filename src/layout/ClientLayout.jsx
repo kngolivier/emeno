@@ -9,13 +9,13 @@ export default function ClientLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+    <div className="min-h-screen bg-slate-150 dark:bg-main-app flex overflow-hidden">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-h-screen relative overflow-y-auto">
         <Header toggleSidebar={() => setSidebarOpen(true)} />
         
-        <main className="p-4 lg:p-8 max-w-[1600px] mx-auto w-full">
+        <main className="p-4 lg:p-8 max-w-[1600px] mx-auto w-full text-slate-200">
           <Outlet />
         </main>
       </div>

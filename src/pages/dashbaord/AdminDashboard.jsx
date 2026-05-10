@@ -11,12 +11,12 @@ import { fetchAdminStats } from "../../api/stats.api";
 import { fetchAdminDeliveries } from "../../api/deliveries.api";
 import { useAuth } from "../../context/AuthContext";
 import PageLoader from "../../components/ui/PageLoader";
-import StatCard from "../../components/dashbord/StatCard";
-import ProgressRow from "../../components/dashbord/ProgressRow";
+import StatCard from "../../components/dashboard/StatCard";
+import ProgressRow from "../../components/dashboard/ProgressRow";
 
 import {
   Truck, CreditCard, PackageCheck, Activity,
-  CheckCircle, AlertCircle, ArrowUpRight, Users, Settings, Shield
+  CheckCircle, ArrowUpRight, Users, Settings, Shield, Star, Award, ShoppingBag
 } from "lucide-react";
 
 import {
@@ -35,10 +35,6 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  /**
-   * RÉCUPÉRATION DYNAMIQUE DU THÈME
-   * On utilise les clés définies dans ton tailwind.config.js
-   */
   const COLORS = {
     primary: theme.primary?.DEFAULT || theme.primary || "#000",
     secondary: theme.secondary?.DEFAULT || theme.secondary || "#ccc",
@@ -47,7 +43,6 @@ export default function AdminDashboard() {
     muted: theme.muted || "#64748b"
   };
   
-  // Palette pour le PieChart basée sur le thème
   const PIE_PALETTE = [COLORS.secondary, "#818CF8", COLORS.muted];
 
   const loadData = async () => {
@@ -77,20 +72,32 @@ export default function AdminDashboard() {
 
   if (!stats) return <PageLoader />;
 
-  const deliveryStats = stats?.deliveries || {};
+  /** 
+   * MAPPING DES DONNÉES (Format API : overview, deliveryBreakdown, users)
+   */
+  const deliveryStats = stats?.deliveryBreakdown || {};
+  const overview = stats?.overview || {};
   const userStats = stats?.users || {};
-  const total = deliveryStats.total || 0;
-  const successRate = total ? Math.round((deliveryStats.livree / total) * 100) : 0;
+  
+  const total = overview.totalDeliveries || 0;
+  const revenue = overview.totalRevenue || 0;
+  const successRate = overview.successRate || "0%";
 
-  const chartData = (stats?.deliveries?.deliveriesOverTime || []).map(d => ({
+  // Calcul du compte Admin pour le Super Admin
+  const adminsCount = userStats.roles?.reduce((acc, curr) => {
+    if (curr._id === 'ADMIN' || curr._id === 'SUPER_ADMIN') return acc + curr.count;
+    return acc;
+  }, 0) || 0;
+
+  const chartData = (deliveryStats.deliveriesOverTime || []).map(d => ({
     ...d,
     formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
   }));
 
   const statusData = [
-    { name: "Livrées", value: deliveryStats.livree || 0 },
-    { name: "En cours", value: deliveryStats.enCours || 0 },
-    { name: "Annulées", value: deliveryStats.annulee || 0 }
+    { name: "Livrées", value: deliveryStats.completed || 0 },
+    { name: "En cours", value: deliveryStats.inProgress || 0 },
+    { name: "Annulées", value: deliveryStats.cancelled || 0 }
   ];
 
   return (
@@ -99,10 +106,10 @@ export default function AdminDashboard() {
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-primary italic uppercase tracking-tighter">
+          <h1 className="text-2xl md:text-3xl font-black text-primary italic uppercase tracking-tighter">
             Dashboard <span className="text-secondary">{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
           </h1>
-          <p className="text-muted text-[10px] font-black uppercase tracking-[0.2em]">
+          <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">
             {user?.role === 'SUPER_ADMIN' ? 'Pilotage Stratégique EMENO' : 'Gestion des flux opérationnels'}
           </p>
         </div>
@@ -115,7 +122,7 @@ export default function AdminDashboard() {
               className={`px-6 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all ${
                 period === p 
                   ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                  : "text-muted hover:text-primary"
+                  : "text-primary hover:text-primary"
               }`}
             >
               {p === "TODAY" ? "AUJOURD'HUI" : p === "WEEK" ? "SEMAINE" : "MOIS"}
@@ -125,14 +132,13 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPI GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard title="En attente" value={deliveryStats.enAttente || 0} icon={PackageCheck} color="bg-amber-50 text-amber-500" />
-        <StatCard title="Livreurs" value={userStats.driversActive || 0} icon={Truck} color="bg-indigo-50 text-indigo-500" />
-        <StatCard title="Revenus" value={`${(stats?.revenue || 0).toLocaleString()} F`} icon={CreditCard} color="bg-primary text-white" />
-        <StatCard title="Succès" value={`${successRate}%`} icon={CheckCircle} color="bg-emerald-50 text-emerald-500" />
-        {user?.role === 'SUPER_ADMIN' && (
-          <StatCard title="Staff Admin" value={userStats.adminsCount || 0} icon={Shield} color="bg-secondary/5 text-secondary" />
-        )}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <StatCard title="En attente" value={deliveryStats.pending || 0} icon={PackageCheck} color="bg-amber-50 text-amber-500" />
+        <StatCard title="En cours" value={deliveryStats.inProgress || 0} icon={Activity} color="bg-blue-50 text-blue-500" />
+        <StatCard title="Livreurs Actifs" value={userStats.activeDrivers || 0} icon={Truck} color="bg-indigo-50 text-indigo-500" />
+        <StatCard title="Clients Actifs" value={userStats.activeClients || 0} icon={Users} color="bg-emerald-50 text-emerald-500" />
+        <StatCard title="Revenus" value={`${revenue.toLocaleString()} F`} icon={CreditCard} color="bg-primary text-white" />
+        <StatCard title="Succès" value={successRate} icon={CheckCircle} color="bg-emerald-50 text-emerald-500" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -145,7 +151,7 @@ export default function AdminDashboard() {
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" />
                 <XAxis 
                   dataKey="formattedDate" 
                   axisLine={false} 
@@ -168,7 +174,7 @@ export default function AdminDashboard() {
                   dataKey="total" 
                   stroke={COLORS.secondary} 
                   strokeWidth={4} 
-                  dot={{ r: 4, fill: COLORS.secondary, strokeWidth: 2, stroke: '#fff' }}
+                  dot={{ r: 4, fill: COLORS.secondary, strokeWidth: 2, stroke: '#c9181800' }}
                   activeDot={{ r: 7, strokeWidth: 0 }}
                 />
               </LineChart>
@@ -194,6 +200,64 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+      </div>
+
+      {/* CLASSEMENTS TOP 5 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* TOP LIVREURS */}
+        <div className="bg-white p-8 rounded-[3xl] border border-slate-50 shadow-soft">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
+              <Award size={16} className="text-secondary" /> Top 5 Livreurs
+            </h3>
+            <span className="text-[10px] text-muted font-black uppercase tracking-widest">Succès</span>
+          </div>
+          <div className="space-y-4">
+            {(userStats.topDrivers || []).map((driver, index) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                <div className="flex items-center gap-4">
+                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${index === 0 ? 'bg-secondary text-primary' : 'bg-primary text-white'}`}>
+                    {index + 1}
+                  </span>
+                  <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{driver.name}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black text-primary">{driver.deliveries}</span>
+                  <p className="text-[10px] text-muted font-bold uppercase">Courses</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* TOP CLIENTS */}
+        <div className="bg-white p-8 rounded-[3xl] border border-slate-50 shadow-soft">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
+              <Star size={16} className="text-secondary" /> Top 5 Clients
+            </h3>
+            <span className="text-[10px] text-muted font-black uppercase tracking-widest">Fidélité</span>
+          </div>
+          <div className="space-y-4">
+            {(userStats.topClients || []).map((client, index) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
+                    <ShoppingBag size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{client.name}</p>
+                    <p className="text-[10px] text-muted font-bold uppercase">{client.orders} commandes</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-black text-secondary">{client.totalSpent?.toLocaleString()} F</p>
+                  <p className="text-[10px] text-muted font-bold uppercase italic">Volume</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -241,9 +305,9 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             </div>
             <div className="w-full md:w-1/2 space-y-6">
-              <ProgressRow label="Livrées" value={deliveryStats.livree} total={total} colorClass="bg-emerald-400" />
-              <ProgressRow label="En cours" value={deliveryStats.enCours} total={total} colorClass="bg-secondary" />
-              <ProgressRow label="Échecs" value={deliveryStats.annulee} total={total} colorClass="bg-slate-200" />
+              <ProgressRow label="Livrées" value={deliveryStats.completed} total={total} colorClass="bg-emerald-400" />
+              <ProgressRow label="En cours" value={deliveryStats.inProgress} total={total} colorClass="bg-secondary" />
+              <ProgressRow label="Annulées" value={deliveryStats.cancelled} total={total} colorClass="bg-slate-200" />
             </div>
           </div>
         </div>
@@ -253,10 +317,6 @@ export default function AdminDashboard() {
   );
 }
 
-/**
- * COMPOSANT INTERNE : QUICK ACTION
- * Piloté dynamiquement par la couleur passée en prop (provenant du thème)
- */
 function QuickAction({ label, icon: Icon, onClick, color }) {
   return (
     <button 

@@ -1,6 +1,7 @@
 // FILE: src/pages/orders/NewOrderForm.jsx
+
 import { useState } from "react";
-import { X, ArrowRight, ArrowLeft, MapPin, CreditCard, Loader2 } from "lucide-react";
+import { X, ArrowRight, ArrowLeft, MapPin, CreditCard, Loader2, Package, AlertTriangle } from "lucide-react";
 import PhoneInput from "../../components/forms/PhoneInput";
 import CommuneSelect from "../../components/forms/CommuneSelect";
 
@@ -13,9 +14,15 @@ export default function NewOrderForm({ onAdd, onClose }) {
     dropoffContact: { name: "", phone: "" },
     pickupLocation: "",
     dropoffLocation: "",
-    pickupCommune: "",
-    dropoffCommune: "",
-    packageDetails: { category: "FOOD", description: "", isFragile: false, weight: "" },
+    pickupCommune: "", 
+    dropoffCommune: "", 
+    packageDetails: { 
+        category: "FOOD", 
+        description: "", 
+        isFragile: false, 
+        weight: "" 
+    },
+    isForSomeoneElse: true, // Forcé à true car nous sommes en interface Admin
     payerType: "SENDER",
     notes: ""
   });
@@ -28,15 +35,27 @@ export default function NewOrderForm({ onAdd, onClose }) {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const canGoStep2 = formData.pickupContact.name && formData.pickupContact.phone && formData.dropoffContact.name && formData.dropoffContact.phone;
+  const handleCommuneChange = (field, communeId) => {
+    setFormData(prev => ({ ...prev, [field]: communeId }));
+  };
+
+  const canGoStep2 = formData.pickupContact.name && formData.pickupContact.phone && 
+                     formData.dropoffContact.name && formData.dropoffContact.phone;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await onAdd(formData);
+      const dataToSubmit = {
+        ...formData,
+        packageDetails: {
+          ...formData.packageDetails,
+          weight: formData.packageDetails.weight ? Number(formData.packageDetails.weight) : 0
+        }
+      };
+      await onAdd(dataToSubmit);
     } catch (err) {
-        // L'erreur est gérée dans le parent via notifyError
+      console.error("Erreur lors de la soumission:", err);
     } finally {
       setLoading(false);
     }
@@ -48,7 +67,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
   return (
     <div className="bg-white w-full max-w-3xl md:rounded-[3rem] shadow-2xl border border-slate-100 flex flex-col max-h-screen md:max-h-[90vh] overflow-hidden font-sans">
       
-      {/* HEADER COMPACT */}
+      {/* HEADER */}
       <div className="p-5 md:p-10 border-b bg-slate-50/50 flex justify-between items-center shrink-0">
         <div>
           <h2 className="text-xl md:text-3xl font-black text-primary italic tracking-tight leading-none uppercase">Nouvelle commande</h2>
@@ -66,7 +85,8 @@ export default function NewOrderForm({ onAdd, onClose }) {
       <form id="admin-new-order-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 md:p-10 scrollbar-hide">
         {step === 1 && (
           <div className="space-y-6 md:space-y-8 animate-in slide-in-from-right-5 duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 pt-2">
+              {/* Expéditeur */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-1 text-primary">
                   <div className="p-1.5 bg-primary/5 rounded-lg"><MapPin size={14}/></div>
@@ -79,6 +99,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
                 <PhoneInput label="TÉLÉPHONE" value={formData.pickupContact.phone} onChange={(val) => handleNestedChange("pickupContact", "phone", val)} />
               </div>
 
+              {/* Destinataire */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-1 text-secondary">
                   <div className="p-1.5 bg-secondary/5 rounded-lg"><MapPin size={14}/></div>
@@ -92,7 +113,8 @@ export default function NewOrderForm({ onAdd, onClose }) {
               </div>
             </div>
 
-            <div className="bg-slate-50 p-4 md:p-6 rounded-2xl md:rounded-[2rem] flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Mode de paiement */}
+            <div className="bg-slate-50 p-4 md:p-6 rounded-2xl md:rounded-[2rem] flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-100">
               <div className="flex items-center gap-3 self-start sm:self-center">
                 <div className="p-2 md:p-3 bg-white rounded-xl shadow-sm"><CreditCard className="text-primary" size={18}/></div>
                 <div>
@@ -112,36 +134,81 @@ export default function NewOrderForm({ onAdd, onClose }) {
           <div className="space-y-6 md:space-y-8 animate-in slide-in-from-right-5 duration-300">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div className="space-y-4">
-                <label className={labelClass}>Lieu de ramassage</label>
-                <input placeholder="Quartier, repères..." name="pickupLocation" value={formData.pickupLocation} onChange={handleChange} className={inputClass} required />
-                <CommuneSelect label="COMMUNE" value={formData.pickupCommune} onChange={(val) => handleChange({ target: { name: "pickupCommune", value: val } })} />
+                <label className={labelClass}>Lieu de ramassage (Quartier)</label>
+                <input placeholder="Ex: Ancienne Sobraga..." name="pickupLocation" value={formData.pickupLocation} onChange={handleChange} className={inputClass} required />
+                <CommuneSelect label="Zone de ramassage" value={formData.pickupCommune} onChange={(id) => handleCommuneChange("pickupCommune", id)} />
               </div>
+
               <div className="space-y-4">
-                <label className={labelClass}>Lieu de livraison</label>
-                <input placeholder="Quartier, repères..." name="dropoffLocation" value={formData.dropoffLocation} onChange={handleChange} className={inputClass} required />
-                <CommuneSelect label="COMMUNE" value={formData.dropoffCommune} onChange={(val) => handleChange({ target: { name: "dropoffCommune", value: val } })} />
+                <label className={labelClass}>Lieu de livraison (Quartier)</label>
+                <input placeholder="Ex: Nzeng-Ayong..." name="dropoffLocation" value={formData.dropoffLocation} onChange={handleChange} className={inputClass} required />
+                <CommuneSelect label="Zone de livraison" value={formData.dropoffCommune} onChange={(id) => handleCommuneChange("dropoffCommune", id)} />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-              <div className="space-y-2">
-                <label className={labelClass}>Type de Colis</label>
-                <select onChange={(e) => handleNestedChange("packageDetails", "category", e.target.value)} value={formData.packageDetails.category} className={inputClass + " uppercase text-[10px] tracking-widest"}>
-                  <option value="FOOD">ALIMENTAIRE</option>
-                  <option value="DOCUMENT">DOCUMENT / PLI</option>
-                  <option value="ELECTRONICS">ÉLECTRONIQUE</option>
-                  <option value="OTHER">AUTRE</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className={labelClass}>Instructions particulières</label>
-                <textarea placeholder="Ex: Fragile..." name="notes" value={formData.notes} onChange={handleChange} className={inputClass + " h-[80px] md:h-[100px] py-3 resize-none"} />
-              </div>
+            <div className="p-6 bg-slate-50/50 rounded-[2rem] border border-slate-100 space-y-6">
+                <div className="flex items-center gap-2 text-primary border-b border-slate-100 pb-4">
+                    <Package size={16}/>
+                    <h3 className="text-[10px] font-black uppercase tracking-tighter">Propriétés du colis</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label className={labelClass}>Catégorie</label>
+                        <select 
+                            onChange={(e) => handleNestedChange("packageDetails", "category", e.target.value)} 
+                            value={formData.packageDetails.category} 
+                            className={inputClass + " bg-white uppercase text-[10px]"}
+                        >
+                            <option value="FOOD">ALIMENTAIRE</option>
+                            <option value="MEDICINE">PHARMACIE</option>
+                            <option value="JEWELRY">BIJOUX / VALEUR</option>
+                            <option value="DOCUMENT">DOCUMENT / PLI</option>
+                            <option value="ELECTRONICS">ÉLECTRONIQUE</option>
+                            <option value="OTHER">AUTRE</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className={labelClass}>Poids (KG)</label>
+                        <input 
+                            type="number" 
+                            step="0.1"
+                            placeholder="0.0" 
+                            className={inputClass + " bg-white"}
+                            onChange={(e) => handleNestedChange("packageDetails", "weight", e.target.value)} 
+                            value={formData.packageDetails.weight} 
+                        />
+                    </div>
+
+                    <div className="flex flex-col justify-end">
+                        <button 
+                            type="button"
+                            onClick={() => handleNestedChange("packageDetails", "isFragile", !formData.packageDetails.isFragile)}
+                            className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border-2 transition-all font-black text-[9px] uppercase tracking-widest ${formData.packageDetails.isFragile ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-slate-100 text-slate-400'}`}
+                        >
+                            <AlertTriangle size={14}/>
+                            Fragile
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label className={labelClass}>Notes & Description</label>
+                    <textarea 
+                        placeholder="Contenu du colis, indications chauffeur..." 
+                        name="notes" 
+                        value={formData.notes} 
+                        onChange={handleChange} 
+                        className={inputClass + " bg-white h-[100px] py-3 resize-none"} 
+                    />
+                </div>
             </div>
           </div>
         )}
       </form>
 
+      {/* FOOTER ACTIONS */}
       <div className="p-5 md:p-8 bg-white border-t shrink-0">
         {step === 1 ? (
             <button type="button" disabled={!canGoStep2} onClick={() => setStep(2)} className="w-full bg-primary text-white py-4 md:py-5 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] hover:bg-secondary disabled:opacity-20 shadow-xl shadow-primary/20 transition-all">
@@ -152,7 +219,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
               <button type="button" onClick={() => setStep(1)} className="order-2 md:order-1 flex items-center gap-2 text-slate-400 font-black uppercase tracking-widest text-[9px] hover:text-primary transition-colors">
                 <ArrowLeft size={14} /> Retour
               </button>
-              <button form="admin-new-order-form" type="submit" disabled={loading} className="order-1 md:order-2 w-full md:w-auto bg-secondary text-white px-12 py-4 md:py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-secondary/30 hover:scale-[1.02] active:scale-95 transition-all flex justify-center">
+              <button form="admin-new-order-form" type="submit" disabled={loading} className="order-1 md:order-2 w-full md:w-auto bg-secondary text-white px-12 py-4 md:py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-secondary/30 hover:scale-[1.02] active:scale-95 transition-all flex justify-center items-center gap-2">
                 {loading ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la commande"}
               </button>
             </div>

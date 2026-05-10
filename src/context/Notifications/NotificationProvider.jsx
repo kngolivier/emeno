@@ -13,45 +13,58 @@ export const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user) {
-      // console.log("🔌 [Socket] Pas d'utilisateur, connexion annulée.");
       return;
     }
 
-    // console.log("🔌 [Socket] Tentative de connexion pour:", user.nom, `(${user.role})`);
     socket.connect();
 
     socket.on("connect", () => {
-      // console.log("✅ [Socket] Connecté avec ID:", socket.id);
-      if (user.role === "ADMIN") {
+      // Les deux rôles administratifs rejoignent la room de gestion
+      if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
         socket.emit("join_admin");
-        console.log("👑 [Socket] Room ADMIN rejointe");
       }
+      
       socket.emit("join_user", user._id);
-      // console.log("👤 [Socket] Room USER rejointe:", user._id);
     });
 
     const handleNewNotification = (notif) => {
-      // console.log("📩 [Socket] Signal reçu sur 'notification:new':", notif);
-
+      // 1. DÉDUPLICATION
       const notifId = notif._id || notif.id || `notif-${Date.now()}`;
       
       if (processedIds.current.has(notifId)) {
-        // console.log("🚫 [Socket] Notification ignorée (doublon détecté):", notifId);
+        return;
+      }
+
+      // 2. FILTRE DE SÉCURITÉ POUR LES RÔLES ADMIN & SUPER_ADMIN
+      // On définit si l'utilisateur actuel possède un privilège administratif
+      const hasAdminPrivileges = ["ADMIN", "SUPER_ADMIN"].includes(user.role);
+      
+      // On vérifie si la notification est destinée uniquement aux clients
+      const isTargetClientOnly = notif.targetRoles?.includes("CLIENT") && 
+                                 !notif.targetRoles?.includes("ADMIN") && 
+                                 !notif.targetRoles?.includes("SUPER_ADMIN");
+      
+      // Si un admin/super_admin reçoit une notif "Client" (ex: suivi de commande créée pour un tiers), on bloque.
+      if (hasAdminPrivileges && isTargetClientOnly) {
         return;
       }
       
       processedIds.current.add(notifId);
-      // console.log("✨ [Socket] Traitement nouvelle notification:", notifId);
 
+      // 3. AFFICHAGE ET MISE À JOUR DE L'ÉTAT
       toast(notif.message || `Commande mise à jour`, {
         icon: '🔔',
         duration: 4000,
-        style: { borderRadius: '15px', background: '#1E293B', color: '#fff', fontWeight: 'bold' },
+        style: { 
+          borderRadius: '15px', 
+          background: '#1E293B', 
+          color: '#fff', 
+          fontWeight: 'bold' 
+        },
       });
 
       setNotifications((prev) => {
         const updated = [{ ...notif, _id: notifId, createdAt: new Date().toISOString() }, ...prev];
-        // console.log("📊 [State] Total notifications en mémoire:", updated.length);
         return updated;
       });
       setUnreadCount((prev) => prev + 1);
@@ -60,19 +73,19 @@ export const NotificationProvider = ({ children }) => {
     socket.on("notification:new", handleNewNotification);
 
     socket.on("delivery:unassigned", (data) => {
-      // console.log("⚠️ [Socket] Signal 'delivery:unassigned' reçu:", data);
-      if (user.role === "ADMIN") {
+      // Alertes de gestion pour les administrateurs et super-administrateurs
+      if (["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
         handleNewNotification({
           ...data,
           _id: `unassigned-${data.deliveryId || data.orderNumber}`,
-          title: "ALERTE ADMIN",
-          message: `Nouvelle commande disponible: #${data.orderNumber}`
+          title: "ALERTE GESTION",
+          message: `Nouvelle commande disponible: #${data.orderNumber}`,
+          targetRoles: ["ADMIN", "SUPER_ADMIN"] // On force les rôles pour passer le filtre
         });
       }
     });
 
     return () => {
-      // console.log("🔌 [Socket] Nettoyage des écouteurs et déconnexion.");
       socket.off("notification:new");
       socket.off("delivery:unassigned");
       socket.off("connect");
@@ -81,7 +94,6 @@ export const NotificationProvider = ({ children }) => {
   }, [user]);
 
   const markAllAsRead = () => {
-    // console.log("🧹 [State] Marquage de toutes les notifications comme lues.");
     setUnreadCount(0);
   };
 

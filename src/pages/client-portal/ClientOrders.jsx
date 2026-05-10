@@ -40,7 +40,7 @@ export default function ClientOrders() {
       {/* HEADER & SEARCH */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-black text-primary font-display italic tracking-tighter">
+          <h1 className="text-3xl lg:text-4xl font-black text-primary dark:text-white/60 font-display italic tracking-tighter">
             Mes commandes
           </h1>
           <p className="text-slate-400 text-[10px] font-bold mt-1 uppercase tracking-[0.2em]">

@@ -60,7 +60,7 @@ export default function ClientProfile() {
           </div>
           
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-3xl font-black text-primary tracking-tight truncate dark:text-secondary">
+            <h1 className="text-xl sm:text-3xl font-black text-primary tracking-tight dark:text-secondary">
               {user.nom} {user.prenom}
             </h1>
             <div className="flex items-center justify-center sm:justify-start gap-2 text-slate-400 font-bold italic text-xs sm:text-sm">

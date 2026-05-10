@@ -107,7 +107,7 @@ export default function Header({ toggleSidebar }) {
                     return (
                       <Link 
                         key={idx} 
-                        to={`/client/orders/${deliveryId}`}
+                        to={user.role == "CLIENT" ? `/client/orders/${deliveryId}` : `/admin/deliveries/${deliveryId}`}
                         onClick={() => setOpenNotif(false)}
                         className="flex gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-[1.5rem] transition-all group"
                       >

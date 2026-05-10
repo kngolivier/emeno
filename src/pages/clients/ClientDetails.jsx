@@ -2,32 +2,67 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Phone, Mail, Activity, ShieldOff, Trash2, ShoppingBag, CreditCard, Clock, ExternalLink, ShieldCheck } from "lucide-react";
+import { 
+  ChevronLeft, Phone, Mail, Activity, ShieldOff, 
+  Trash2, ShoppingBag, CreditCard, Clock, 
+  ExternalLink, ShieldCheck 
+} from "lucide-react";
+
+// API Services
 import { fetchClientById, deleteUser, updateUserStatus } from "../../api/users.api";
+import { fetchClientStats } from "../../api/stats.api";
+
+// Utils
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
 
 export default function ClientDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // États pour les données
   const [client, setClient] = useState(null);
+  const [stats, setStats] = useState({ 
+    totalSpent: 0, 
+    totalOrders: 0, 
+    completedOrders: 0 
+  });
   const [loading, setLoading] = useState(true);
+
+  // États pour les actions
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    const loadClient = async () => {
-      try {
-        const res = await fetchClientById(id);
-        setClient(res?.data?.data || res?.data || res);
-      } catch (err) {
-        notifyError("Impossible de charger le client");
-      } finally { setLoading(false); }
-    };
-    loadClient();
+  /**
+   * Chargement combiné du profil et des statistiques réelles
+   */
+  const loadData = async () => {
+    try {
+      const [clientRes, statsRes] = await Promise.all([
+        fetchClientById(id),
+        fetchClientStats(id, "MONTH") // Période mensuelle par défaut
+      ]);
+      
+      setClient(clientRes?.data?.data || clientRes?.data || clientRes);
+      setStats(statsRes?.data?.data || statsRes?.data || statsRes);
+    } catch (err) {
+      notifyError("Impossible de charger les données du client");
+    } finally { 
+      setLoading(false); 
+    }
+  };
+
+  useEffect(() => { 
+    loadData(); 
   }, [id]);
 
-  // Formatage de la date EMENO Style
+  /**
+   * Calcul du taux de complétion (Performance du client)
+   */
+  const performanceRate = stats.totalOrders > 0 
+    ? Math.round((stats.completedOrders / stats.totalOrders) * 100) + "%" 
+    : "0%";
+
   const formatJoinDate = (dateString) => {
     if (!dateString) return "Date inconnue";
     const date = new Date(dateString);
@@ -40,33 +75,42 @@ export default function ClientDetails() {
       await updateUserStatus(client._id, newStatus);
       setClient(prev => ({ ...prev, status: newStatus }));
       notifySuccess(newStatus === "ACTIVE" ? "Client débloqué" : "Client bloqué");
-    } catch (err) { notifyError("Erreur de statut"); }
+    } catch (err) { 
+      notifyError("Erreur lors du changement de statut"); 
+    }
   };
 
   const handleDelete = async () => {
     setDeleting(true);
     try {
       await deleteUser(client._id);
-      notifySuccess("Client supprimé");
+      notifySuccess("Client supprimé avec succès");
       navigate("/admin/clients");
-    } catch (err) { notifyError("Erreur de suppression"); }
-    finally { setDeleting(false); }
+    } catch (err) { 
+      notifyError("Erreur de suppression"); 
+    } finally { 
+      setDeleting(false); 
+    }
   };
 
   if (loading) return <PageLoader />;
-  if (!client) return <div className="p-20 text-center font-display italic text-primary uppercase font-black">Client introuvable</div>;
+  if (!client) return (
+    <div className="p-20 text-center font-display italic text-primary uppercase font-black">
+      Client introuvable
+    </div>
+  );
 
   return (
     <div className="p-4 md:p-0 space-y-6 md:space-y-10 font-sans max-w-7xl mx-auto animate-in fade-in duration-500">
       
-      {/* HEADER : Anti-coupure et Responsive */}
+      {/* HEADER SECTION */}
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4 md:gap-6">
           <button 
             onClick={() => navigate(-1)} 
             className="p-3 md:p-4 bg-white rounded-xl md:rounded-2xl border border-slate-100 hover:shadow-lg transition-all text-primary active:scale-90"
           >
-            <ChevronLeft size={20} md:size={24} strokeWidth={3} />
+            <ChevronLeft size={20} strokeWidth={3} />
           </button>
           <div className="min-w-0 py-1">
             <h1 className="text-2xl md:text-5xl font-black text-primary font-display italic tracking-tighter leading-[1.1] pr-2 uppercase">
@@ -77,12 +121,13 @@ export default function ClientDetails() {
                 ${client.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                 ● {client.status}
                 </span>
-                <span className="text-[8px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest italic truncate">ID: {client._id}</span>
+                <span className="text-[8px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest italic truncate">
+                  ID: {client._id.slice(-8)}
+                </span>
             </div>
           </div>
         </div>
 
-        {/* ACTIONS */}
         <div className="flex gap-3 w-full md:w-auto">
           <button 
             onClick={handleBlockToggle} 
@@ -101,7 +146,8 @@ export default function ClientDetails() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        {/* CONTACT INFO */}
+        
+        {/* CONTACT CARD */}
         <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft space-y-6">
           <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Profil Contact</h3>
           <div className="space-y-3">
@@ -123,16 +169,16 @@ export default function ClientDetails() {
           </div>
         </div>
 
-        {/* STATS : Grid 1 col mobile / 3 col desktop */}
+        {/* REAL-TIME STATISTICS */}
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           {[
-            { label: "Commandes", val: "0", icon: ShoppingBag, col: "bg-primary" },
-            { label: "Dépenses", val: "0 FCFA", icon: CreditCard, col: "bg-secondary" },
-            { label: "Performance", val: "N/A", icon: Activity, col: "bg-emerald-500" },
+            { label: "Commandes", val: stats.totalOrders, icon: ShoppingBag, col: "bg-primary" },
+            { label: "Dépenses", val: `${stats.totalSpent.toLocaleString('fr-FR')} FCFA`, icon: CreditCard, col: "bg-secondary" },
+            { label: "Performance", val: performanceRate, icon: Activity, col: "bg-emerald-500" },
           ].map((item, i) => (
             <div key={i} className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft flex flex-row sm:flex-col items-center justify-between sm:justify-center text-left sm:text-center gap-4">
               <div className={`w-12 h-12 md:w-16 md:h-16 ${item.col} rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0`}>
-                <item.icon size={24} md:size={28} />
+                <item.icon size={24} />
               </div>
               <div>
                 <p className="text-[8px] md:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">{item.label}</p>
@@ -141,7 +187,7 @@ export default function ClientDetails() {
             </div>
           ))}
 
-          {/* DATE D'INSCRIPTION */}
+          {/* JOIN DATE CARD */}
           <div className="sm:col-span-3 bg-primary text-white p-6 rounded-[2rem] flex items-center justify-between overflow-hidden relative group">
               <div className="relative z-10">
                 <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1">Client fidèle depuis</p>
@@ -154,21 +200,29 @@ export default function ClientDetails() {
         </div>
       </div>
 
-      {/* HISTORIQUE */}
+      {/* HISTORIQUE SECTION */}
       <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 shadow-soft">
         <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display font-black text-xl md:text-2xl italic text-primary uppercase">Historique des commandes</h2>
+            <h2 className="font-display font-black text-xl md:text-2xl italic text-primary uppercase">Historique des activités</h2>
             <div className="hidden md:block h-px flex-1 bg-slate-50 mx-6"></div>
         </div>
-        <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
-            <ShoppingBag size={32} className="text-slate-200 mb-2" />
-            <p className="text-slate-300 text-[10px] font-black uppercase tracking-[0.2em] italic text-center px-4">
-                Aucune commande enregistrée pour le moment
+        {stats.totalOrders === 0 ? (
+          <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
+              <ShoppingBag size={32} className="text-slate-200 mb-2" />
+              <p className="text-slate-300 text-[10px] font-black uppercase tracking-[0.2em] italic text-center px-4">
+                  Aucune commande enregistrée pour le moment
+              </p>
+          </div>
+        ) : (
+          <div className="p-10 text-center">
+            <p className="text-slate-400 italic text-sm">
+              Le détail des {stats.totalOrders} commande(s) est disponible dans le menu Livraisons.
             </p>
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* DELETE MODAL : Bottom Sheet sur mobile */}
+      {/* DELETE MODAL */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-primary/40 backdrop-blur-md p-0 md:p-4">
           <div className="bg-white p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-sm text-center space-y-6 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95">

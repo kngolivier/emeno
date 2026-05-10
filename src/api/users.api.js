@@ -106,3 +106,11 @@ export const updateMyProfile = (payload) => {
 export const deleteUser = (id) => {
   return API.delete(`${ENDPOINTS.USERS}/${id}`);
 };
+
+/**
+ * ACTIVER UN COMPTE CLIENT (Validation OTP)
+ * @param {Object} payload - { telephone: "+241...", code: "1234" }
+ */
+export const activateUserAccount = (payload) => {
+  return API.post(`${ENDPOINTS.USERS}/activate`, payload);
+};

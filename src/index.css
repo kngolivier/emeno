@@ -102,6 +102,16 @@
   -webkit-font-smoothing: antialiased;
 }
 
+.bg-main-app {
+  /* Utilise la couleur sombre de la palette actuelle */
+  background-color: var(--color-primary-dark);
+  /* Ajoute un subtil dégradé radial pour éviter l'effet "aplat de couleur" */
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(var(--color-secondary-glow), 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(var(--color-secondary-glow), 0.03) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
 body {
   margin: 0;
   background-color: var(--bg);
