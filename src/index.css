@@ -4,124 +4,74 @@
 @import "leaflet/dist/leaflet.css";
 
 /* ==========================================================================
-   SYSTÈME DE PALETTES DYNAMIQUES
+   SYSTÈME DE PALETTES DYNAMIQUES EMENO
    ========================================================================== */
 
 :root {
-  /* --- PALETTE 1 : TECH EMERALD (L'originale optimisée) --- */
-  /* Idéal pour : Une sensation de rapidité, de modernité et de fluidité. */
-  /* --color-primary: #0F172A;
+  /* --- DARK THEME (DEFAULT) --- */
+  --color-primary: #0F172A;
   --color-primary-light: #1E293B;
-  --color-primary-dark: #020617;
+  --color-primary-dark: #060B18;
   --color-secondary: #10B981;
   --color-secondary-light: #34D399;
   --color-secondary-glow: rgba(16, 185, 129, 0.2);
   --color-accent: #FBBF24;
-  --color-surface: rgba(255, 255, 255, 0.03);
-  --color-border-glass: rgba(255, 255, 255, 0.1); */
+  
+  /* Variables de surfaces Dark */
+  --bg-app: var(--color-primary-dark);
+  --bg-card: rgba(30, 41, 59, 0.5);
+  --text-main: #94A3B8;
+  --text-title: #F8FAFC;
+  --border-color: rgba(255, 255, 255, 0.05);
 
-  /* 
-   --------------------------------------------------------------------------
-   PALETTE 2 : LUXE GABONAIS (VERT EMPIRE & DORÉ) 
-   Idéal pour : Le transport de colis de valeur ou une image institutionnelle.
-   --------------------------------------------------------------------------
-   */
-  /* --color-primary: #002E1B;
-  --color-primary-light: #064E3B;
-  --color-primary-dark: #001A0F;
-  --color-secondary: #B08D3E;
-  --color-secondary-light: #D4AF37;
-  --color-secondary-glow: rgba(176, 141, 62, 0.2);
-  --color-accent: #FFFFFF;
-  --color-surface: rgba(176, 141, 62, 0.05);
-  --color-border-glass: rgba(176, 141, 62, 0.2); */
-
-  /* 
-   --------------------------------------------------------------------------
-   PALETTE 3 : CYBER PUNK (NOIR CARBONE & CYAN)
-   Idéal pour : Une application ultra-tech, orientée API et développeurs.
-   --------------------------------------------------------------------------
-  */
-  /* --color-primary: #0A0A0A;
-  --color-primary-light: #171717;
-  --color-primary-dark: #000000;
-  --color-secondary: #06B6D4;
-  --color-secondary-light: #22D3EE;
-  --color-secondary-glow: rgba(6, 182, 212, 0.2);
-  --color-accent: #EC4899;
-  --color-surface: rgba(6, 182, 212, 0.05);
-  --color-border-glass: rgba(255, 255, 255, 0.08); */
-
-
-/* 
-   --------------------------------------------------------------------------
-   PALETTE 4 : ROYAL VIOLET (VIOLET PROFOND & CORAIL)
-   Idéal pour : Se démarquer visuellement de tous les concurrents.
-   --------------------------------------------------------------------------
-   */
-  --color-primary: #1E1B4B;
-  --color-primary-light: #312E81;
-  --color-primary-dark: #0F172A;
-  --color-secondary: #F43F5E;
-  --color-secondary-light: #FB7185;
-  --color-secondary-glow: rgba(244, 63, 94, 0.2);
-  --color-accent: #818CF8;
-  --color-surface: rgba(244, 63, 94, 0.05);
-  --color-border-glass: rgba(255, 255, 255, 0.1);
-
-  /* 
-   --------------------------------------------------------------------------
-   PALETTE 5 : MIDNIGHT OCEAN (BLEU PROFOND & ARGENT)
-   Idéal pour : Une image de sérénité, de fiabilité et de calme.
-   --------------------------------------------------------------------------
-   */
-  /* --color-primary: #172554;
-  --color-primary-light: #1E3A8A;
-  --color-primary-dark: #080C1E;
-  --color-secondary: #94A3B8;
-  --color-secondary-light: #CBD5E1;
-  --color-secondary-glow: rgba(148, 163, 184, 0.2);
-  --color-accent: #38BDF8;
-  --color-surface: rgba(255, 255, 255, 0.02);
-  --color-border-glass: rgba(255, 255, 255, 0.05); */
-
-
-
-
-  /* --- VARIABLES DE COMPATIBILITÉ --- */
-  --text: #94A3B8;
-  --text-h: #F8FAFC;
-  --bg: var(--color-primary-dark);
-  --border: var(--color-border-glass);
-  --accent: var(--color-secondary);
   --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
   --heading: 'Inter', system-ui, sans-serif;
 
   color-scheme: dark;
-  background: var(--bg);
+}
+
+:root.light {
+  /* --- LIGHT THEME (SOFT SLATE) --- */
+  --color-primary: #1E293B; 
+  --color-primary-light: #334155;
+  --color-primary-dark: #F1F5F9; 
+  
+  --color-secondary: #059669; 
+  --color-secondary-light: #10B981;
+  --color-secondary-glow: rgba(5, 150, 105, 0.1);
+  
+  /* Variables de surfaces Light */
+  --bg-app: #F8FAFC; 
+  --bg-card: #FFFFFF;
+  --text-main: #64748B;
+  --text-title: #0F172A;
+  --border-color: #E2E8F0;
+  
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   GLOBAL STYLES
+   ========================================================================== */
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
 }
 
 .bg-main-app {
-  /* Utilise la couleur sombre de la palette actuelle */
-  background-color: var(--color-primary-dark);
-  /* Ajoute un subtil dégradé radial pour éviter l'effet "aplat de couleur" */
+  background-color: var(--bg-app);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(var(--color-secondary-glow), 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(var(--color-secondary-glow), 0.03) 0px, transparent 50%);
-  background-attachment: fixed;
-}
-
-body {
-  margin: 0;
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
+    radial-gradient(at 0% 0%, var(--color-secondary-glow) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(var(--color-secondary-glow), 0.05) 0px, transparent 50%);
 }
 
 h1, h2, h3, h4 {
   font-family: var(--heading);
-  color: var(--text-h);
+  color: var(--text-title);
   font-weight: 900;
   text-transform: uppercase;
   font-style: italic;
@@ -129,10 +79,7 @@ h1, h2, h3, h4 {
 }
 
 /* Scrollbar harmonisée */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb {
   background: var(--color-primary-light);
   border-radius: 10px;
@@ -142,4 +89,9 @@ h1, h2, h3, h4 {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+}
+
+/* Utilitaires de cartes pour éviter la répétition dans le JSX */
+.emeno-card {
+  @apply bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-soft transition-all duration-300;
 }

@@ -1,13 +1,14 @@
 // FILE: src/components/feedback/FeedbackModal.jsx
 
 import { useState, useMemo } from "react";
-import { Star, X, Check, MessageSquareText } from "lucide-react";
+import { Star, X, Check, MessageSquareText, Send, Heart } from "lucide-react";
 import { submitFeedback } from "../../api/feedback.api";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * MODAL DE FEEDBACK EMENO OPTIMISÉ
- * Design Minimaliste | Mobile-First | UX Renforcée
+ * MODAL DE FEEDBACK EMENO - DESIGN "PREMIUM GLASS"
+ * Chic | Interactif | Focus Utilisateur
  */
 export default function FeedbackModal({ deliveryId, isOpen, onClose, role }) {
   const [rating, setRating] = useState(0);
@@ -17,49 +18,41 @@ export default function FeedbackModal({ deliveryId, isOpen, onClose, role }) {
   const [loading, setLoading] = useState(false);
 
   const tagsConfig = useMemo(() => {
-    if (role === "CLIENT") {
-      return [
-        { label: "Très rapide", icon: "⚡️", type: "positive" },
-        { label: "Très poli", icon: "🤝", type: "positive" },
-        { label: "Colis soigné", icon: "📦", type: "positive" },
-        { label: "Trajet optimisé", icon: "📍", type: "positive" },
-        { label: "Retard important", icon: "⏳", type: "negative" },
-        { label: "Manque de politesse", icon: "😒", type: "negative" },
-        { label: "Conduite risquée", icon: "⚠️", type: "negative" },
-        { label: "Colis endommagé", icon: "📦", type: "negative" },
-        { label: "Difficile à joindre", icon: "📞", type: "negative" },
-      ];
-    }
-    return [
-      { label: "Client disponible", icon: "✅", type: "positive" },
-      { label: "Localisation précise", icon: "📍", type: "positive" },
-      { label: "Paiement rapide", icon: "💵", type: "positive" },
-      { label: "Sympathique", icon: "😊", type: "positive" },
-      { label: "Client en retard", icon: "⏳", type: "negative" },
-      { label: "Absent au RDV", icon: "❌", type: "negative" },
-      { label: "Ne répond pas", icon: "📞", type: "negative" },
-      { label: "Adresse imprécise", icon: "📍", type: "negative" },
-      { label: "Comportement difficile", icon: "💬", type: "negative" },
-    ];
+    const isClient = role === "CLIENT";
+    return isClient 
+      ? [
+          { label: "Très rapide", icon: "⚡️" },
+          { label: "Très poli", icon: "🤝" },
+          { label: "Colis soigné", icon: "📦" },
+          { label: "Trajet optimisé", icon: "📍" },
+          { label: "Retard important", icon: "⏳", isNegative: true },
+          { label: "Conduite risquée", icon: "⚠️", isNegative: true },
+        ]
+      : [
+          { label: "Client disponible", icon: "✅" },
+          { label: "Localisation précise", icon: "📍" },
+          { label: "Sympathique", icon: "😊" },
+          { label: "Client en retard", icon: "⏳", isNegative: true },
+          { label: "Adresse imprécise", icon: "📍", isNegative: true },
+        ];
   }, [role]);
 
   const handleTagToggle = (tagLabel) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagLabel)
-        ? prev.filter((t) => t !== tagLabel)
-        : [...prev, tagLabel]
+    setSelectedTags(prev => prev.includes(tagLabel) 
+      ? prev.filter(t => t !== tagLabel) 
+      : [...prev, tagLabel]
     );
   };
 
   const handleSubmit = async () => {
-    if (rating === 0) return toast.error("Veuillez sélectionner une note");
+    if (rating === 0) return toast.error("Quelle note donnez-vous ?");
     setLoading(true);
     try {
       await submitFeedback({ deliveryId, rating, comment, tags: selectedTags });
-      toast.success("Merci pour votre retour !");
+      toast.success("Merci de nous aider à grandir !");
       onClose();
     } catch (err) {
-      toast.error(err.message || "Une erreur est survenue");
+      toast.error("Erreur lors de l'envoi du commentaire");
     } finally {
       setLoading(false);
     }
@@ -68,116 +61,119 @@ export default function FeedbackModal({ deliveryId, isOpen, onClose, role }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center bg-primary/40 backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-primary/60 backdrop-blur-xl p-0 sm:p-4">
       
-      {/* Container du Modal */}
-      <div className="bg-white w-full max-w-lg rounded-t-[3rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl relative animate-in slide-in-from-bottom-10 sm:zoom-in duration-500 max-h-[95vh] overflow-y-auto">
+      <div className="bg-slate-50 dark:bg-primary-dark w-full max-w-md rounded-t-[3.5rem] sm:rounded-[3.5rem] shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.5)] relative flex flex-col max-h-[90vh] overflow-hidden border-t border-white/10">
         
-        {/* Handle de fermeture pour mobile */}
-        <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6 sm:hidden" />
+        {/* Progress bar discrète */}
+        <div className="absolute top-0 left-0 h-1.5 bg-secondary transition-all duration-500" 
+             style={{ width: `${(rating / 5) * 100}%` }} />
 
-        {/* Bouton Fermer (Desktop) */}
-        <button 
-          onClick={onClose} 
-          className="absolute right-6 top-6 sm:right-8 sm:top-8 p-2 text-slate-300 hover:text-primary hover:bg-slate-50 rounded-full transition-all"
-        >
-          <X size={24} strokeWidth={3} />
-        </button>
-
-        {/* Header avec identité visuelle EMENO */}
-        <div className="mb-8 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
-            <div className="h-2 w-10 bg-secondary rounded-full" />
-            <h3 className="text-xl sm:text-2xl font-black text-primary italic uppercase tracking-tighter">
-              Votre avis <span className="text-secondary">compte</span>
+        {/* Header Section */}
+        <div className="p-8 pb-4 flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+                <Heart size={14} className="text-secondary fill-secondary" />
+                <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">Expérience EMENO</span>
+            </div>
+            <h3 className="text-2xl font-black text-primary dark:text-white italic">
+              Alors, <span className="text-secondary">verdict ?</span>
             </h3>
           </div>
-          <p className="text-[10px] sm:text-xs text-slate-400 font-black uppercase tracking-[0.15em] leading-relaxed">
-            Évaluez votre expérience avec {role === "CLIENT" ? "le livreur" : "le client"}
-          </p>
+          <button onClick={onClose} className="p-3 bg-white dark:bg-white/5 rounded-2xl text-slate-400 hover:rotate-90 transition-transform">
+            <X size={20} />
+          </button>
         </div>
 
-        {/* Système de notation (Stars) */}
-        <div className="flex justify-center gap-2 sm:gap-4 mb-8 bg-slate-50/50 py-6 rounded-[2rem] border border-slate-50">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              onMouseEnter={() => setHover(star)}
-              onMouseLeave={() => setHover(0)}
-              onClick={() => setRating(star)}
-              className="group transition-transform active:scale-75"
-            >
-              <Star
-                size={window.innerWidth < 640 ? 36 : 44}
-                fill={(hover || rating) >= star ? "#fcb045" : "transparent"}
-                stroke={(hover || rating) >= star ? "#fcb045" : "#CBD5E1"}
-                strokeWidth={2}
-                className={`transition-all duration-300 ${
-                  (hover || rating) >= star ? "drop-shadow-[0_0_10px_rgba(252,176,69,0.3)]" : ""
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-
-        {/* Grille de Tags Responsive */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3 mb-8">
-          {tagsConfig.map((tag) => {
-            const isSelected = selectedTags.includes(tag.label);
-            return (
-              <button
-                key={tag.label}
-                onClick={() => handleTagToggle(tag.label)}
-                className={`flex items-center gap-2 px-3 py-3.5 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border-2 ${
-                  isSelected
-                    ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-[0.98]"
-                    : "bg-white border-slate-100 text-slate-400 hover:border-secondary/30 hover:text-primary"
-                }`}
-              >
-                <span className={`text-sm transition-transform ${isSelected ? 'scale-110' : ''}`}>
-                    {tag.icon}
-                </span>
-                <span className="flex-1 text-left truncate">{tag.label}</span>
-                {isSelected && <Check size={12} strokeWidth={4} className="text-secondary" />}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Zone de Commentaire */}
-        <div className="relative mb-8 group">
-          <div className="absolute left-5 top-5 text-slate-300 group-focus-within:text-secondary transition-colors">
-            <MessageSquareText size={18} />
-          </div>
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Dites-nous en plus..."
-            className="w-full bg-slate-50 rounded-[2rem] pl-14 pr-6 py-5 text-sm font-bold text-primary italic border-2 border-transparent focus:border-secondary/20 focus:bg-white outline-none transition-all resize-none min-h-[100px]"
-          />
-        </div>
-
-        {/* Bouton de Validation */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading || rating === 0}
-          className="w-full bg-primary py-5 rounded-[2rem] text-white font-black uppercase tracking-[0.25em] text-xs shadow-2xl shadow-primary/30 hover:bg-[#002D15] hover:translate-y-[-2px] active:translate-y-[1px] transition-all disabled:opacity-30 disabled:grayscale disabled:translate-y-0 relative overflow-hidden"
-        >
-          {loading ? (
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <span>Transmission...</span>
+        {/* Content Scrollable */}
+        <div className="px-8 pb-8 space-y-8 overflow-y-auto custom-scrollbar">
+          
+          {/* 1. Rating Card */}
+          <section className="bg-white dark:bg-white/5 p-6 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-white/5 text-center">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Votre note globale</p>
+            <div className="flex justify-center gap-3">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHover(star)}
+                  onMouseLeave={() => setHover(0)}
+                  className="relative active:scale-75 transition-transform"
+                >
+                  <Star
+                    size={38}
+                    fill={(hover || rating) >= star ? "#fcb045" : "transparent"}
+                    stroke={(hover || rating) >= star ? "#fcb045" : "#E2E8F0"}
+                    className={`transition-all duration-300 ${ (hover || rating) >= star ? "drop-shadow-[0_0_8px_rgba(252,176,69,0.5)]" : "" }`}
+                  />
+                </button>
+              ))}
             </div>
-          ) : (
-            <span className="flex items-center justify-center gap-2">
-              Envoyer mon avis
-            </span>
-          )}
-          {/* Effet brillant au survol */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:animate-[shimmer_2s_infinite]" />
-        </button>
+          </section>
 
+          {/* 2. Tags Chips */}
+          <section>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">Qu'est-ce qui a marqué ce trajet ?</p>
+            <div className="flex flex-wrap gap-2">
+              {tagsConfig.map((tag) => {
+                const isSelected = selectedTags.includes(tag.label);
+                return (
+                  <button
+                    key={tag.label}
+                    onClick={() => handleTagToggle(tag.label)}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-full text-[10px] font-bold transition-all border-2 ${
+                      isSelected
+                        ? "bg-secondary border-secondary text-white shadow-lg shadow-secondary/20"
+                        : "bg-white dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-500"
+                    }`}
+                  >
+                    <span>{tag.icon}</span>
+                    {tag.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 3. Comment Area */}
+          <section>
+             <div className="bg-white dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5 p-2 focus-within:border-secondary/30 transition-colors">
+                <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Un détail à ajouter ? (Optionnel)"
+                    className="w-full bg-transparent p-4 text-sm font-medium text-primary dark:text-white outline-none resize-none min-h-[100px] italic"
+                />
+             </div>
+          </section>
+
+          {/* 4. Final Action */}
+          <button
+            onClick={handleSubmit}
+            disabled={loading || rating === 0}
+            className="w-full group relative overflow-hidden bg-primary dark:bg-slate-900 py-6 rounded-[2.5rem] shadow-xl shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-40"
+          >
+            <div className="relative z-10 flex items-center justify-center gap-3 text-white font-black uppercase tracking-[0.2em] text-[11px]">
+              {loading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <>
+                  <span>Confirmer mon avis</span>
+                  <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                </>
+              )}
+            </div>
+            {/* Gradient animation de fond */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary/20 to-primary translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+          </button>
+
+        </div>
       </div>
     </div>
   );
 }
+
+// Petit composant loader simple si nécessaire
+const Loader2 = ({ className }) => (
+  <div className={`w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin ${className}`} />
+);

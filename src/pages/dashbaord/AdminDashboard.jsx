@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// Utilitaire pour extraire la config Tailwind en temps réel
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from '../../../tailwind.config.js';
 
@@ -24,7 +22,6 @@ import {
   PieChart, Pie, Cell, CartesianGrid
 } from "recharts";
 
-// Résolution de la configuration pour accès JS
 const fullConfig = resolveConfig(tailwindConfig);
 const theme = fullConfig.theme.colors;
 
@@ -35,15 +32,17 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // On adapte les couleurs Recharts en fonction du mode (via window.matchMedia ou classe)
+  const isDark = document.documentElement.classList.contains('dark');
+
   const COLORS = {
-    primary: theme.primary?.DEFAULT || theme.primary || "#000",
-    secondary: theme.secondary?.DEFAULT || theme.secondary || "#ccc",
-    danger: theme.danger || "#ef4444",
-    success: theme.success || "#10b981",
-    muted: theme.muted || "#64748b"
+    primary: theme.primary?.DEFAULT || "#0F172A",
+    secondary: theme.secondary?.DEFAULT || "#10B981",
+    muted: isDark ? "#475569" : "#94A3B8",
+    grid: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"
   };
   
-  const PIE_PALETTE = [COLORS.secondary, "#818CF8", COLORS.muted];
+  const PIE_PALETTE = [COLORS.secondary, "#818CF8", "#64748b"];
 
   const loadData = async () => {
     try {
@@ -51,9 +50,7 @@ export default function AdminDashboard() {
         fetchAdminStats({ period }),
         fetchAdminDeliveries()
       ]);
-      
       setStats(statsRes?.data || statsRes);
-      
       const deliveries = deliveriesRes?.data?.data || deliveriesRes?.data || deliveriesRes;
       const sorted = Array.isArray(deliveries) 
         ? [...deliveries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
@@ -72,22 +69,12 @@ export default function AdminDashboard() {
 
   if (!stats) return <PageLoader />;
 
-  /** 
-   * MAPPING DES DONNÉES (Format API : overview, deliveryBreakdown, users)
-   */
   const deliveryStats = stats?.deliveryBreakdown || {};
   const overview = stats?.overview || {};
   const userStats = stats?.users || {};
-  
   const total = overview.totalDeliveries || 0;
   const revenue = overview.totalRevenue || 0;
   const successRate = overview.successRate || "0%";
-
-  // Calcul du compte Admin pour le Super Admin
-  const adminsCount = userStats.roles?.reduce((acc, curr) => {
-    if (curr._id === 'ADMIN' || curr._id === 'SUPER_ADMIN') return acc + curr.count;
-    return acc;
-  }, 0) || 0;
 
   const chartData = (deliveryStats.deliveriesOverTime || []).map(d => ({
     ...d,
@@ -101,28 +88,29 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10 transition-colors duration-300">
       
-      {/* HEADER SECTION */}
+      {/* HEADER SECTION : Couleurs dynamiques */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-primary italic uppercase tracking-tighter">
+          <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white">
             Dashboard <span className="text-secondary">{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
           </h1>
-          <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">
+          <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
             {user?.role === 'SUPER_ADMIN' ? 'Pilotage Stratégique EMENO' : 'Gestion des flux opérationnels'}
           </p>
         </div>
 
-        <div className="flex bg-white p-1.5 rounded-2xl border border-slate-100 shadow-soft">
+        {/* Sélecteur de période : Soft Slate en light, Glassmorphism en dark */}
+        <div className="flex bg-slate-200/50 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 backdrop-blur-md shadow-sm">
           {["TODAY", "WEEK", "MONTH"].map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={`px-6 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all ${
                 period === p 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                  : "text-primary hover:text-primary"
+                  ? "bg-primary dark:bg-secondary text-white shadow-lg" 
+                  : "text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white"
               }`}
             >
               {p === "TODAY" ? "AUJOURD'HUI" : p === "WEEK" ? "SEMAINE" : "MOIS"}
@@ -131,27 +119,27 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* KPI GRID */}
+      {/* KPI GRID : Opacités pour adaptation automatique */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-        <StatCard title="En attente" value={deliveryStats.pending || 0} icon={PackageCheck} color="bg-amber-50 text-amber-500" />
-        <StatCard title="En cours" value={deliveryStats.inProgress || 0} icon={Activity} color="bg-blue-50 text-blue-500" />
-        <StatCard title="Livreurs Actifs" value={userStats.activeDrivers || 0} icon={Truck} color="bg-indigo-50 text-indigo-500" />
-        <StatCard title="Clients Actifs" value={userStats.activeClients || 0} icon={Users} color="bg-emerald-50 text-emerald-500" />
-        <StatCard title="Revenus" value={`${revenue.toLocaleString()} F`} icon={CreditCard} color="bg-primary text-white" />
-        <StatCard title="Succès" value={successRate} icon={CheckCircle} color="bg-emerald-50 text-emerald-500" />
+        <StatCard title="En attente" value={deliveryStats.pending || 0} icon={PackageCheck} color="bg-amber-500/10 text-amber-600 dark:text-amber-400" />
+        <StatCard title="En cours" value={deliveryStats.inProgress || 0} icon={Activity} color="bg-blue-500/10 text-blue-600 dark:text-blue-400" />
+        <StatCard title="Livreurs" value={userStats.activeDrivers || 0} icon={Truck} color="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" />
+        <StatCard title="Clients" value={userStats.activeClients || 0} icon={Users} color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" />
+        <StatCard title="Revenus" value={`${revenue.toLocaleString()} F`} icon={CreditCard} color="bg-primary dark:bg-white/10 text-white" />
+        <StatCard title="Succès" value={successRate} icon={CheckCircle} color="bg-emerald-500/20 text-emerald-600 dark:text-emerald-500" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* GRAPHIQUE D'ACTIVITÉ */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-[3xl] border border-slate-50 shadow-soft">
-          <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
+        {/* GRAPHIQUE : Card dynamique */}
+        <div className="lg:col-span-2 bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
+          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
             <Activity size={16} className="text-secondary" /> Courbe des livraisons
           </h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
                 <XAxis 
                   dataKey="formattedDate" 
                   axisLine={false} 
@@ -164,9 +152,11 @@ export default function AdminDashboard() {
                   contentStyle={{ 
                     borderRadius: '20px', 
                     border: 'none', 
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
                     boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
                     fontSize: '12px',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    color: isDark ? '#fff' : '#000'
                   }} 
                 />
                 <Line 
@@ -174,7 +164,7 @@ export default function AdminDashboard() {
                   dataKey="total" 
                   stroke={COLORS.secondary} 
                   strokeWidth={4} 
-                  dot={{ r: 4, fill: COLORS.secondary, strokeWidth: 2, stroke: '#c9181800' }}
+                  dot={{ r: 4, fill: COLORS.secondary, strokeWidth: 2, stroke: 'transparent' }}
                   activeDot={{ r: 7, strokeWidth: 0 }}
                 />
               </LineChart>
@@ -182,7 +172,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* ACTIONS RAPIDES */}
+        {/* ACTIONS RAPIDES : Toujours en Primary pour garder l'ADN Emeno */}
         <div className="bg-primary p-8 rounded-[3xl] shadow-2xl shadow-primary/30 text-white flex flex-col relative overflow-hidden">
           <div className="absolute top-[-10%] right-[-10%] w-32 h-32 bg-secondary/10 blur-3xl rounded-full" />
           
@@ -191,6 +181,7 @@ export default function AdminDashboard() {
           
           <div className="space-y-3 relative z-10">
             <QuickAction label="Livraisons" icon={Truck} onClick={() => navigate("/admin/deliveries")} color={COLORS.secondary} />
+            <QuickAction label="Clients" icon={Users} onClick={() => navigate("/admin/clients")} color={COLORS.secondary} />
             <QuickAction label="Livreurs" icon={Users} onClick={() => navigate("/admin/drivers")} color={COLORS.secondary} />
             <QuickAction label="Tarifs" icon={CreditCard} onClick={() => navigate("/admin/pricing")} color={COLORS.secondary} />
             {user?.role === 'SUPER_ADMIN' && (
@@ -199,60 +190,55 @@ export default function AdminDashboard() {
             <QuickAction label="Paramètres" icon={Settings} onClick={() => navigate("/admin/settings")} color={COLORS.secondary} />
           </div>
         </div>
-
       </div>
 
-      {/* CLASSEMENTS TOP 5 */}
+      {/* CLASSEMENTS : Adaptation des listes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* TOP LIVREURS */}
-        <div className="bg-white p-8 rounded-[3xl] border border-slate-50 shadow-soft">
+        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
+            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
               <Award size={16} className="text-secondary" /> Top 5 Livreurs
             </h3>
-            <span className="text-[10px] text-muted font-black uppercase tracking-widest">Succès</span>
           </div>
           <div className="space-y-4">
             {(userStats.topDrivers || []).map((driver, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl transition-colors">
                 <div className="flex items-center gap-4">
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${index === 0 ? 'bg-secondary text-primary' : 'bg-primary text-white'}`}>
+                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${index === 0 ? 'bg-secondary text-primary' : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-white'}`}>
                     {index + 1}
                   </span>
-                  <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{driver.name}</p>
+                  <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter">{driver.name}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-primary">{driver.deliveries}</span>
-                  <p className="text-[10px] text-muted font-bold uppercase">Courses</p>
+                  <span className="text-sm font-black text-slate-900 dark:text-white">{driver.deliveries}</span>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Courses</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* TOP CLIENTS */}
-        <div className="bg-white p-8 rounded-[3xl] border border-slate-50 shadow-soft">
+        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
+            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
               <Star size={16} className="text-secondary" /> Top 5 Clients
             </h3>
-            <span className="text-[10px] text-muted font-black uppercase tracking-widest">Fidélité</span>
           </div>
           <div className="space-y-4">
             {(userStats.topClients || []).map((client, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
+                  <div className="w-10 h-10 bg-white dark:bg-white/10 rounded-xl flex items-center justify-center text-primary dark:text-secondary shadow-sm">
                     <ShoppingBag size={18} />
                   </div>
                   <div>
-                    <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{client.name}</p>
-                    <p className="text-[10px] text-muted font-bold uppercase">{client.orders} commandes</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter">{client.name}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">{client.orders} commandes</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-secondary">{client.totalSpent?.toLocaleString()} F</p>
-                  <p className="text-[10px] text-muted font-bold uppercase italic">Volume</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase italic">Volume</p>
                 </div>
               </div>
             ))}
@@ -263,21 +249,21 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* FLUX TEMPS RÉEL */}
-        <div className="bg-white p-8 rounded-[3xl] border border-slate-50 shadow-soft">
+        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-primary uppercase text-[10px] tracking-widest italic">Derniers mouvements</h3>
+            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest italic">Derniers mouvements</h3>
             <button onClick={() => navigate("/admin/deliveries")} className="text-[10px] font-black text-secondary uppercase tracking-widest">Voir tout</button>
           </div>
           <div className="space-y-3">
             {recentDeliveries.map((d) => (
-              <div key={d._id} onClick={() => navigate(`/admin/deliveries/${d._id}`)} className="flex items-center justify-between p-5 bg-slate-50 hover:bg-white hover:shadow-card rounded-2xl cursor-pointer group transition-all border border-transparent hover:border-slate-100">
+              <div key={d._id} onClick={() => navigate(`/admin/deliveries/${d._id}`)} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-2xl cursor-pointer group transition-all border border-transparent hover:border-slate-100 dark:hover:border-white/10">
                 <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm group-hover:text-secondary transition-colors">
+                  <div className="w-11 h-11 bg-white dark:bg-white/10 rounded-xl flex items-center justify-center text-primary dark:text-slate-300 shadow-sm group-hover:text-secondary transition-colors">
                     <Truck size={20} />
                   </div>
                   <div>
-                    <p className="text-sm font-black text-primary italic uppercase tracking-tighter">{d.pickupContact?.name || "Client"}</p>
-                    <p className="text-[10px] text-muted font-bold uppercase tracking-wider">ID: {d.orderNumber || "..."}</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter">{d.pickupContact?.name || "Client"}</p>
+                    <p className="text-[10px] text-secondary-light font-bold uppercase tracking-wider">ID: {d.orderNumber || "..."}</p>
                   </div>
                 </div>
                 <ArrowUpRight size={16} className="text-slate-300 group-hover:text-secondary transition-all" />
@@ -287,8 +273,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* RÉPARTITION STATUTS */}
-        <div className="bg-white p-8 rounded-[3xl] border border-slate-50 shadow-soft">
-          <h3 className="font-black text-primary uppercase text-[10px] tracking-widest mb-8 italic text-center">Performance globale</h3>
+        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
+          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest mb-8 italic text-center">Performance globale</h3>
           <div className="flex flex-col md:flex-row items-center gap-10">
             <div className="w-full md:w-1/2">
               <ResponsiveContainer width="100%" height={220}>
@@ -299,7 +285,7 @@ export default function AdminDashboard() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ borderRadius: '15px', border: 'none', fontSize: '11px', fontWeight: 'bold' }} 
+                    contentStyle={{ borderRadius: '15px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#fff', color: isDark ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold' }} 
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -307,7 +293,7 @@ export default function AdminDashboard() {
             <div className="w-full md:w-1/2 space-y-6">
               <ProgressRow label="Livrées" value={deliveryStats.completed} total={total} colorClass="bg-emerald-400" />
               <ProgressRow label="En cours" value={deliveryStats.inProgress} total={total} colorClass="bg-secondary" />
-              <ProgressRow label="Annulées" value={deliveryStats.cancelled} total={total} colorClass="bg-slate-200" />
+              <ProgressRow label="Annulées" value={deliveryStats.cancelled} total={total} colorClass="bg-slate-300 dark:bg-white/10" />
             </div>
           </div>
         </div>

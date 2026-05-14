@@ -1,8 +1,10 @@
-// FILE: src/components/forms/CommuneSelect.jsx
+// src/components/forms/CommuneSelect.jsx
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Map, ChevronDown, Loader2 } from "lucide-react";
 import { fetchCommunes } from "../../api/commune.api";
 
-export default function CommuneSelect({ value, onChange, label, error }) {
+export default function CommuneSelect({ value, onChange, label, error, placeholder = "Sélectionner une zone" }) {
   const [communes, setCommunes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -10,9 +12,15 @@ export default function CommuneSelect({ value, onChange, label, error }) {
     const loadCommunes = async () => {
       try {
         const res = await fetchCommunes();
-        // On ne garde que les communes actives pour la sélection client/admin
-        const data = res?.data || res;
-        setCommunes(data.filter(c => c.isActive).sort((a, b) => a.displayOrder - b.displayOrder));
+        // Adaptation robuste aux différents formats de réponse API
+        const rawData = res?.data?.data || res?.data || res;
+        
+        if (Array.isArray(rawData)) {
+            const activeCommunes = rawData
+                .filter(c => c.isActive)
+                .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+            setCommunes(activeCommunes);
+        }
       } catch (err) {
         console.error("Erreur chargement communes:", err);
       } finally {
@@ -24,45 +32,65 @@ export default function CommuneSelect({ value, onChange, label, error }) {
 
   const handleChange = (e) => {
     const selectedId = e.target.value;
-    // On trouve l'objet commune correspondant à l'ID sélectionné
     const selectedCommune = communes.find(c => c._id === selectedId);
-    
-    // On renvoie l'ID et le nom (ou null si vide)
+    // On propage l'ID et l'objet complet pour plus de flexibilité dans le parent
     onChange(selectedId, selectedCommune ? selectedCommune.name : "");
   };
 
   return (
     <div className="w-full group">
       {label && (
-        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 block transition-colors group-focus-within:text-secondary">
+        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-3 block transition-colors group-focus-within:text-secondary italic">
           {label}
         </label>
       )}
 
-      <div className={`relative flex items-center bg-slate-50 border-2 rounded-2xl transition-all duration-300 ${
-        error ? "border-red-400 ring-4 ring-red-500/10" : "border-transparent focus-within:border-secondary/30 focus-within:ring-4 focus-within:ring-secondary/10"
-      }`}>
+      <div className={`relative flex items-center bg-white dark:bg-[#0B1120] border-2 rounded-2xl transition-all duration-500 shadow-sm overflow-hidden
+        ${error 
+          ? "border-red-500/20 ring-4 ring-red-500/5" 
+          : "border-slate-100 dark:border-white/5 focus-within:border-secondary/30 focus-within:ring-4 focus-within:ring-secondary/10"
+        }`}>
+        
+        {/* Icône de contexte */}
+        <div className="pl-4 text-slate-300 dark:text-slate-600 group-focus-within:text-secondary transition-colors">
+            <Map size={18} strokeWidth={2.5} />
+        </div>
+
         <select
           value={value}
           onChange={handleChange}
           disabled={loading}
-          className="w-full bg-transparent px-4 py-4 text-sm font-bold text-primary outline-none italic appearance-none"
+          className="w-full bg-transparent px-4 py-4 text-[13px] font-black text-primary dark:text-white outline-none italic appearance-none cursor-pointer disabled:cursor-wait"
         >
-          <option value="">{loading ? "Chargement..." : "Sélectionner une zone"}</option>
+          <option value="" className="dark:bg-slate-900">{loading ? "Synchronisation..." : placeholder}</option>
           {communes.map((commune) => (
-            <option key={commune._id} value={commune._id}>
+            <option key={commune._id} value={commune._id} className="dark:bg-slate-900 font-bold">
               {commune.name.toUpperCase()}
             </option>
           ))}
         </select>
         
-        {/* Indicateur visuel pour le select custom */}
-        <div className="absolute right-4 pointer-events-none text-slate-400">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        {/* Indicateur visuel custom */}
+        <div className="absolute right-4 pointer-events-none text-slate-300 dark:text-slate-600 group-focus-within:text-secondary transition-transform group-focus-within:rotate-180 duration-300">
+          {loading ? (
+            <Loader2 size={16} className="animate-spin text-secondary" />
+          ) : (
+            <ChevronDown size={18} strokeWidth={3} />
+          )}
         </div>
       </div>
       
-      {error && <p className="text-[9px] font-black uppercase text-red-500 mt-2 ml-2">{error}</p>}
+      <AnimatePresence>
+        {error && (
+          <motion.p 
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[9px] font-black uppercase tracking-widest text-red-500 mt-3 ml-2 flex items-center gap-1"
+          >
+            <span className="w-1 h-1 bg-red-500 rounded-full" /> {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

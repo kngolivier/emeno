@@ -157,14 +157,14 @@ export default function ClientOrderDetails() {
             </div>
 
             {delivery.verificationCode && delivery.status !== 'CANCELLED' && delivery.status !== 'DELIVERED' && (
-              <div className="bg-secondary/5 dark:bg-secondary/10 border-2 border-secondary/10 dark:border-secondary/20 rounded-[1.5rem] p-4 sm:p-6 flex items-center justify-between gap-3">
+              <div className="bg-secondary/5 dark:bg-secondary/10 border-2 border-secondary dark:border-secondary/20 rounded-[1.5rem] p-4 sm:p-6 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 sm:gap-4 text-secondary shrink-0">
                   <ShieldCheck size={24} className="shrink-0" />
-                  <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider leading-tight">
+                  {/* <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider leading-tight">
                     Code <br className="sm:hidden" /> Sécurité
-                  </span>
+                  </span> */}
                 </div>
-                <span className="text-xl sm:text-3xl font-black text-primary dark:text-white tracking-[0.2em] tabular-nums bg-white/50 dark:bg-slate-800/50 px-4 py-1.5 rounded-xl border border-secondary/5">
+                <span className="text-xl sm:text-3xl font-black text-primary dark:text-white tracking-[0.2em] tabular-nums bg-white/50 dark:bg-slate-800/50 px-4 py-1.5 rounded-xl border-none border-secondary/5">
                   {delivery.verificationCode}
                 </span>
               </div>

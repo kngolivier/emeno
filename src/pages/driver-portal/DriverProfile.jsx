@@ -1,135 +1,131 @@
-// FILE: src/pages/driver-portal/DriverProfile.jsx
+// src/pages/driver-portal/DriverProfile.jsx
 
 import { 
   User, Shield, Phone, LogOut, 
-  ChevronRight, Star, MapPin, Settings 
+  ChevronRight, Star, MapPin, Settings, Moon, Sun, Award,
+  Calendar
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/Theme/ThemeContext";
+import { motion } from "framer-motion";
 
 export default function DriverProfile() {
     const { user, logout } = useAuth();
-    const { isDarkMode, toggleTheme } = useTheme(); // On récupère le thème et sa fonction de modification
+    const { isDarkMode, toggleTheme } = useTheme();
     const navigate = useNavigate();
 
   const handleLogout = async () => {
-    // Petit feedback haptique ou visuel possible ici avant le logout
     await logout();
     navigate("/login");
   };
 
-  // On récupère l'année de création (ex: 2024) ou l'année actuelle par défaut
   const joinYear = user?.createdAt 
     ? new Date(user.createdAt).getFullYear() 
-    : new Date().getFullYear();
+    : 2024;
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50 dark:bg-primary-dark overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-4 pb-40"> {/* Scroll indépendant */}
+    <div className="h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0B1120] overflow-hidden">
+      <div className="flex-1 overflow-y-auto px-6 pb-40 custom-scrollbar"> 
         
-        {/* 1. Profil Header */}
-        <div className="text-center pt-10 pb-6">
-          <div className="relative inline-block">
-            <div className="w-28 h-28 bg-white dark:bg-primary-light rounded-[2.8rem] border-4 border-white dark:border-primary-dark shadow-xl mx-auto flex items-center justify-center text-primary dark:text-white mb-4 overflow-hidden">
+        {/* --- 1. HEADER PRO : L'IDENTITÉ EMENO --- */}
+        <div className="text-center pt-12 pb-8">
+          <div className="relative inline-block mb-6">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="w-32 h-32 bg-white dark:bg-slate-900 rounded-[3.5rem] border-[6px] border-white dark:border-slate-800 shadow-2xl mx-auto flex items-center justify-center text-primary dark:text-white overflow-hidden relative group"
+            >
               {user?.photo ? (
-                <img src={user.photo} alt="Profil" className="w-full h-full object-cover" />
+                <img src={user.photo} alt="Profil" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
               ) : (
-                <User size={40} strokeWidth={2.5} />
+                <User size={48} strokeWidth={2.5} className="opacity-20" />
               )}
-            </div>
-            {/* Badge de niveau - Utilise ta couleur secondary */}
-            <div className="absolute bottom-4 -right-1 bg-secondary text-white p-2 rounded-2xl shadow-lg border-4 border-slate-50 dark:border-primary-dark">
-              <Star size={14} fill="currentColor" />
-            </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
+            </motion.div>
+            
+            <motion.div 
+              initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+              className="absolute -bottom-2 -right-2 bg-secondary text-primary p-3 rounded-2xl shadow-xl border-4 border-[#F8FAFC] dark:border-[#0B1120]"
+            >
+              <Award size={20} strokeWidth={3} />
+            </motion.div>
           </div>
           
-          <h2 className="text-2xl font-black text-primary dark:text-white uppercase italic tracking-tighter leading-none">
-            {user?.nom || "Livreur"} {user?.prenom || "Emeno"}
+          <h2 className="text-3xl font-black text-primary dark:text-white uppercase italic tracking-tighter leading-none mb-3">
+            {user?.nom || "Livreur"} <span className="text-secondary">{user?.prenom || "Emeno"}</span>
           </h2>
           
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <span className="px-3 py-1 bg-secondary/10 text-secondary text-[9px] font-black uppercase tracking-widest rounded-full">
-              Livreur Officiel
+          <div className="flex items-center justify-center gap-3">
+            <span className="px-4 py-1.5 bg-primary text-white dark:bg-white dark:text-primary text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-primary/10">
+              Partenaire Certifié
             </span>
-            <div className="flex items-center gap-1 text-muted">
-              <MapPin size={10} />
-              <span className="text-[9px] font-black uppercase tracking-widest">Libreville</span>
-            </div>
           </div>
         </div>
 
-        {/* 2. Stats de Performance - Design "Flat" */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          {/* <StatSmall label="Note" value="4.9" color="text-secondary" />
-          <StatSmall label="Niveau" value="Pro" color="text-success" /> */}
-          <StatSmall label="Depuis" value={joinYear.toString()} color="text-secondary" />
+        {/* --- 2. QUICK STATS : LA CRÉDIBILITÉ --- */}
+        <div className="grid grid-cols-2 gap-4 mb-10">
+          <StatSmall label="Membre depuis" value={joinYear.toString()} icon={<Calendar size={12}/>} />
+          <StatSmall label="Zone d'activité" value="Libreville" icon={<MapPin size={12}/>} />
         </div>
 
-        {/* 3. Menu de Configuration */}
-        <div className="space-y-4">
-          <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-4">
-            Paramètres du compte
-          </h3>
+        {/* --- 3. MENU DE CONFIGURATION : L'EFFICACITÉ --- */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-4">
+             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Paramètres Sécurisés</h3>
+             <Settings size={14} className="text-slate-300" />
+          </div>
           
-          <div className="bg-white dark:bg-primary-light rounded-[2.5rem] p-2 shadow-sm border border-slate-100 dark:border-white/5">
+          <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-3 shadow-sm border border-slate-100 dark:border-slate-800/50">
             <ProfileMenuItem 
-              icon={<Phone size={18}/>} 
-              label="Contact" 
+              icon={<Phone size={20}/>} 
+              label="Contact Privé" 
               value={user?.telephone || "+241 00 00 00 00"} 
             />
+            
             <ProfileMenuItem 
-              icon={<MapPin size={18}/>} 
-              label="Zone" 
-              value="Estuaire / Libreville" 
-            />
-            <ProfileMenuItem 
-              icon={<Shield size={18}/>} 
-              label="Vérification" 
-              value="Identité Confirmée" 
+              icon={<Shield size={20} className="text-emerald-500" />} 
+              label="Statut du Compte" 
+              value="Identité Vérifiée" 
               isVerified
             />
-            <div onClick={toggleTheme} className="cursor-pointer">
+
+            <div onClick={toggleTheme} className="group">
               <ProfileMenuItem 
-                icon={<Settings size={18}/>} 
-                label="Préférences" 
-                value={isDarkMode ? "Mode Sombre" : "Mode Clair"} 
+                icon={isDarkMode ? <Sun size={20} className="text-secondary" /> : <Moon size={20} />} 
+                label="Interface" 
+                value={isDarkMode ? "Mode Sombre Actif" : "Mode Clair Actif"} 
               />
             </div>
 
-            {/* Bouton Déconnexion - Style plus affirmé */}
-            <div className="px-2 pb-2"> {/* Un peu d'espace interne pour l'esthétique */}
+            {/* --- BOUTON DÉCONNEXION --- */}
+            <div className="px-3 pt-4 pb-3">
               <button 
                 onClick={handleLogout}
-                className="w-full group relative flex items-center justify-between p-4 bg-red-500/[0.03] dark:bg-red-500/[0.02] border-2 border-dashed border-red-500/10 hover:border-red-500/30 rounded-[2rem] transition-all active:scale-[0.96]"
+                className="w-full group flex items-center justify-between p-5 bg-rose-500/5 hover:bg-rose-500/10 rounded-[2.2rem] border-2 border-dashed border-rose-500/10 transition-all active:scale-[0.97]"
               >
-                <div className="flex items-center gap-4">
-                  {/* Icône avec un effet de glassmorphism léger */}
-                  <div className="w-11 h-11 bg-red-500 text-white rounded-[1.2rem] flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:rotate-12 transition-transform">
-                    <LogOut size={20} strokeWidth={2.5} />
+                <div className="flex items-center gap-5">
+                  <div className="w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20 group-hover:rotate-[15deg] transition-transform">
+                    <LogOut size={22} strokeWidth={3} />
                   </div>
-                  
                   <div className="text-left">
-                    <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-red-500/50">Session</span>
-                    <span className="text-sm font-black uppercase tracking-widest text-red-500">Quitter l'app</span>
+                    <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-rose-500/40 mb-1">Session</span>
+                    <span className="text-sm font-black uppercase tracking-widest text-rose-500">Déconnexion</span>
                   </div>
                 </div>
-
-                <div className="bg-red-500/10 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ChevronRight size={16} className="text-red-500" />
-                </div>
+                <ChevronRight size={18} className="text-rose-500/30 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* 4. Footer Branding */}
-        <div className="mt-10 pb-10 text-center">
-          <p className="text-[9px] font-black text-muted/30 uppercase tracking-[0.4em]">
-            EMENO Delivery System
+        {/* --- 4. BRANDING FOOTER --- */}
+        <div className="mt-16 pb-12 text-center opacity-30 group">
+          <p className="text-[10px] font-black text-primary dark:text-white uppercase tracking-[0.5em] group-hover:tracking-[0.6em] transition-all duration-700">
+            EMENO<span className="text-secondary">.</span>
           </p>
-          <p className="text-[8px] font-bold text-muted/20 uppercase mt-1">
-            v2.1.0 • Stable Build
+          <div className="h-px w-8 bg-slate-300 dark:bg-slate-700 mx-auto my-3" />
+          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+            Libreville, Gabon • Build 2026.5
           </p>
         </div>
       </div>
@@ -137,35 +133,34 @@ export default function DriverProfile() {
   );
 }
 
-function StatSmall({ label, value, color }) {
+function StatSmall({ label, value, icon }) {
   return (
-    <div className="bg-white dark:bg-primary-light p-4 rounded-[2rem] border border-slate-50 dark:border-white/5 text-center shadow-sm">
-      <p className="text-[8px] font-black text-muted uppercase mb-1 tracking-widest">{label}</p>
-      <p className={`text-sm font-black italic tracking-tighter ${color}`}>{value}</p>
+    <div className="bg-white dark:bg-slate-900 p-5 rounded-[2.2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center text-center">
+      <div className="text-slate-300 dark:text-slate-600 mb-2">{icon}</div>
+      <p className="text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">{label}</p>
+      <p className="text-sm font-black italic tracking-tighter text-primary dark:text-white uppercase">{value}</p>
     </div>
   );
 }
 
 function ProfileMenuItem({ icon, label, value, isVerified }) {
   return (
-    <div className="flex items-center justify-between p-5 group cursor-pointer active:bg-slate-50 dark:active:bg-primary-dark/50 transition-colors rounded-[2rem]">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 bg-slate-50 dark:bg-primary-dark rounded-2xl flex items-center justify-center text-muted group-hover:text-secondary transition-colors">
+    <div className="flex items-center justify-between p-6 group cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all rounded-[2.2rem]">
+      <div className="flex items-center gap-5">
+        <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-secondary group-hover:scale-110 transition-all shadow-inner">
           {icon}
         </div>
         <div>
-          <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-0.5">{label}</p>
+          <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{label}</p>
           <div className="flex items-center gap-2">
-            <p className="text-[11px] font-bold text-primary dark:text-slate-200">{value}</p>
+            <p className="text-[12px] font-black text-primary dark:text-slate-200 uppercase italic tracking-tight">{value}</p>
             {isVerified && (
-              <div className="px-1.5 py-0.5 bg-success/10 rounded-md">
-                <div className="w-1 h-1 bg-success rounded-full" />
-              </div>
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
             )}
           </div>
         </div>
       </div>
-      <ChevronRight size={14} className="text-muted/20 group-hover:translate-x-1 transition-transform" />
+      <ChevronRight size={18} className="text-slate-200 dark:text-slate-700 group-hover:translate-x-1 group-hover:text-secondary transition-all" />
     </div>
   );
 }

@@ -68,4 +68,12 @@ export const ENDPOINTS = {
   // FEEDBACKS
   // ======================
   FEEDBACKS: "/api/feedbacks",
+
+  // ===================
+  // NOTIFICATIONS
+  // ===================
+  NOTIFICATIONS_ME: "/api/notifications/me",
+  NOTIFICATIONS_READ: (id) => `/api/notifications/${id}/read`,
+  NOTIFICATIONS_READ_ALL: "/api/notifications/read-all",
+  NOTIFICATIONS_ADMIN: "/api/notifications/admin",
 };

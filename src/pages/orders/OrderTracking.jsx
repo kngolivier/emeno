@@ -18,7 +18,6 @@ import {
   AlertCircle,
   Trash2,
   ShieldCheck,
-  Lock,
   Star,
   MessageSquareQuote
 } from "lucide-react";
@@ -33,6 +32,7 @@ import { fetchAvailableDrivers } from "../../api/users.api";
 import { fetchFeedbacksByDelivery } from "../../api/feedback.api";
 import PageLoader from "../../components/ui/PageLoader";
 import { notifySuccess, notifyError } from "../../utils/notify";
+import { CATEGORY_LABELS } from "../../constants/constants";
 
 /**
  * COMPOSANTS HELPERS POUR LES FEEDBACKS
@@ -64,7 +64,6 @@ const FeedbackCard = ({ feedback, type }) => {
         </p>
       </div>
 
-      {/* Affichage des Tags sur Desktop */}
       {feedback.tags?.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-50 dark:border-slate-800">
           {feedback.tags.map((tag, i) => (
@@ -112,7 +111,6 @@ const FeedbackAccordion = ({ feedback, type }) => {
             <p className="text-base text-slate-600 dark:text-slate-300 italic leading-relaxed pl-2 border-l-2 border-secondary/30">
                 "{feedback.comment || "Aucun commentaire écrit."}"
             </p>
-            {/* Affichage des Tags sur Mobile */}
             {feedback.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {feedback.tags.map((tag, i) => (
@@ -142,7 +140,6 @@ export default function OrderTracking() {
   const [showAssignBox, setShowAssignBox] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // CHARGEMENT DES DONNÉES
   const loadOrderData = async () => {
     try {
       const [orderRes, feedbackRes] = await Promise.all([
@@ -150,7 +147,7 @@ export default function OrderTracking() {
         fetchFeedbacksByDelivery(id)
       ]);
       setOrder(orderRes.data);
-      setFeedbacks(feedbackRes.data?.data || []);
+      setFeedbacks(feedbackRes.data || []);
     } catch (err) {
       console.error("Erreur chargement:", err.message);
     } finally {
@@ -173,7 +170,6 @@ export default function OrderTracking() {
     loadDrivers();
   }, [id]);
 
-  // ACTIONS
   const handleAssign = async () => {
     if (!selectedDriver) return;
     setActionLoading(true);
@@ -234,13 +230,13 @@ export default function OrderTracking() {
     <div className="space-y-8 font-sans pb-10">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
         <div className="flex items-center gap-6">
           <Link to="/admin/deliveries" className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all text-primary dark:text-white group">
             <ChevronLeft size={24} strokeWidth={3} className="group-hover:-translate-x-1 transition-transform" />
           </Link>
           <div>
-            <h1 className="text-4xl font-black text-primary font-display italic tracking-tighter uppercase">
+            <h1 className=" text-2xl lg:text-4xl font-black text-primary dark:text-white font-display italic tracking-tighter uppercase">
               Commande <span className="text-secondary">#</span>{order.orderNumber}
             </h1>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
@@ -280,7 +276,7 @@ export default function OrderTracking() {
           <select 
             value={selectedDriver} 
             onChange={(e) => setSelectedDriver(e.target.value)}
-            className="w-full p-4 rounded-2xl border border-slate-100 dark:border-slate-800 font-bold text-sm outline-none bg-slate-50 dark:bg-slate-800"
+            className="w-full p-4 rounded-2xl border border-slate-100 dark:border-slate-800 font-bold text-sm outline-none bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-white"
           >
             <option value="">-- Choisir --</option>
             {drivers.map(d => (
@@ -332,7 +328,7 @@ export default function OrderTracking() {
              <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
                     <p className="text-[9px] font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest">Catégorie</p>
-                    <p className="font-bold text-slate-700 dark:text-slate-300">{order.packageDetails?.category}</p>
+                    <p className="font-bold text-slate-700 dark:text-slate-300">{CATEGORY_LABELS[order.packageDetails?.category]}</p>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
                     <p className="text-[9px] font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest">Fragile</p>
@@ -380,19 +376,16 @@ export default function OrderTracking() {
             </div>
           </div>
 
-          {/* SECTION FEEDBACKS ADAPTATIVE */}
           {(clientFeedback || driverFeedback) && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 px-4">
                 <MessageSquareQuote size={24} className="text-secondary" />
-                <h3 className="font-display font-black text-xl italic text-primary uppercase">Avis clients & livreurs</h3>
+                <h3 className="font-display font-black text-xl italic text-primary dark:text-white uppercase">Avis</h3>
               </div>
-              {/* Desktop: Cartes */}
               <div className="hidden md:grid grid-cols-2 gap-6">
                 <FeedbackCard feedback={clientFeedback} type="CLIENT" />
                 <FeedbackCard feedback={driverFeedback} type="DRIVER" />
               </div>
-              {/* Mobile: Accordéons */}
               <div className="md:hidden">
                 <FeedbackAccordion feedback={clientFeedback} type="CLIENT" />
                 <FeedbackAccordion feedback={driverFeedback} type="DRIVER" />
@@ -417,8 +410,7 @@ export default function OrderTracking() {
             </div>
           )}
 
-          <div className="bg-primary dark:bg-[#001D0E] p-8 rounded-[2.5rem] shadow-2xl space-y-8 text-white relative overflow-hidden">
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
+          <div className="bg-primary dark:bg-white/[0.03] p-8 rounded-[2.5rem] shadow-2xl space-y-8 text-white dark:text-white/90 relative overflow-hidden border border-transparent dark:border-white/5">
             <h3 className="font-display font-black text-2xl italic tracking-tight uppercase flex items-center gap-2">
               <PackageCheck size={24} className="text-secondary" /> Suivi
             </h3>
@@ -429,11 +421,25 @@ export default function OrderTracking() {
                     {step.done ? <CheckCircle size={20} className="text-secondary" /> : <Circle size={20} className="text-white" />}
                     <span className="text-[11px] font-black uppercase tracking-widest">{step.label}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-white/50">
+                  <span className="text-[10px] font-bold opacity-60">
                     {step.time ? new Date(step.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "--:--"}
                   </span>
                 </div>
               ))}
+            </div>
+            <div className="pt-6 border-t border-white/10 mt-6">
+               <p className="text-[9px] font-black opacity-40 uppercase tracking-[0.2em] mb-3">Statut actuel</p>
+               <div className="inline-flex items-center gap-3 px-4 py-3 bg-secondary/10 border border-secondary/20 rounded-2xl w-full">
+                  <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
+                  <span className="text-sm font-black text-secondary uppercase italic tracking-wider">
+                    {order.status === "PENDING" && "En attente"}
+                    {order.status === "ASSIGNED" && "Livreur assigné"}
+                    {order.status === "PICKED_UP" && "Colis récupéré"}
+                    {order.status === "IN_PROGRESS" && "En cours"}
+                    {order.status === "DELIVERED" && "Terminée"}
+                    {order.status === "CANCELLED" && "Annulée"}
+                  </span>
+               </div>
             </div>
           </div>
         </div>
@@ -441,9 +447,9 @@ export default function OrderTracking() {
 
       {/* MODAL ANNULATION */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-primary/40 backdrop-blur-md">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-primary/40 dark:bg-black/80 backdrop-blur-md">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-800">
-            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-6 mx-auto">
+            <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6 mx-auto">
                 <Trash2 size={32} />
             </div>
             <h3 className="text-2xl font-display font-black text-primary dark:text-white italic text-center uppercase">Annuler ?</h3>
@@ -451,7 +457,7 @@ export default function OrderTracking() {
               Confirmez-vous l'annulation de la commande <span className="font-bold text-primary dark:text-white">#{order.orderNumber}</span> ?
             </p>
             <div className="grid grid-cols-2 gap-4 mt-8">
-              <button onClick={() => setShowCancelModal(false)} className="px-6 py-4 rounded-2xl bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest">Retour</button>
+              <button onClick={() => setShowCancelModal(false)} className="px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-500 text-[10px] font-black uppercase tracking-widest">Retour</button>
               <button onClick={handleCancel} disabled={actionLoading} className="px-6 py-4 rounded-2xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">Confirmer</button>
             </div>
           </div>

@@ -101,6 +101,13 @@ export const updateMyProfile = (payload) => {
 };
 
 /**
+ * UPDATE user profile (/:id)
+ */
+export const updateUser = (id, payload) => {
+  return API.put(`${ENDPOINTS.USERS}/${id}`, payload);
+};
+
+/**
  * DELETE user
  */
 export const deleteUser = (id) => {

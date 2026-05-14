@@ -1,10 +1,10 @@
 // src/pages/PricingPage.jsx
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/landing/Navbar";
 import Footer from "../components/landing/Footer";
 import { fetchPricing } from "../api/pricing.api";
-import { MapPin, ArrowLeftRight, HelpCircle, ArrowDown, ArrowUpDown } from "lucide-react";
+import { MapPin, ArrowLeftRight, HelpCircle, ArrowUpDown, Info, LayoutGrid } from "lucide-react";
 
 export default function PricingPage() {
   const [pricingData, setPricingData] = useState([]);
@@ -14,10 +14,11 @@ export default function PricingPage() {
     const loadPrices = async () => {
       try {
         const response = await fetchPricing();
+        // Adaptation à ta structure API EMENO
         const data = response.data?.data || response.data || [];
         setPricingData(data.filter(p => p.isActive));
       } catch (err) {
-        console.error("Erreur chargement tarifs:", err);
+        console.error("Erreur chargement tarifs EMENO:", err);
       } finally {
         setLoading(false);
       }
@@ -26,82 +27,105 @@ export default function PricingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-primary-dark text-slate-600 dark:text-slate-200 transition-colors duration-500 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#0B1120] text-slate-600 dark:text-slate-200 transition-colors duration-500 overflow-x-hidden">
       <Navbar />
 
-      <main className="pt-28 lg:pt-40 pb-20 px-4 lg:px-6 max-w-7xl mx-auto relative z-10">
-        <header className="text-center mb-12 lg:mb-20 space-y-2 lg:space-y-4">
+      {/* --- BACKGROUND ELEMENTS --- */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none z-0">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-secondary/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 blur-[150px] rounded-full animate-pulse" />
+      </div>
+
+      <main className="pt-32 lg:pt-48 pb-20 px-6 max-w-7xl mx-auto relative z-10">
+        
+        {/* --- HEADER --- */}
+        <header className="text-center mb-16 lg:mb-28 space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 rounded-full border border-secondary/20 mb-4"
+          >
+            <LayoutGrid size={14} className="text-secondary" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-secondary">Grille Tarifaire 2026</span>
+          </motion.div>
+          
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl lg:text-huge text-primary dark:text-white"
+            className="text-5xl lg:text-9xl font-black text-primary dark:text-white italic tracking-tighter leading-none"
           >
-            NOS <span className="text-secondary">TARIFS</span>
+            NOS <span className="text-secondary">TARIFS.</span>
           </motion.h1>
-          <p className="text-slate-400 font-black text-[10px] lg:text-xs uppercase tracking-[0.2em] lg:tracking-[0.4em]">
-            Libreville • Akanda • Owendo
+          
+          <p className="text-slate-400 font-black text-[10px] lg:text-xs uppercase tracking-[0.4em] max-w-md mx-auto leading-relaxed">
+            Une tarification fixe par zone pour une <br/> transparence totale sur vos livraisons.
           </p>
         </header>
 
-        <section className="mb-20 lg:mb-32">
+        {/* --- GRID TARIFS --- */}
+        <section className="mb-32">
           {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
-              {[1, 2, 3, 4].map(i => <div key={i} className="h-48 lg:h-64 bg-slate-50 dark:bg-surface rounded-3xl animate-pulse" />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
+              {[1, 2, 3, 4, 5, 6].map(i => <PricingSkeleton key={i} />)}
+            </div>
+          ) : pricingData.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
+              <AnimatePresence>
+                {pricingData.map((p, index) => (
+                  <PricingCard key={p._id || index} p={p} index={index} />
+                ))}
+              </AnimatePresence>
             </div>
           ) : (
-            /* Grille 2 colonnes sur mobile */
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-8">
-              {pricingData.map((p) => (
-                <motion.div 
-                  key={p._id}
-                  whileHover={{ y: -5 }}
-                  className="bg-slate-50 dark:bg-surface backdrop-blur-xl border border-slate-200 dark:border-border-glass p-5 lg:p-10 rounded-3xl lg:rounded-4xl flex flex-col justify-between group hover:border-secondary/50 transition-all shadow-lg dark:shadow-2xl"
-                >
-                  <div className="flex justify-between items-start mb-6 lg:mb-10">
-                    <div className="w-10 h-10 lg:w-14 lg:h-14 bg-secondary/10 rounded-xl lg:rounded-2xl flex items-center justify-center text-secondary">
-                      <MapPin size={20} className="lg:hidden" />
-                      <MapPin size={28} className="hidden lg:block" />
-                    </div>
-                    <span className="text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white/50 dark:bg-white/5 px-2 py-1 rounded-full">
-                        {p.pricingType || 'Standard'}
-                    </span>
-                  </div>
-
-                  {/* Zones de trajet : Colonne sur mobile, Ligne sur Desktop */}
-                  <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 mb-6 lg:mb-10">
-                    <span className="text-sm lg:text-2xl font-black text-primary dark:text-white uppercase italic tracking-tighter truncate">
-                        {p.from?.name || 'Départ'}
-                    </span>
-                    <ArrowLeftRight size={16} className="text-secondary shrink-0 hidden lg:block" />
-                    <ArrowUpDown size={14} className="text-secondary shrink-0 lg:hidden" />
-                    <span className="text-sm lg:text-2xl font-black text-primary dark:text-white uppercase italic tracking-tighter truncate">
-                        {p.to?.name || 'Arrivée'}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col lg:flex-row lg:items-end justify-between border-t border-slate-200 dark:border-white/10 pt-4 lg:pt-8 gap-1">
-                    <span className="text-[8px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest italic">Forfait</span>
-                    <p className="text-xl lg:text-4xl font-black text-primary dark:text-white tracking-tighter">
-                      {p.basePrice?.toLocaleString()} <span className="text-[10px] lg:text-xs text-secondary font-bold ml-1">CFA</span>
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <EmptyPricing />
           )}
         </section>
 
-        {/* FAQ - Ajustement des marges */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 mb-20 border-t border-slate-100 dark:border-white/5 pt-12 lg:pt-20">
-           <div className="space-y-4 lg:space-y-6">
-              <h3 className="text-3xl lg:text-6xl text-primary dark:text-white leading-none">QUESTIONS <br className="hidden lg:block"/> FRÉQUENTES</h3>
-              <div className="w-16 lg:w-24 h-1.5 lg:h-2 bg-secondary rounded-full" />
+        {/* --- FAQ SECTION --- */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 py-20 border-t border-slate-100 dark:border-white/5">
+           <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-4xl lg:text-7xl font-black text-primary dark:text-white leading-[0.9] italic uppercase tracking-tighter">
+                    QUESTIONS <br/> <span className="text-secondary">FRÉQUENTES.</span>
+                </h3>
+                <div className="w-24 h-2 bg-secondary rounded-full" />
+              </div>
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm lg:text-lg">
+                Tout ce que vous devez savoir sur la tarification EMENO au Gabon.
+              </p>
            </div>
-           <div className="space-y-6 lg:space-y-8">
-              <FAQItem question="Comment est calculé le prix ?" answer="Le tarif de base est fixé par zone (commune). Pour les trajets hors-zone, nous appliquons un tarif au kilomètre." />
-              <FAQItem question="Délais de livraison ?" answer="Pour Libreville, nous garantissons une livraison sous 45 à 90 minutes après le ramassage." />
+
+           <div className="space-y-10 lg:space-y-12">
+              <FAQItem 
+                question="Comment est calculé le prix ?" 
+                answer="Chez EMENO, nous fonctionnons par forfait de zone (Communes). Un trajet Libreville vers Akanda a un prix fixe, peu importe l'heure ou le trafic." 
+              />
+              <FAQItem 
+                question="Y a-t-il des frais d'attente ?" 
+                answer="Les 10 premières minutes d'attente lors du ramassage sont gratuites. Au-delà, une majoration de 500 CFA par tranche de 15 min s'applique." 
+              />
+              <FAQItem 
+                question="Paiement à la livraison ?" 
+                answer="Oui, nous acceptons le cash à la livraison, ainsi que les paiements via Mobile Money (Airtel Money & Moov Money)." 
+              />
            </div>
         </section>
+
+        {/* --- INFO BANNER --- */}
+        <div className="mt-20 p-8 lg:p-12 bg-primary dark:bg-secondary rounded-[3rem] text-white dark:text-primary-dark flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl">
+            <div className="flex items-center gap-6 text-center lg:text-left">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Info size={32} />
+                </div>
+                <div>
+                    <h4 className="text-xl lg:text-2xl font-black italic uppercase tracking-tight">Besoin d'un contrat pro ?</h4>
+                    <p className="opacity-80 text-xs lg:text-sm font-bold uppercase tracking-widest mt-1">Tarifs dégressifs pour les entreprises et e-commerçants.</p>
+                </div>
+            </div>
+            <button className="px-10 py-5 bg-white dark:bg-primary-dark text-primary dark:text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:scale-105 transition-transform active:scale-95 shadow-xl">
+                Contacter le service commercial
+            </button>
+        </div>
       </main>
 
       <Footer />
@@ -109,15 +133,85 @@ export default function PricingPage() {
   );
 }
 
+// --- SOUS-COMPOSANTS ---
+
+function PricingCard({ p, index }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      whileHover={{ y: -10, scale: 1.02 }}
+      className="group bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-100 dark:border-white/5 p-8 lg:p-10 rounded-[3rem] flex flex-col justify-between transition-all shadow-xl hover:shadow-secondary/10 hover:border-secondary/30"
+    >
+      <div className="flex justify-between items-start mb-12">
+        <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all duration-500">
+          <MapPin size={28} strokeWidth={2.5} />
+        </div>
+        <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border border-slate-100 dark:border-white/10 px-4 py-2 rounded-xl">
+            {p.pricingType || 'Coursier'}
+        </span>
+      </div>
+
+      <div className="space-y-4 mb-12">
+        <div className="flex items-center gap-4">
+            <span className="text-2xl lg:text-3xl font-black text-primary dark:text-white uppercase italic tracking-tighter">
+                {p.from?.name || 'Zone A'}
+            </span>
+        </div>
+        <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-100 dark:bg-white/10" />
+            <ArrowLeftRight size={18} className="text-secondary shrink-0 hidden lg:block" />
+            <ArrowUpDown size={18} className="text-secondary shrink-0 lg:hidden" />
+            <div className="h-px flex-1 bg-slate-100 dark:bg-white/10" />
+        </div>
+        <div className="text-right">
+            <span className="text-2xl lg:text-3xl font-black text-primary dark:text-white uppercase italic tracking-tighter">
+                {p.to?.name || 'Zone B'}
+            </span>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-50 dark:border-white/5 pt-8 flex items-baseline justify-between">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Tarif Fixe</span>
+        <p className="text-4xl lg:text-5xl font-black text-primary dark:text-white tracking-tighter">
+          {p.basePrice?.toLocaleString()} <span className="text-xs text-secondary font-bold ml-1 uppercase">CFA</span>
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function PricingSkeleton() {
+  return (
+    <div className="h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] animate-pulse border border-slate-100 dark:border-white/5" />
+  );
+}
+
+function EmptyPricing() {
+  return (
+    <div className="py-20 text-center space-y-6">
+      <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-300">
+        <Info size={40} />
+      </div>
+      <p className="text-slate-400 font-black uppercase text-xs tracking-widest">Aucun tarif disponible pour le moment.</p>
+    </div>
+  );
+}
+
 function FAQItem({ question, answer }) {
   return (
-    <div className="group space-y-2 lg:space-y-4">
-      <h4 className="text-secondary font-black uppercase text-[10px] lg:text-sm tracking-widest italic flex items-center gap-2 lg:gap-3">
-        <HelpCircle size={16} className="text-secondary/50" /> {question}
+    <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        className="group space-y-4"
+    >
+      <h4 className="text-secondary font-black uppercase text-xs lg:text-sm tracking-[0.2em] italic flex items-center gap-3">
+        <HelpCircle size={18} className="text-secondary/30 group-hover:text-secondary transition-colors" /> {question}
       </h4>
-      <p className="text-slate-500 dark:text-slate-400 text-xs lg:text-base font-medium leading-relaxed pl-6 lg:pl-8 border-l border-slate-200 dark:border-white/10 group-hover:border-secondary transition-colors">
+      <p className="text-slate-500 dark:text-slate-400 text-sm lg:text-lg font-medium leading-relaxed pl-8 border-l-2 border-slate-100 dark:border-white/5 group-hover:border-secondary/40 transition-all">
         {answer}
       </p>
-    </div>
+    </motion.div>
   );
 }

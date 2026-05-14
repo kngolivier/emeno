@@ -1,4 +1,5 @@
 // src/context/NotificationProvider.jsx
+
 import { useEffect, useState, useRef } from "react";
 import socket from "../../services/socket";
 import { useAuth } from "../AuthContext";
@@ -12,75 +13,49 @@ export const NotificationProvider = ({ children }) => {
   const processedIds = useRef(new Set());
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
+    if (!user) return;
     socket.connect();
 
     socket.on("connect", () => {
-      // Les deux rôles administratifs rejoignent la room de gestion
-      if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
-        socket.emit("join_admin");
-      }
-      
+      if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") socket.emit("join_admin");
       socket.emit("join_user", user._id);
     });
 
     const handleNewNotification = (notif) => {
-      // 1. DÉDUPLICATION
-      const notifId = notif._id || notif.id || `notif-${Date.now()}`;
+      const rawId = notif._id || notif.id;
       
-      if (processedIds.current.has(notifId)) {
-        return;
-      }
-
-      // 2. FILTRE DE SÉCURITÉ POUR LES RÔLES ADMIN & SUPER_ADMIN
-      // On définit si l'utilisateur actuel possède un privilège administratif
+      // FIX ULTIME : On préfixe TOUJOURS les IDs venant du socket pour éviter
+      // que React ne les confonde avec les clés de pagination (1, 2, 3...)
+      const safeId = rawId ? `sk-${rawId}` : `live-${Date.now()}`;
+      
+      if (processedIds.current.has(safeId)) return;
+      
       const hasAdminPrivileges = ["ADMIN", "SUPER_ADMIN"].includes(user.role);
-      
-      // On vérifie si la notification est destinée uniquement aux clients
       const isTargetClientOnly = notif.targetRoles?.includes("CLIENT") && 
                                  !notif.targetRoles?.includes("ADMIN") && 
                                  !notif.targetRoles?.includes("SUPER_ADMIN");
       
-      // Si un admin/super_admin reçoit une notif "Client" (ex: suivi de commande créée pour un tiers), on bloque.
-      if (hasAdminPrivileges && isTargetClientOnly) {
-        return;
-      }
+      if (hasAdminPrivileges && isTargetClientOnly) return;
       
-      processedIds.current.add(notifId);
+      processedIds.current.add(safeId);
 
-      // 3. AFFICHAGE ET MISE À JOUR DE L'ÉTAT
-      toast(notif.message || `Commande mise à jour`, {
+      toast(notif.message || `Mise à jour EMENO`, {
         icon: '🔔',
-        duration: 4000,
-        style: { 
-          borderRadius: '15px', 
-          background: '#1E293B', 
-          color: '#fff', 
-          fontWeight: 'bold' 
-        },
+        style: { borderRadius: '15px', background: '#1E293B', color: '#fff' },
       });
 
-      setNotifications((prev) => {
-        const updated = [{ ...notif, _id: notifId, createdAt: new Date().toISOString() }, ...prev];
-        return updated;
-      });
+      setNotifications((prev) => [{ ...notif, _id: safeId }, ...prev]);
       setUnreadCount((prev) => prev + 1);
     };
 
     socket.on("notification:new", handleNewNotification);
-
     socket.on("delivery:unassigned", (data) => {
-      // Alertes de gestion pour les administrateurs et super-administrateurs
       if (["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
         handleNewNotification({
           ...data,
           _id: `unassigned-${data.deliveryId || data.orderNumber}`,
           title: "ALERTE GESTION",
-          message: `Nouvelle commande disponible: #${data.orderNumber}`,
-          targetRoles: ["ADMIN", "SUPER_ADMIN"] // On force les rôles pour passer le filtre
+          message: `Nouvelle commande: #${data.orderNumber}`,
         });
       }
     });
@@ -88,17 +63,12 @@ export const NotificationProvider = ({ children }) => {
     return () => {
       socket.off("notification:new");
       socket.off("delivery:unassigned");
-      socket.off("connect");
       socket.disconnect();
     };
   }, [user]);
 
-  const markAllAsRead = () => {
-    setUnreadCount(0);
-  };
-
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAllAsRead }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, markAllAsRead: () => setUnreadCount(0) }}>
       {children}
     </NotificationContext.Provider>
   );

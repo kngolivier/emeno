@@ -42,6 +42,8 @@ import DriverProfile from "../pages/driver-portal/DriverProfile";
 import DriverMap from "../pages/driver-portal/DriverMap";
 import CommuneList from "../pages/communes/CommuneList";
 import VerifyOTP from "../pages/auth/VerifyOtp";
+import ClientHome from "../pages/client-portal/ClientHome";
+import NotificationsPage from "../pages/Notifications";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -89,6 +91,7 @@ export default function AppRoutes() {
           <Route path="admins" element={<AdminList />} />
           <Route path="admins/:id" element={<AdminDetails />} />
           <Route path="communes" element={<CommuneList />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* ===================== */}
@@ -102,11 +105,13 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<ClientDashboard />} />
+          <Route index element={<ClientHome />} />
+          <Route path="dashboard" element={<ClientDashboard />} />
           <Route path="orders" element={<ClientOrders />} />
           <Route path="orders/:id" element={<ClientOrderDetails />} />
           <Route path="profile" element={<ClientProfile />} />
           <Route path="new-order" element={<ClientCreateOrder />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* ESPACE LIVREUR (/driver) */}
@@ -118,10 +123,10 @@ export default function AppRoutes() {
           >
             <Route index element={<DriverDashboard />} />
             <Route path="deliveries" element={<DriverDeliveries />} />
-            {/* <Route path="deliveries/:id" element={<DeliveryDetail />} /> */}
             <Route path="profile" element={<DriverProfile />} />
             <Route path="map" element={<DriverMap />} />
-          </Route>
+            <Route path="notifications" element={<NotificationsPage />} />
+        </Route>
 
         {/* ===================== */}
         {/*   AUTRES / FALLBACKS  */}

@@ -3,8 +3,9 @@ import { useState } from "react";
 import { login as loginApi } from "../../api/auth.api";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Eye, EyeOff, Lock, User, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Eye, EyeOff, Lock, User, ArrowRight, Moon, Sun, ShieldCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../../context/Theme/ThemeContext";
 
 export default function Login() {
   const [identifier, setIdentifier] = useState("");
@@ -12,6 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -26,11 +28,9 @@ export default function Login() {
       const { token, user, mustChangePassword } = res.data;
       if (!token) throw new Error("Erreur d'authentification");
 
-      // 1. Mise à jour du contexte Auth
       login({ user, token });
 
-      // 2. PRIORITÉ : Vérification du statut PENDING (Validation OTP Gabon)
-      // On redirige vers l'OTP avant toute autre action
+      // Redirection OTP pour validation mobile (Spécifique Gabon)
       if (user.status === "PENDING") {
         return navigate("/verify-otp", {
           replace: true, 
@@ -38,12 +38,11 @@ export default function Login() {
         });
       }
 
-      // 3. Sécurité : Changement de mot de passe requis (mot de passe généré par admin)
+      // Sécurité : Premier login avec mot de passe généré
       if (mustChangePassword) {
         return navigate("/change-password", { replace: true });
       }
 
-      // 4. Routage standard par rôle
       const routes = {
         SUPER_ADMIN: "/admin",
         ADMIN: "/admin",
@@ -60,85 +59,136 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-primary-dark flex items-center justify-center p-4 lg:p-8 relative overflow-hidden transition-colors">
+    <div className="min-h-screen bg-[#F1F5F9] dark:bg-[#0B1120] flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-500">
+      
+      {/* --- EFFETS DE FOND (Glow) --- */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md bg-white dark:bg-surface p-6 lg:p-10 rounded-[2rem] lg:rounded-[3rem] shadow-xl border border-slate-50 dark:border-white/5"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[440px] bg-white dark:bg-slate-900 p-8 lg:p-12 rounded-[3.5rem] shadow-2xl border border-white dark:border-slate-800 relative"
       >
-        <div className="text-center mb-8 lg:mb-10">
-          <Link to="/" className="text-3xl lg:text-4xl font-black text-primary dark:text-white tracking-tighter italic mb-2 block">
-            EMENO<span className="text-secondary">.</span>
-          </Link>
-          <h2 className="text-[10px] lg:text-sm font-black text-slate-400 uppercase tracking-[0.2em] italic">
-            Espace de connexion
-          </h2>
+        {/* --- TOGGLE THÈME --- */}
+        <div className="absolute top-8 right-8">
+            <button
+                onClick={toggleTheme}
+                className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-secondary hover:scale-110 transition-all active:scale-90 border border-slate-100 dark:border-slate-700 shadow-sm"
+            >
+                {isDarkMode ? <Sun size={18} strokeWidth={3} /> : <Moon size={18} strokeWidth={3} />}
+            </button>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 text-red-500 text-[9px] lg:text-[10px] font-black rounded-xl border border-red-100 dark:border-red-500/20 uppercase tracking-widest text-center">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-3 lg:space-y-4">
-          <div className="relative group">
-            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
-              <User size={18} />
-            </div>
-            <input
-              type="text"
-              className="w-full pl-14 pr-6 py-4 lg:py-5 bg-white  border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
-              placeholder="EMAIL OU TÉLÉPHONE"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              required
+        {/* --- LOGO & HEADER --- */}
+        <div className="text-center mb-10">
+          <Link to="/" className="inline-block mb-6 active:scale-95 transition-transform">
+            <img 
+              src={isDarkMode ? "./logo.png" : "./logo-dark.png"} 
+              alt="Logo EMENO" 
+              className="max-h-16 lg:max-h-20 object-contain mx-auto"
             />
+          </Link>
+          <div className="space-y-1">
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic">
+              Connexion Sécurisée
+            </h2>
+            <p className="text-[8px] font-bold text-secondary uppercase tracking-widest">
+              Système de Livraison EMENO
+            </p>
           </div>
+        </div>
 
-          <div className="relative group">
-            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
-              <Lock size={18} />
-            </div>
-            <input
-              type={showPassword ? "text" : "password"}
-              className="w-full pl-14 pr-14 py-4 lg:py-5 bg-white dark:bg-white/5 border-none rounded-xl lg:rounded-2xl outline-none focus:ring-2 focus:ring-secondary/20 text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all"
-              placeholder="MOT DE PASSE"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-primary transition-colors"
+        {/* --- ALERTES ERREUR --- */}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+              className="mb-6 p-4 bg-rose-50 dark:bg-rose-500/10 text-rose-500 text-[10px] font-black rounded-2xl border border-rose-100 dark:border-rose-500/20 uppercase tracking-widest text-center italic"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* --- FORMULAIRE --- */}
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Identifiant</label>
+            <div className="relative group">
+              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
+                <User size={20} />
+              </div>
+              <input
+                type="text"
+                className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-secondary/20 focus:bg-white dark:focus:bg-slate-800 rounded-3xl outline-none text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all shadow-inner"
+                placeholder="Email ou Téléphone"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Mot de passe</label>
+            <div className="relative group">
+              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-secondary transition-colors">
+                <Lock size={20} />
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full pl-16 pr-16 py-5 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-secondary/20 focus:bg-white dark:focus:bg-slate-800 rounded-3xl outline-none text-sm font-bold text-primary dark:text-white placeholder:text-slate-300 transition-all shadow-inner"
+                placeholder="Votre mot de passe"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-secondary transition-colors p-1"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-end px-2">
+            <Link to="/forgot-password" size="sm" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-secondary transition-colors">
+              Mot de passe oublié ?
+            </Link>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-5 bg-primary text-white font-black uppercase tracking-[0.2em] text-[11px] rounded-[1.5rem] shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 mt-6 hover:bg-[#002D15] transition-all relative overflow-hidden active:scale-95"
+            className="w-full py-6 bg-primary text-white font-black uppercase tracking-[0.3em] text-[11px] rounded-[2rem] shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 mt-4 hover:bg-[#002D15] hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
           >
             {loading ? (
-              <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <Loader2 className="animate-spin" size={20} strokeWidth={3} />
             ) : (
-              <>Se connecter <ArrowRight size={18} strokeWidth={3} /></>
+              <>Accéder à l'espace <ArrowRight size={20} strokeWidth={3} /></>
             )}
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5 text-center">
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
-            Nouveau ? <Link to="/register" className="text-secondary underline underline-offset-4">Créer un compte client</Link>
+        {/* --- FOOTER D'INSCRIPTION --- */}
+        <div className="mt-10 pt-8 border-t border-slate-50 dark:border-slate-800 text-center">
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-loose">
+            Pas encore de compte ? <br/>
+            <Link to="/register" className="text-secondary underline underline-offset-8 decoration-2 decoration-secondary/30 hover:decoration-secondary transition-all">
+              Devenir client EMENO
+            </Link>
           </p>
+        </div>
+
+        {/* --- SECURITY BADGE --- */}
+        <div className="mt-8 flex items-center justify-center gap-2 text-slate-300 dark:text-slate-700">
+            <ShieldCheck size={14} />
+            <span className="text-[8px] font-black uppercase tracking-[0.2em]">Chiffrement SSL 256-bit</span>
         </div>
       </motion.div>
     </div>

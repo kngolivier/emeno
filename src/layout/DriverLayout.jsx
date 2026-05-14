@@ -1,8 +1,8 @@
-// FILE: src/layout/DriverLayout.jsx
+// src/layout/DriverLayout.jsx
 
 import { useState, useMemo } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { Bell, LogOut, X, Home, Package, MapPin, User as UserIcon, Power } from "lucide-react";
+import { Bell, LogOut, X, Home, Package, MapPin, User as UserIcon, Power, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../hooks/useNotifications"; 
@@ -32,46 +32,48 @@ export default function DriverLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-primary-dark pb-32 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1120] pb-32 transition-colors duration-300">
       
-      {/* --- HEADER AMÉLIORÉ --- */}
-      <header className="h-24 bg-white/80 dark:bg-primary-light/80 border-b border-slate-100 dark:border-white/5 flex items-center justify-between px-6 sticky top-0 z-50 backdrop-blur-xl">
+      {/* --- HEADER ULTRA-MODERNE --- */}
+      <header className="h-24 bg-white/90 dark:bg-slate-900/90 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between px-6 sticky top-0 z-[60] backdrop-blur-xl">
         <div className="flex items-center gap-4">
           <div className="flex flex-col">
-            <span className="text-2xl font-black text-primary dark:text-white italic tracking-tighter leading-none">
+            <h1 className="text-2xl font-black text-primary dark:text-white italic tracking-tighter leading-none uppercase">
               EMENO<span className="text-secondary">.</span>
-            </span>
-            <div className="flex items-center gap-1.5 mt-1">
-              <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-success animate-pulse' : 'bg-slate-300'}`} />
-              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted">
-                Driver App
+            </h1>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isOnline ? 'bg-emerald-400' : 'bg-slate-300'}`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                {isOnline ? 'En service' : 'Hors ligne'}
               </span>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          {/* Toggle de service rapide dans le header */}
+        <div className="flex items-center gap-4">
+          {/* Status Toggle Button */}
           <button 
             onClick={toggleDuty}
-            className={`flex items-center gap-2 px-3 py-2 rounded-2xl border-2 transition-all active:scale-95 ${
-              isOnline 
-              ? 'bg-success/10 border-success text-success shadow-lg shadow-success/10' 
-              : 'bg-slate-100 border-slate-200 text-slate-400 dark:bg-white/5 dark:border-white/10'
-            }`}
+            className={`relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-[1.2rem] border-2 transition-all active:scale-95 group
+              ${isOnline 
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-lg shadow-emerald-500/5' 
+                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-400'}`}
           >
-            <Power size={14} className={isOnline ? 'animate-pulse' : ''} />
-            <span className="text-[9px] font-black uppercase tracking-widest">
-              {isOnline ? 'On' : 'Off'}
+            <span className="text-[10px] font-black uppercase tracking-widest italic">
+              {isOnline ? 'Live' : 'Off'}
             </span>
+            <div className={`p-1 rounded-lg ${isOnline ? 'bg-emerald-500 text-white animate-pulse' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+              <Power size={12} strokeWidth={3} />
+            </div>
           </button>
 
-          <div className="h-8 w-[1px] bg-slate-100 dark:bg-white/10 mx-1" />
-
-          <button onClick={handleToggleNotifs} className="relative p-2.5 bg-slate-50 dark:bg-white/5 rounded-2xl text-primary dark:text-white active:scale-90 transition-all">
-            <Bell size={20} />
+          <button onClick={handleToggleNotifs} className="relative p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-primary dark:text-white active:scale-90 transition-all border border-transparent dark:border-slate-700/50">
+            <Bell size={22} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white dark:border-primary-light">
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-secondary text-primary text-[10px] font-black flex items-center justify-center rounded-full border-4 border-white dark:border-slate-900">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -79,61 +81,71 @@ export default function DriverLayout() {
         </div>
       </header>
 
-      {/* --- DRAWER DE NOTIFICATIONS (Identique mais stylisé) --- */}
+      {/* --- NOTIFICATION DRAWER --- */}
       <AnimatePresence>
         {showNotifDrawer && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowNotifDrawer(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-md z-[60]" />
-            <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-white dark:bg-primary-dark z-[70] shadow-2xl p-8 flex flex-col rounded-l-[3rem]">
-              <div className="flex justify-between items-center mb-10">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowNotifDrawer(false)} className="fixed inset-0 bg-primary/60 dark:bg-black/80 backdrop-blur-md z-[70]" />
+            <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed top-0 right-0 h-full w-[88%] max-w-md bg-white dark:bg-slate-900 z-[80] shadow-2xl p-8 flex flex-col rounded-l-[3rem] border-l border-white/10">
+              <div className="flex justify-between items-start mb-12">
                 <div>
-                  <p className="text-[10px] font-black text-secondary uppercase tracking-[0.3em]">Flux</p>
-                  <h3 className="text-2xl font-black text-primary dark:text-white italic tracking-tighter">Notifications</h3>
+                  <span className="text-secondary font-black text-[10px] uppercase tracking-[0.4em] italic block mb-2">Centre de contrôle</span>
+                  <h3 className="text-3xl font-black text-primary dark:text-white italic tracking-tighter uppercase">Messages</h3>
                 </div>
-                <button onClick={() => setShowNotifDrawer(false)} className="p-3 bg-slate-100 dark:bg-white/5 rounded-2xl active:rotate-90 transition-transform"><X size={20}/></button>
+                <button onClick={() => setShowNotifDrawer(false)} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-[1.5rem] text-slate-400 active:rotate-90 transition-all">
+                  <X size={24} strokeWidth={3}/>
+                </button>
               </div>
               
-              <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+              <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide">
                 {displayNotifications.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full opacity-20">
-                    <Bell size={48} className="mb-4" />
-                    <p className="text-center text-xs font-black uppercase tracking-widest">Tout est calme</p>
+                  <div className="flex flex-col items-center justify-center h-full text-slate-200 dark:text-slate-800">
+                    <Bell size={80} strokeWidth={1} className="mb-6 opacity-20" />
+                    <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] opacity-40 italic">Aucune nouvelle alerte</p>
                   </div>
                 ) : (
                   displayNotifications.map((notif, i) => (
                     <motion.div 
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                       key={notif._id || i} 
-                      className="p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5"
+                      className="p-6 rounded-[2rem] border border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 group hover:border-secondary/30 transition-all"
                     >
-                      <p className="text-[9px] font-black text-secondary uppercase mb-2 tracking-widest">{notif.title}</p>
-                      <p className="text-xs font-bold text-primary dark:text-slate-200 leading-relaxed">{notif.message}</p>
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="text-[9px] font-black text-secondary uppercase tracking-widest">{notif.title}</span>
+                        <span className="text-[8px] font-bold text-slate-300 uppercase italic">Maintenant</span>
+                      </div>
+                      <p className="text-sm font-bold text-primary dark:text-slate-200 leading-snug tracking-tight">{notif.message}</p>
                     </motion.div>
                   ))
                 )}
               </div>
 
-              <button 
-                onClick={() => logout().then(() => navigate("/login"))}
-                className="mt-6 flex items-center justify-center gap-3 p-5 bg-red-50 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest active:bg-red-500 active:text-white transition-all"
-              >
-                <LogOut size={16} /> Déconnexion
-              </button>
+              <div className="pt-8 space-y-4">
+                 <button 
+                  onClick={() => logout().then(() => navigate("/login"))}
+                  className="w-full flex items-center justify-between p-6 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-[2rem] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <LogOut size={18} strokeWidth={3} /> 
+                    <span>Fermer la session</span>
+                  </div>
+                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      <main className="max-w-md mx-auto">
+      <main className="max-w-md mx-auto px-4 pt-6">
         <Outlet />
       </main>
 
-      {/* --- BARRE DE NAVIGATION FLOTTANTE --- */}
-      <nav className="fixed bottom-8 left-6 right-6 h-20 bg-secondary/70 dark:bg-slate-900 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-around z-50 border border-white/10 backdrop-blur-xl px-4 dark:bg-primary">
-        <NavIcon to="/driver" icon={<Home size={22} />} label="Home" active={location.pathname === "/driver"} />
-        <NavIcon to="/driver/deliveries" icon={<Package size={22} />} label="Orders" active={location.pathname === "/driver/deliveries"} />
-        {/* <NavIcon to="/driver/map" icon={<MapPin size={22} />} label="Map" active={location.pathname === "/driver/map"} /> */}
-        <NavIcon to="/driver/profile" icon={<UserIcon size={22} />} label="Profile" active={location.pathname === "/driver/profile"} />
+      {/* --- FLOATING TAB BAR --- */}
+      <nav className="fixed bottom-6 left-6 right-6 h-22 bg-primary dark:bg-slate-900/90 rounded-[2.8rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] flex items-center justify-around z-[55] border border-white/10 backdrop-blur-2xl px-4 ring-1 ring-black/5 p-5">
+        <NavIcon to="/driver" icon={<Home size={24} />} label="Accueil" active={location.pathname === "/driver"} />
+        <NavIcon to="/driver/deliveries" icon={<Package size={24} />} label="Courses" active={location.pathname === "/driver/deliveries"} />
+        <NavIcon to="/driver/profile" icon={<UserIcon size={24} />} label="Compte" active={location.pathname === "/driver/profile"} />
       </nav>
     </div>
   );
@@ -144,31 +156,29 @@ function NavIcon({ to, icon, label, active }) {
     <NavLink 
       to={to} 
       end={to === "/driver"}
-      className="relative flex flex-col items-center justify-center w-16 h-16 transition-all"
+      className="relative flex flex-col items-center justify-center w-20 h-full transition-all"
     >
-      {/* Background indicateur pour l'icône active */}
-      {active && (
-        <motion.div 
-          layoutId="nav-pill"
-          className="absolute inset-0 bg-white/10 dark:bg-secondary/20 rounded-2xl"
-          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-        />
-      )}
-      
-      <div className={`relative z-10 transition-colors duration-300 ${active ? 'text-secondary' : 'dark:text-secondary'}`}>
-        {icon}
+      <div className={`relative z-10 flex flex-col items-center transition-all duration-300 ${active ? 'scale-110' : 'opacity-40 hover:opacity-70'}`}>
+        <div className={`mb-1 transition-colors duration-300 ${active ? 'text-secondary' : 'text-white'}`}>
+          {icon}
+        </div>
+        <span className={`text-[8px] font-black uppercase tracking-[0.15em] transition-colors duration-300 ${active ? 'text-white' : 'text-white/60'}`}>
+          {label}
+        </span>
       </div>
-      
-      <span className={`relative z-10 text-[10px] font-black uppercase tracking-tighter mt-1 transition-colors duration-300 ${active ? 'text-white' : 'text-white/20'}`}>
-        {label}
-      </span>
 
-      {/* Point de focus sous l'icône active */}
       {active && (
-        <motion.div 
-          layoutId="nav-dot"
-          className="absolute -bottom-1 w-1 h-1 bg-primary dark:bg-secondary rounded-full"
-        />
+        <>
+          <motion.div 
+            layoutId="nav-bg"
+            className="absolute inset-x-2 inset-y-3 bg-white/5 dark:bg-secondary/10 rounded-[1.8rem]"
+            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+          />
+          <motion.div 
+            layoutId="nav-glow"
+            className="absolute -bottom-2 w-8 h-1 bg-secondary rounded-full shadow-[0_0_15px_rgba(242,201,76,0.6)]"
+          />
+        </>
       )}
     </NavLink>
   );
