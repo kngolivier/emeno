@@ -412,7 +412,7 @@ export default function OrderTracking() {
 
           <div className="bg-primary dark:bg-white/[0.03] p-8 rounded-[2.5rem] shadow-2xl space-y-8 text-white dark:text-white/90 relative overflow-hidden border border-transparent dark:border-white/5">
             <h3 className="font-display font-black text-2xl italic tracking-tight uppercase flex items-center gap-2">
-              <PackageCheck size={24} className="text-secondary" /> Suivi
+              <PackageCheck size={24} className="text-secondary" /> <span className="text-white"> Suivi</span>
             </h3>
             <div className="space-y-6 relative">
               {steps.map((step, i) => (

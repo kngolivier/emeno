@@ -54,18 +54,22 @@ export default function Header({
   const validNotifications = useMemo(() => {
     const seen = new Set();
 
-    return notifications.filter((n) => {
-      const id =
-        n._id || n.data?.deliveryId;
+    // On récupère l'index (idx) pour générer un ID de repli stable et pur
+    return notifications.filter((n, idx) => {
+      // FIX : Utilisation de l'index à la place de Date.now()
+      const id = n._id || n.id || n.data?.deliveryId || `temp-${idx}`;
 
       if (seen.has(id)) return false;
-
       seen.add(id);
 
-      return (
-        n.deliveryId ??
-        n?.data?.deliveryId
-      );
+      // Validation résiliente
+      const hasDeliveryId = 
+        n.deliveryId || 
+        n.data?.deliveryId || 
+        String(id).includes('unassigned') || 
+        String(id).includes('sk-');
+      
+      return n.message && hasDeliveryId;
     });
   }, [notifications]);
 

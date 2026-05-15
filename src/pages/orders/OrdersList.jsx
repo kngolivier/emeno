@@ -25,7 +25,7 @@ export default function OrdersList() {
   };
 
   const statusStyles = {
-    PENDING: "bg-primary/5 text-primary border-primary/20 dark:bg-primary/10 dark:text-primary/90 dark:border-primary/30",
+    PENDING: "bg-primary/5 text-primary border-primary/20 dark:bg-primary/10 dark:text-white dark:border-primary/30",
     ASSIGNED: "bg-secondary/10 text-secondary border-secondary/20",
     PICKED_UP: "bg-secondary/5 text-secondary border-secondary/10",
     IN_PROGRESS: "bg-secondary text-white border-secondary shadow-lg shadow-secondary/20",

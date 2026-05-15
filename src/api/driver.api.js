@@ -52,6 +52,11 @@ export const fetchMyDebt = (userId) => {
 //   return API.get(`${ENDPOINTS.USERS}/me`);
 // };
 
+// GESTION DU CYCLE DE PAUSE EMENO
+export const updateMyStateAction = (newState) => {
+  return API.patch(ENDPOINTS.DRIVER_UPDATE_STATE, { newState });
+};
+
 const driverApi = {
   fetchActiveDeliveries,
   fetchDriverHistory,
@@ -61,6 +66,7 @@ const driverApi = {
   toggleAvailability,
   fetchMyDebt,
 //   fetchMyProfile
+  updateMyStateAction,
 };
 
 export default driverApi;

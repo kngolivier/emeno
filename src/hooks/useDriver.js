@@ -11,14 +11,17 @@ export const useDriver = () => {
   const [activeOrders, setActiveOrders] = useState([]); 
   const [stats, setStats] = useState({ completed: 0, total: 0, distance: 0 }); 
   const [loading, setLoading] = useState(true);
-  
-  const isOnline = user?.driverState === "IDLE" || user?.driverState === "BUSY";
+  const [updatingState, setUpdatingState] = useState(false);
+
+  // Un livreur est considéré "En ligne" globalement s'il n'est pas OFFLINE
+  const isOnline = user?.driverState && user?.driverState !== "OFFLINE";
+  // Un livreur est en pause uniquement si son état vaut explicitement "PAUSE"
+  const isPaused = user?.driverState === "PAUSE";
   const maxCapacity = user?.maxActiveDeliveries || 1;
 
   const refreshStats = useCallback(async () => {
     try {
       const response = await fetchMyStats("TODAY"); 
-      console.log("STATS LIVREUR ====>  ", response)
       setStats(response.data?.data || response.data);
     } catch (err) {
       console.error("Erreur stats livreur:", err.message);
@@ -37,16 +40,49 @@ export const useDriver = () => {
     }
   }, []);
 
+  // Déconnexion ou Connexion Globale
   const toggleDuty = async () => {
+    if (updatingState) return;
+    setUpdatingState(true);
     try {
-      const nextStatus = !isOnline;
-      const res = await driverApi.toggleAvailability(nextStatus);
+      // Si en ligne (IDLE, PAUSE, BUSY), on passe OFFLINE, sinon on passe IDLE
+      const nextState = isOnline ? "OFFLINE" : "IDLE";
+      const res = await driverApi.updateMyStateAction(nextState);
       const updatedData = res.data?.data || res.data;
       
       updateUser({ ...user, driverState: updatedData.driverState });
-      toast.success(nextStatus ? "Vous êtes en ligne" : "Vous êtes hors ligne");
+      toast.success(nextState === "IDLE" ? "Vous êtes en service" : "Vous êtes hors ligne");
     } catch (err) {
-      toast.error("Erreur de statut : " + (err.response?.data?.message || err.message));
+      toast.error(err.response?.data?.message || "Erreur de changement de service");
+    } finally {
+      setUpdatingState(false);
+    }
+  };
+
+  // Basculer l'état de pause (IDLE <-> PAUSE)
+  const togglePause = async () => {
+    if (!isOnline) {
+      toast.error("Vous devez être en service pour prendre une pause");
+      return;
+    }
+    if (user?.driverState === "BUSY") {
+      toast.error("Impossible de prendre une pause pendant une livraison active");
+      return;
+    }
+    if (updatingState) return;
+
+    setUpdatingState(true);
+    try {
+      const nextState = isPaused ? "IDLE" : "PAUSE";
+      const res = await driverApi.updateMyStateAction(nextState);
+      const updatedData = res.data?.data || res.data;
+
+      updateUser({ ...user, driverState: updatedData.driverState });
+      toast.success(nextState === "PAUSE" ? "Pause enregistrée" : "Reprise du service active");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Erreur lors du changement de pause");
+    } finally {
+      setUpdatingState(false);
     }
   };
 
@@ -82,7 +118,9 @@ export const useDriver = () => {
 
   useEffect(() => {
     let watchId;
-    if (isOnline && navigator.geolocation) {
+    // On traque la géolocalisation uniquement si le livreur travaille et n'est pas déconnecté/en pause
+    const shouldTrack = user?.driverState === "IDLE" || user?.driverState === "BUSY";
+    if (shouldTrack && navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
           driverApi.updateDriverLocation(pos.coords.latitude, pos.coords.longitude, true);
@@ -92,7 +130,7 @@ export const useDriver = () => {
       );
     }
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [isOnline]);
+  }, [user?.driverState]);
 
   useEffect(() => {
     refreshActiveOrders();
@@ -105,7 +143,10 @@ export const useDriver = () => {
     maxCapacity,
     loading,
     isOnline,
+    isPaused,
+    updatingState,
     toggleDuty,
+    togglePause,
     advanceStatus,
     validateDelivery,
     refreshActiveOrders,

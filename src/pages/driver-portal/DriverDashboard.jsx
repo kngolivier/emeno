@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   CheckCircle, Clock, TrendingUp, Power, MapPin, 
   Package, Loader2, X, Phone, ShieldCheck, Navigation,
-  ChevronRight, Info, AlertCircle
+  ChevronRight, Info, AlertCircle, Coffee, Play
 } from "lucide-react";
 import { useDriver } from "../../hooks/useDriver";
 import { useAuth } from "../../context/AuthContext";
@@ -20,6 +20,9 @@ export default function DriverDashboard() {
     toggleDuty, 
     advanceStatus,
     validateDelivery,
+    togglePause,
+    isPaused,
+    updatingState,
     stats = { completed: 0, total: 0, distance: 0 }
   } = useDriver();
 
@@ -88,30 +91,92 @@ export default function DriverDashboard() {
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors duration-300 overflow-x-hidden">
       <div className="max-w-md mx-auto p-5 space-y-6 pb-32">
         
-        {/* 1. HEADER OPÉRATIONNEL */}
-        <header className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
-          <div className="min-w-0">
-            <h1 className="text-xl font-black text-primary dark:text-white italic tracking-tighter truncate uppercase">
-              Salut, {user?.prenom || 'Livreur'}
-            </h1>
-            <div className="flex items-center gap-2 mt-2">
-                <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
-                  {isOnline ? "En Service" : "Hors Ligne"}
-                </p>
-                {isOnline && (
-                    <span className="text-[8px] font-black px-2 py-0.5 bg-secondary text-primary rounded-lg ml-1 italic shadow-sm">
-                        {activeOrders.length}/{maxCapacity}
-                    </span>
-                )}
+        {/* 1. HEADER OPÉRATIONNEL - REDESSINÉ STYLE CHIC & CONTEXTUEL */}
+        <header className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0 flex-1 pr-2">
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-1">Espace Coursier</span>
+              <h1 className="text-xl font-black text-primary dark:text-white italic tracking-tighter truncate uppercase leading-none">
+                Salut, {user?.prenom || 'Livreur'}
+              </h1>
+            </div>
+            
+            {/* Petit badge d'état condensé */}
+            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/60 px-4 py-2 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+              <span className={`w-2 h-2 rounded-full ${
+                user?.driverState === 'BUSY' ? 'bg-amber-500 animate-pulse' :
+                user?.driverState === 'IDLE' ? 'bg-emerald-500 animate-pulse' :
+                user?.driverState === 'PAUSE' ? 'bg-blue-500' : 'bg-slate-300'
+              }`} />
+              <p className="text-[9px] text-slate-500 dark:text-slate-300 font-black uppercase tracking-widest">
+                {user?.driverState === 'BUSY' ? "En Course" :
+                 user?.driverState === 'IDLE' ? "Disponible" :
+                 user?.driverState === 'PAUSE' ? "En Pause" : "Hors Ligne"}
+              </p>
             </div>
           </div>
-          <button 
-            onClick={toggleDuty} 
-            className={`p-4 rounded-2xl border-2 transition-all active:scale-90 ${isOnline ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/10' : 'bg-slate-50 border-slate-100 text-slate-300 dark:bg-slate-800 dark:border-slate-700'}`}
-          >
-            <Power size={24} strokeWidth={3} />
-          </button>
+
+          {/* BOUTON D'ACTION PRINCIPAL ADAPTATIF */}
+          <div className="w-full">
+            {updatingState ? (
+              <button disabled className="w-full bg-slate-100 dark:bg-slate-800 text-slate-400 py-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-200/50 dark:border-slate-700">
+                <Loader2 className="animate-spin text-slate-400" size={18} strokeWidth={3} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Mise à jour du statut...</span>
+              </button>
+            ) : user?.driverState === "BUSY" ? (
+              // Cas 1 : En pleine livraison (Bloqué)
+              <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 py-4 px-5 rounded-2xl flex items-center justify-between shadow-inner">
+                <div className="flex items-center gap-3">
+                  <Package size={18} strokeWidth={2.5} className="animate-bounce" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Livraison en cours</span>
+                </div>
+                <span className="text-[9px] font-black px-2 py-0.5 bg-amber-500 text-white rounded-lg italic shadow-sm">
+                  {activeOrders.length}/{maxCapacity}
+                </span>
+              </div>
+            ) : !isOnline ? (
+              // Cas 2 : Hors Ligne -> Prendre son service
+              <button 
+                onClick={toggleDuty}
+                className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
+              >
+                <Power size={16} strokeWidth={3} />
+                Prendre mon service
+              </button>
+            ) : (
+              // Cas 3 : En Service / En ligne -> Choix entre Pause ou Déconnexion
+              <div className="flex gap-3">
+                <button 
+                  onClick={togglePause}
+                  className={`flex-1 py-4 px-4 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
+                    isPaused 
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
+                      : 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
+                  }`}
+                >
+                  {isPaused ? (
+                    <>
+                      <Play size={14} strokeWidth={3} fill="currentColor" />
+                      Reprendre
+                    </>
+                  ) : (
+                    <>
+                      <Coffee size={14} strokeWidth={3} />
+                      Prendre une Pause
+                    </>
+                  )}
+                </button>
+
+                <button 
+                  onClick={toggleDuty}
+                  className="bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 p-4 rounded-2xl active:scale-[0.95] transition-all"
+                  title="Terminer la journée (Hors ligne)"
+                >
+                  <Power size={18} strokeWidth={3} />
+                </button>
+              </div>
+            )}
+          </div>
         </header>
 
         {/* 2. STATS RAPIDES */}

@@ -1,4 +1,4 @@
-// FILE: src/pages/dashboard/AdminDashboard.jsx
+// src/pages/dashboard/AdminDashboard.jsx
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -8,13 +8,14 @@ import tailwindConfig from '../../../tailwind.config.js';
 import { fetchAdminStats } from "../../api/stats.api";
 import { fetchAdminDeliveries } from "../../api/deliveries.api";
 import { useAuth } from "../../context/AuthContext";
+import { useNotifications } from "../../hooks/useNotifications"; // Import des notifications temps réel
 import PageLoader from "../../components/ui/PageLoader";
 import StatCard from "../../components/dashboard/StatCard";
 import ProgressRow from "../../components/dashboard/ProgressRow";
 
 import {
-  Truck, CreditCard, PackageCheck, Activity,
-  CheckCircle, ArrowUpRight, Users, Settings, Shield, Star, Award, ShoppingBag
+  Truck, CreditCard, PackageCheck, Activity, AlertTriangle, Bell,
+  CheckCircle, ArrowUpRight, Users, Settings, Shield, Star, Award, ShoppingBag, Eye
 } from "lucide-react";
 
 import {
@@ -25,14 +26,22 @@ import {
 const fullConfig = resolveConfig(tailwindConfig);
 const theme = fullConfig.theme.colors;
 
+// Configuration pour la traduction française et le stylisme chic des statuts livreurs
+const DRIVER_STATES_MAP = {
+  IDLE: { label: "DISPONIBLE", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
+  BUSY: { label: "EN COURSE", color: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
+  PAUSE: { label: "EN PAUSE", color: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
+  OFFLINE: { label: "DÉCONNECTÉ", color: "text-slate-400 bg-slate-500/10 border-slate-500/10" }
+};
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [period, setPeriod] = useState("TODAY");
   const [recentDeliveries, setRecentDeliveries] = useState([]);
   const { user } = useAuth();
+  const { notifications, unreadCount, markAllAsRead } = useNotifications(); // Hook temps réel EMENO
   const navigate = useNavigate();
 
-  // On adapte les couleurs Recharts en fonction du mode (via window.matchMedia ou classe)
   const isDark = document.documentElement.classList.contains('dark');
 
   const COLORS = {
@@ -67,6 +76,13 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, [period]);
 
+  // Marquer comme lu à l'ouverture du dashboard ou à la consultation des alertes
+  useEffect(() => {
+    if (unreadCount > 0) {
+      markAllAsRead();
+    }
+  }, [unreadCount]);
+
   if (!stats) return <PageLoader />;
 
   const deliveryStats = stats?.deliveryBreakdown || {};
@@ -90,7 +106,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8 pb-10 transition-colors duration-300">
       
-      {/* HEADER SECTION : Couleurs dynamiques */}
+      {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white">
@@ -101,7 +117,6 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        {/* Sélecteur de période : Soft Slate en light, Glassmorphism en dark */}
         <div className="flex bg-slate-200/50 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 backdrop-blur-md shadow-sm">
           {["TODAY", "WEEK", "MONTH"].map((p) => (
             <button
@@ -119,7 +134,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* KPI GRID : Opacités pour adaptation automatique */}
+      {/* KPI GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard title="En attente" value={deliveryStats.pending || 0} icon={PackageCheck} color="bg-amber-500/10 text-amber-600 dark:text-amber-400" />
         <StatCard title="En cours" value={deliveryStats.inProgress || 0} icon={Activity} color="bg-blue-500/10 text-blue-600 dark:text-blue-400" />
@@ -129,9 +144,8 @@ export default function AdminDashboard() {
         <StatCard title="Succès" value={successRate} icon={CheckCircle} color="bg-emerald-500/20 text-emerald-600 dark:text-emerald-500" />
       </div>
 
+      {/* BLOC SUPÉRIEUR : Graphique + Raccourcis */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* GRAPHIQUE : Card dynamique */}
         <div className="lg:col-span-2 bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
             <Activity size={16} className="text-secondary" /> Courbe des livraisons
@@ -140,45 +154,19 @@ export default function AdminDashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
-                <XAxis 
-                  dataKey="formattedDate" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: '900', fill: COLORS.muted }}
-                  dy={10}
-                />
+                <XAxis dataKey="formattedDate" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: '900', fill: COLORS.muted }} dy={10} />
                 <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '20px', 
-                    border: 'none', 
-                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    color: isDark ? '#fff' : '#000'
-                  }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="total" 
-                  stroke={COLORS.secondary} 
-                  strokeWidth={4} 
-                  dot={{ r: 4, fill: COLORS.secondary, strokeWidth: 2, stroke: 'transparent' }}
-                  activeDot={{ r: 7, strokeWidth: 0 }}
-                />
+                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold', color: isDark ? '#fff' : '#000' }} />
+                <Line type="monotone" dataKey="total" stroke={COLORS.secondary} strokeWidth={4} dot={{ r: 4, fill: COLORS.secondary, strokeWidth: 2, stroke: 'transparent' }} activeDot={{ r: 7, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* ACTIONS RAPIDES : Toujours en Primary pour garder l'ADN Emeno */}
         <div className="bg-primary p-8 rounded-[3xl] shadow-2xl shadow-primary/30 text-white flex flex-col relative overflow-hidden">
           <div className="absolute top-[-10%] right-[-10%] w-32 h-32 bg-secondary/10 blur-3xl rounded-full" />
-          
           <h3 className="font-black uppercase text-[10px] tracking-widest text-secondary mb-2 italic">Raccourcis</h3>
           <p className="text-white/40 text-[10px] mb-8 font-black uppercase italic tracking-widest">Navigation rapide</p>
-          
           <div className="space-y-3 relative z-10">
             <QuickAction label="Livraisons" icon={Truck} onClick={() => navigate("/admin/deliveries")} color={COLORS.secondary} />
             <QuickAction label="Clients" icon={Users} onClick={() => navigate("/admin/clients")} color={COLORS.secondary} />
@@ -192,17 +180,113 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* CLASSEMENTS : Adaptation des listes */}
+      {/* NOUVEAU BLOC DU MILIEU : ALERTES OPÉRATIONNELLES LIVE */}
+      <div className="grid grid-cols-1 gap-8">
+        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border-2 border-dashed border-slate-200 dark:border-white/10 shadow-soft">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[rgba(245,158,11,0.1)] text-amber-500 rounded-xl relative">
+                <Bell size={18} className="animate-pulse" />
+                <span className="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+              </div>
+              <div>
+                <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest italic">
+                  Flux d'alertes en temps réel
+                </h3>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Mouvements critiques & Commandes orphelines</p>
+              </div>
+            </div>
+            <span className="text-[9px] font-black px-3 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl uppercase tracking-widest">
+              Live Socket
+            </span>
+          </div>
+
+          <div className="max-h-[280px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+            {notifications.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 dark:text-slate-600">
+                <CheckCircle size={32} className="mx-auto mb-2 opacity-30" />
+                <p className="text-[10px] font-black uppercase tracking-widest italic">Aucune alerte critique pour le moment</p>
+              </div>
+            ) : (
+              notifications.map((notif) => {
+                const isUnassigned = notif._id?.toString().includes("unassigned");
+                
+                // ============================================================
+                // TRAITEMENT ET TRADUCTION DE L'ALERTE EN DIRECT (EMENO)
+                // ============================================================
+                let displayMessage = notif.message;
+                let matchedStateBadge = null;
+
+                Object.keys(DRIVER_STATES_MAP).forEach((stateKey) => {
+                  if (notif.message && notif.message.includes(`maintenant ${stateKey}`)) {
+                    const stateData = DRIVER_STATES_MAP[stateKey];
+                    
+                    // Transformation pour intégration naturelle dans la phrase
+                    displayMessage = notif.message.replace(
+                      `maintenant ${stateKey}`, 
+                      `maintenant ${stateData.label.toLowerCase()}`
+                    );
+
+                    // Création du badge d'état stylisé
+                    matchedStateBadge = (
+                      <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border tracking-widest shrink-0 ${stateData.color}`}>
+                        {stateData.label}
+                      </span>
+                    );
+                  }
+                });
+                // ============================================================
+
+                return (
+                  <div 
+                    key={notif._id}
+                    className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${
+                      isUnassigned 
+                        ? "bg-rose-500/5 border-rose-500/20 text-rose-900 dark:text-rose-100" 
+                        : "bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5"
+                    }`}
+                  >
+                    <div className="flex gap-4 min-w-0 flex-1 items-center">
+                      <div className={`p-2.5 rounded-xl shrink-0 ${isUnassigned ? "bg-rose-500/10 text-rose-500" : "bg-primary dark:bg-slate-800 text-secondary"}`}>
+                        {isUnassigned ? <AlertTriangle size={16} /> : <Bell size={16} />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                            {notif.title || (isUnassigned ? "ALERTE OPÉRATIONNELLE" : "STATUT LIVREUR")}
+                          </p>
+                          {matchedStateBadge}
+                        </div>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
+                          {displayMessage}
+                        </p>
+                      </div>
+                    </div>
+                    {notif.deliveryId && (
+                      <button 
+                        onClick={() => navigate(`/admin/deliveries/${notif.deliveryId}`)}
+                        className="ml-4 p-2 bg-white dark:bg-slate-800 hover:bg-secondary dark:hover:bg-secondary hover:text-primary shadow-sm rounded-xl text-slate-400 transition-colors shrink-0 group"
+                      >
+                        <Eye size={14} className="group-hover:scale-110 transition-transform" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* CLASSEMENTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
-              <Award size={16} className="text-secondary" /> Top 5 Livreurs
-            </h3>
-          </div>
+          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
+            <Award size={16} className="text-secondary" /> Top 5 Livreurs
+          </h3>
           <div className="space-y-4">
             {(userStats.topDrivers || []).map((driver, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl transition-colors">
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
                 <div className="flex items-center gap-4">
                   <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${index === 0 ? 'bg-secondary text-primary' : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-white'}`}>
                     {index + 1}
@@ -219,11 +303,9 @@ export default function AdminDashboard() {
         </div>
 
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
-              <Star size={16} className="text-secondary" /> Top 5 Clients
-            </h3>
-          </div>
+          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
+            <Star size={16} className="text-secondary" /> Top 5 Clients
+          </h3>
           <div className="space-y-4">
             {(userStats.topClients || []).map((client, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
@@ -246,9 +328,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* FLUX BAS DE PAGE & REPARTITION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* FLUX TEMPS RÉEL */}
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <div className="flex justify-between items-center mb-8">
             <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest italic">Derniers mouvements</h3>
@@ -272,7 +353,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* RÉPARTITION STATUTS */}
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest mb-8 italic text-center">Performance globale</h3>
           <div className="flex flex-col md:flex-row items-center gap-10">
@@ -284,9 +364,7 @@ export default function AdminDashboard() {
                       <Cell key={`cell-${index}`} fill={PIE_PALETTE[index % PIE_PALETTE.length]} stroke="none" />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '15px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#fff', color: isDark ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold' }} 
-                  />
+                  <Tooltip contentStyle={{ borderRadius: '15px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#fff', color: isDark ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -297,18 +375,15 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
   );
 }
 
 function QuickAction({ label, icon: Icon, onClick, color }) {
   return (
-    <button 
-      onClick={onClick}
-      className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group"
-    >
+    <button onClick={onClick} className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
             <Icon size={18} style={{ color: color }} className="group-hover:scale-110 transition-transform" />

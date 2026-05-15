@@ -76,4 +76,8 @@ export const ENDPOINTS = {
   NOTIFICATIONS_READ: (id) => `/api/notifications/${id}/read`,
   NOTIFICATIONS_READ_ALL: "/api/notifications/read-all",
   NOTIFICATIONS_ADMIN: "/api/notifications/admin",
+
+ // GESTION DES PAUSES
+  DRIVER_UPDATE_STATE: "/api/users/drivers/my-state",
+  DRIVER_PAUSE_STATUS: (driverId) => `/api/users/drivers/${driverId}/pause-status`,
 };

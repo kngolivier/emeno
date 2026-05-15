@@ -3,7 +3,7 @@ import { useState } from "react";
 import { login as loginApi } from "../../api/auth.api";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Eye, EyeOff, Lock, User, ArrowRight, Moon, Sun, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Lock, User, ArrowRight, Moon, Sun, ShieldCheck, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../context/Theme/ThemeContext";
 
