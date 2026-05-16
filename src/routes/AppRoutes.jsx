@@ -46,6 +46,11 @@ import ClientHome from "../pages/client-portal/ClientHome";
 import NotificationsPage from "../pages/Notifications";
 import PartnersList from "../pages/partners/PartnersList";
 import PartnerDetails from "../pages/partners/PartnerDetails";
+import PartnerDashboard from "../pages/partner-portal/PartnerDashboard";
+import PartnerLayout from "../layout/PartnerLayout";
+import PartnerOrdersList from "../pages/partner-portal/PartnerOrdersList";
+import PartnerSettings from "../pages/partner-portal/PartnerSettings";
+import PartnerCreateOrder from "../pages/partner-portal/PartnerCreateOrder";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -115,6 +120,24 @@ export default function AppRoutes() {
           <Route path="orders/:id" element={<ClientOrderDetails />} />
           <Route path="profile" element={<ClientProfile />} />
           <Route path="new-order" element={<ClientCreateOrder />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+        </Route>
+
+        {/* ===================== */}
+        {/*   ESPACE PARTENAIRE (/partner) */}
+        {/* ===================== */}
+        <Route
+          path="/partner"
+          element={
+            <ProtectedRoute allowedRoles={["PARTNER_MANAGER"]}>
+              <PartnerLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<PartnerDashboard />} />
+          <Route path="orders" element={<PartnerOrdersList />} />
+          <Route path="settings" element={<PartnerSettings />} />
+          <Route path="orders/new" element={<PartnerCreateOrder />} />
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 

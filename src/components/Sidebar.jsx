@@ -6,10 +6,13 @@ import {
   User, LogOutIcon, X, 
   MapPin,
   HomeIcon,
-  Store
+  Store,
+  Settings,
+  Layers
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
+import { ROLE_LABELS } from "../constants/constants";
 
 export default function Sidebar({ isOpen, onClose }) {
   const { isDarkMode } = useTheme();
@@ -37,6 +40,13 @@ export default function Sidebar({ isOpen, onClose }) {
       { to: "/admin/pricing", label: "Tarifs", icon: <DollarSign size={20} /> },
       { to: "/admin/communes", label: "Zones", icon: <MapPin size={20} /> },
       { to: "/admin/partners", label: "Partenaires", icon: <Store size={20} /> },
+    ];
+
+    // NAVIGATION EXCLUSIVE DU COMMERCE PARTENAIRE EMENO
+    if (role === "PARTNER_MANAGER") return [
+      { to: "/partner/dashboard", label: "Vue d'ensemble", icon: <LayoutDashboard size={20} /> },
+      { to: "/partner/orders", label: "Expéditions", icon: <Layers size={20} /> },
+      { to: "/partner/settings", label: "Mon Établissement", icon: <Settings size={20} /> },
     ];
 
     if (role === "SUPER_ADMIN") return [...adminBase, { to: "/admin/admins", label: "Équipe", icon: <Shield size={20} /> }];
@@ -86,7 +96,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <nav className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
           <div className="mb-6 px-4">
             <p className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.3em] italic">
-              Espace {user?.role?.toLowerCase()}
+              Espace {ROLE_LABELS[user?.role] || user?.role?.toLowerCase()}
             </p>
           </div>
           
@@ -106,7 +116,7 @@ export default function Sidebar({ isOpen, onClose }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-primary dark:text-white text-sm font-black truncate italic">{user?.prenom}</p>
-              <p className="text-slate-400 text-[9px] font-bold uppercase tracking-wider">{user?.role}</p>
+              <p className="text-slate-400 text-[9px] font-bold uppercase tracking-wider">{ROLE_LABELS[user?.role] || user?.role?.toLowerCase()}</p>
             </div>
           </div>
 

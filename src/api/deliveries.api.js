@@ -11,6 +11,13 @@ export const createDelivery = (data) => {
 };
 
 /**
+ * PARTNER - Créer une vague de livraisons (Bulk B2C)
+ */
+export const createBulkDeliveries = (orders) => {
+  return API.post(ENDPOINTS.DELIVERIES_BULK, { orders });
+};
+
+/**
  * ADMIN - toutes les livraisons
  */
 export const fetchAdminDeliveries = (params) => {
@@ -69,4 +76,11 @@ export const updateDeliveryStatus = (deliveryId, status) => {
   return API.patch(ENDPOINTS.UPDATE_STATUS(deliveryId), {
     status,
   });
+};
+
+/**
+ * PARTNER/ADMIN - Renvoyer le code de sécurité (OTP) par SMS au destinataire
+ */
+export const resendDeliveryOtp = (deliveryId) => {
+  return API.post(ENDPOINTS.RESEND_DELIVERY_OTP(deliveryId));
 };

@@ -5,6 +5,9 @@ import { fetchPartners, updatePartnerStatus, createPartner, updatePartner } from
 import { Search, ShieldAlert, ShieldCheck, Edit3, Eye, Plus, Layers, ArrowLeft } from "lucide-react";
 import { useTheme } from "../../context/Theme/ThemeContext";
 
+// On importe les utilitaires de notification EMENO
+import { notifySuccess, notifyError } from "../../utils/notify";
+
 // On importe les deux autres formulaires qui sont dans le même dossier
 import NewPartnerForm from "./NewPartnerForm";
 import PartnerDetails from "./PartnerDetails";
@@ -40,6 +43,7 @@ export default function PartnersList() {
       }
     } catch (err) {
       console.error("Erreur lors du chargement des partenaires :", err);
+      notifyError("Impossible de charger la liste des partenaires");
     } finally {
       setLoading(false);
     }
@@ -59,13 +63,14 @@ export default function PartnersList() {
 
   const toggleStatus = async (id, currentStatus) => {
     const nextStatus = currentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-    if (!window.confirm(`Voulez-vous vraiment passer ce partenaire à l'état ${nextStatus} ?`)) return;
+    const statusLabel = nextStatus === "ACTIVE" ? "activé" : "suspendu";
     
     try {
       await updatePartnerStatus(id, nextStatus);
+      notifySuccess(`Le partenaire a bien été ${statusLabel}`);
       loadPartners();
     } catch (err) {
-      alert("Erreur lors de la modification du statut.");
+      notifyError(err.response?.data?.message || "Erreur lors de la modification du statut.");
     }
   };
 
@@ -74,9 +79,12 @@ export default function PartnersList() {
     try {
       setError(null);
       await createPartner(partnerData);
+      notifySuccess("Nouveau partenaire enregistré avec succès");
       setView("LIST");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Erreur lors de la création");
+      const errMsg = err.response?.data?.message || err.message || "Erreur lors de la création";
+      setError(errMsg);
+      notifyError(errMsg);
     }
   };
 
@@ -84,10 +92,13 @@ export default function PartnersList() {
     try {
       setError(null);
       await updatePartner(selectedPartner._id, partnerData);
+      notifySuccess("Fiche partenaire mise à jour");
       setSelectedPartner(null);
       setView("LIST");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Erreur lors de la modification");
+      const errMsg = err.response?.data?.message || err.message || "Erreur lors de la modification";
+      setError(errMsg);
+      notifyError(errMsg);
     }
   };
 
@@ -151,22 +162,8 @@ export default function PartnersList() {
         </button>
       </div>
 
-      {/* FILTRES & BARRE DE RECHERCHE RÉTABLIE */}
+      {/* FILTRES & BARRE DE RECHERCHE */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* <form onSubmit={handleSearchSubmit} className="lg:col-span-2 relative flex items-center">
-          <input
-            type="text"
-            className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-sm font-bold p-4 pl-12 rounded-2xl outline-none text-primary dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:ring-4 focus:ring-primary/5 dark:focus:ring-white/5 transition-all"
-            placeholder="Rechercher par enseigne, numéro de téléphone..."
-            value={filters.search}
-            onChange={e => setFilters({ ...filters, search: e.target.value })}
-          />
-          <Search size={18} className="absolute left-4 text-slate-300 dark:text-slate-600" />
-          <button type="submit" className="absolute right-3 bg-slate-50 dark:bg-slate-800 text-primary dark:text-white font-black text-[10px] uppercase tracking-wider px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700">
-            Filtrer
-          </button>
-        </form> */}
-
         <div className="bg-slate-100/60 dark:bg-slate-800/40 p-1.5 rounded-2xl flex items-center justify-between gap-1 border border-slate-100 dark:border-slate-800">
           {["ALL", "ACTIVE", "SUSPENDED"].map((st) => (
             <button
@@ -269,7 +266,6 @@ export default function PartnersList() {
               <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                 {partners.map((p) => (
                   <tr key={p._id} className="hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-all group">
-                    {/* ENSEIGNE / LOGO */}
                     <td className="p-5">
                       <div className="flex items-center gap-4">
                         <img 
@@ -287,12 +283,10 @@ export default function PartnersList() {
                       </div>
                     </td>
 
-                    {/* TÉLÉPHONE */}
                     <td className="p-5">
                       <span className="font-bold text-sm text-primary dark:text-white">{p.telephone}</span>
                     </td>
 
-                    {/* ADRESSE / COMMUNE */}
                     <td className="p-5">
                       <div>
                         <p className="font-bold text-sm text-primary dark:text-white">{p.address?.text}</p>
@@ -300,7 +294,6 @@ export default function PartnersList() {
                       </div>
                     </td>
 
-                    {/* STATUT */}
                     <td className="p-5">
                       <span className={`inline-flex items-center text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${
                         p.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
@@ -309,7 +302,6 @@ export default function PartnersList() {
                       </span>
                     </td>
 
-                    {/* ACTIONS */}
                     <td className="p-5 text-right">
                       <div className="inline-flex items-center gap-1.5">
                         <button 

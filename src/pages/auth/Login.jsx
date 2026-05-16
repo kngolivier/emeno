@@ -47,7 +47,8 @@ export default function Login() {
         SUPER_ADMIN: "/admin",
         ADMIN: "/admin",
         DRIVER: "/driver",
-        CLIENT: "/client"
+        CLIENT: "/client",
+        PARTNER_MANAGER: "/partner"
       };
       
       navigate(routes[user?.role] || "/unauthorized", { replace: true });

@@ -14,12 +14,14 @@ export const ENDPOINTS = {
   DELIVERIES_ADMIN: "/api/deliveries/admin",
   DELIVERIES_CLIENT: "/api/deliveries/client",
   DELIVERIES_DRIVER: "/api/deliveries/driver",
+  DELIVERIES_BULK: "/api/deliveries/bulk",
 
   DELIVERY_BY_ID: (id) => `/api/deliveries/${id}`,
   ASSIGN_DRIVER: (id) => `/api/deliveries/${id}/assign`,
   VALIDATE_DELIVERY: (id) => `/api/deliveries/${id}/validate`,
   CANCEL_DELIVERY: (id) => `/api/deliveries/${id}/cancel`,
   UPDATE_STATUS: (id) => `/api/deliveries/${id}/status`,
+  RESEND_DELIVERY_OTP: (id) => `/api/deliveries/${id}/resend-otp`,
 
   // ======================
   // USERS

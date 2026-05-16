@@ -15,6 +15,7 @@ const PublicRoute = () => {
     if (["ADMIN", "SUPER_ADMIN"].includes(user.role)) return <Navigate to="/admin" replace />;
     if (user.role === "CLIENT") return <Navigate to="/client" replace />;
     if (user.role === "DRIVER") return <Navigate to="/driver" replace />
+    if (user.role === "PARTNER_MANAGER") return <Navigate to="/partner/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 

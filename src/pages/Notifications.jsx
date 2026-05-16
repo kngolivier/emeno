@@ -5,15 +5,12 @@ import { Link } from "react-router-dom";
 import {
   Bell,
   CheckCheck,
-  ChevronRight,
   PackageCheck,
   Truck,
   AlertCircle,
   Info,
   Sparkles,
-  Layers,
-  Calendar,
-  MoreVertical
+  RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -27,10 +24,16 @@ import {
   markNotificationAsRead, 
   markAllNotificationsAsRead 
 } from "../api/notifications.api";
+import { fetchDeliveryById } from "../api/deliveries.api"; // Import pour charger la fiche dynamique du partenaire
+import PartnerOrderDetailModal from "./partner-portal/PartnerOrderDetailModal"; // Modale responsive importée
 
 export default function NotificationsPage() {
   const { user } = useAuth();
   const [filter, setFilter] = useState("all");
+  
+  // États locaux additionnels pour le cas d'usage Partenaire
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
+  const [loadingDelivery, setLoadingDelivery] = useState(false);
 
   const {
     notifications: liveNotifications,
@@ -38,7 +41,7 @@ export default function NotificationsPage() {
   } = useNotifications();
 
   /* ==========================================================================
-     FETCH & MERGE LOGIC (Inchangé)
+     FETCH & MERGE LOGIC
      ========================================================================== */
   const fetchWithRole = useCallback(
     (params) => {
@@ -74,7 +77,7 @@ export default function NotificationsPage() {
   }, [allNotifications, filter, user?._id]);
 
   /* ==========================================================================
-     ACTIONS (Inchangé)
+     ACTIONS
      ========================================================================== */
   const handleMarkAsRead = async (id) => {
     const cleanId = id.toString().replace('sk-', '');
@@ -91,6 +94,24 @@ export default function NotificationsPage() {
       refresh();
       toast.success("Mise à jour effectuée");
     } catch (err) { toast.error("Erreur"); }
+  };
+
+  // Intercepteur spécifique au gestionnaire de commerce partenaire
+  const handlePartnerMissionClick = async (notificationId, deliveryId) => {
+    // 1. Marquer la notification comme lue en arrière-plan
+    await handleMarkAsRead(notificationId);
+    
+    // 2. Charger les détails de la livraison ciblée pour alimenter le composant modale
+    try {
+      setLoadingDelivery(true);
+      const res = await fetchDeliveryById(deliveryId);
+      setSelectedDelivery(res.data?.data || res.data);
+    } catch (err) {
+      console.error("Impossible de récupérer la course :", err);
+      toast.error("Données de livraison introuvables.");
+    } finally {
+      setLoadingDelivery(false);
+    }
   };
 
   const getNotifStyles = (message = "") => {
@@ -152,9 +173,9 @@ export default function NotificationsPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 mt-4 space-y-3">
-        {loading && dbNotifications.length === 0 ? (
+        {(loading || loadingDelivery) && dbNotifications.length === 0 ? (
           <div className="py-20 text-center space-y-4">
-            <div className="w-10 h-10 border-3 border-secondary border-t-transparent animate-spin rounded-full mx-auto" />
+            <RefreshCw className="animate-spin text-secondary mx-auto" size={24} />
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Mise à jour...</span>
           </div>
         ) : filteredNotifications.length === 0 ? (
@@ -207,13 +228,25 @@ export default function NotificationsPage() {
 
                         <div className="flex items-center gap-2 mt-4">
                           {deliveryId && (
-                            <Link
-                              to={user?.role === "CLIENT" ? `/client/orders/${deliveryId}` : `/admin/deliveries/${deliveryId}`}
-                              onClick={() => !isRead && handleMarkAsRead(n._id)}
-                              className="flex-1 py-3 bg-primary dark:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest text-center active:scale-95 transition-transform"
-                            >
-                              Voir la mission
-                            </Link>
+                            user?.role === "PARTNER_MANAGER" ? (
+                              // Rendu spécifique pour le partenaire (Ouvre le modal au lieu de changer d'URL)
+                              <button
+                                type="button"
+                                onClick={() => handlePartnerMissionClick(n._id, deliveryId)}
+                                className="flex-1 py-3 bg-primary dark:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest text-center active:scale-95 transition-transform"
+                              >
+                                {loadingDelivery ? "Chargement..." : "Voir la mission"}
+                              </button>
+                            ) : (
+                              // Rendu par défaut pour l'admin et le client standard (Redirection par URL)
+                              <Link
+                                to={user?.role === "CLIENT" ? `/client/orders/${deliveryId}` : `/admin/deliveries/${deliveryId}`}
+                                onClick={() => !isRead && handleMarkAsRead(n._id)}
+                                className="flex-1 py-3 bg-primary dark:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest text-center active:scale-95 transition-transform"
+                              >
+                                Voir la mission
+                              </Link>
+                            )
                           )}
                           {!isRead && (
                             <button
@@ -237,17 +270,19 @@ export default function NotificationsPage() {
                 <div className="flex justify-center">
                   <Pagination meta={meta} setPage={setPage} />
                 </div>
-                {/* <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 w-fit mx-auto">
-                   <Layers size={12} className="text-secondary" />
-                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
-                     Page {meta.page} / {meta.pages}
-                   </span>
-                </div> */}
               </div>
             )}
           </>
         )}
       </div>
+
+      {/* OVERLAY DE SÉCURITÉ : La modale s'ouvre si un partenaire consulte une alerte de course */}
+      {selectedDelivery && (
+        <PartnerOrderDetailModal 
+          delivery={selectedDelivery} 
+          onClose={() => setSelectedDelivery(null)} 
+        />
+      )}
     </div>
   );
 }

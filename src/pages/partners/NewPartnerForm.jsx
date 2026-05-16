@@ -151,7 +151,7 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
           {errors.name && <p className="text-rose-500 text-[8px] font-black uppercase mt-1 ml-2 italic tracking-widest">{errors.name}</p>}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {/* TÉLÉPHONE */}
           <div className="space-y-1">
             <label className={labelClass}>Téléphone <span className={asteriskClass}>*</span></label>

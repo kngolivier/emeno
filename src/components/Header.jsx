@@ -104,6 +104,8 @@ export default function Header({
       ? "/client/notifications"
       : role === "DRIVER"
       ? "/driver/notifications"
+      : role === "PARTNER_MANAGER"
+      ? "/partner/notifications"
       : "/admin/notifications";
 
   return (

@@ -71,7 +71,8 @@ export default function VerifyOTP() {
             SUPER_ADMIN: "/admin",
             ADMIN: "/admin",
             DRIVER: "/driver",
-            CLIENT: "/client"
+            CLIENT: "/client",
+            PARTNER_MANAGER: "/partner"
           };
           navigate(routes[updatedUser?.role] || "/client", { replace: true });
         }

@@ -26,3 +26,11 @@ export const CATEGORY_LABELS = {
   ELECTRONICS: "Électronique",
   OTHER: "Autre"
 };
+
+export const ROLE_LABELS = {
+    ADMIN: "Admin",
+    SUPER_ADMIN: "Super Admin",
+    DRIVER: "Livreur",
+    CLIENT: "Client",
+    PARTNER_MANAGER: "Partenaire"
+  };

@@ -26,7 +26,8 @@ export const createPartner = (payload) => {
 };
 
 /**
- * ADMIN / SUPER_ADMIN - Mettre à jour l'ensemble des coordonnées d'un partenaire
+ * ADMIN / SUPER_ADMIN / PARTNER_MANAGER - Mettre à jour les coordonnées d'un partenaire
+ * Le manager est limité par le backend à son propre établissement lié.
  */
 export const updatePartner = (id, payload) => {
   return API.put(ENDPOINTS.PARTNER_BY_ID(id), payload);

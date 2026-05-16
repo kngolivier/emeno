@@ -1,4 +1,4 @@
-// src/context/NotificationProvider.jsx
+// FILE: src/context/NotificationProvider.jsx
 
 import { useEffect, useState, useRef } from "react";
 import socket from "../../services/socket";
@@ -27,17 +27,15 @@ export const NotificationProvider = ({ children }) => {
       const rawId = notif._id || notif.id;
       const safeId = rawId ? `sk-${rawId}` : `live-${Date.now()}`;
       
-      // 1. Éviter les doublons
       if (processedIds.current.has(safeId)) return;
       
       const hasAdminPrivileges = ["ADMIN", "SUPER_ADMIN"].includes(user.role);
       
-      // 2. Gestion prioritaire et explicite du changement d'état du livreur
+      // Cas spécifique : Changements d'état des livreurs
       if (notif.type === "DRIVER_STATE_CHANGED") {
-        if (!hasAdminPrivileges) return; // Sécurité : Seuls les admins voient ça
+        if (!hasAdminPrivileges) return; 
         
         processedIds.current.add(safeId);
-
         toast(notif.message || `Changement d'état livreur`, {
           icon: '⏳',
           style: { borderRadius: '15px', background: '#0F172A', color: '#FFF', border: '1px solid rgba(16, 185, 129, 0.2)' },
@@ -45,21 +43,22 @@ export const NotificationProvider = ({ children }) => {
 
         setNotifications((prev) => [{ ...notif, _id: safeId, title: notif.title || "STATUT LIVREUR" }, ...prev]);
         setUnreadCount((prev) => prev + 1);
-        return; // On arrête le traitement ici pour cette notif
+        return;
       }
 
-      // 3. Filtrage classique pour les autres types de notifications
-      const isTargetClientOnly = notif.targetRoles?.includes("CLIENT") && 
-                                 !notif.targetRoles?.includes("ADMIN") && 
-                                 !notif.targetRoles?.includes("SUPER_ADMIN");
+      // Filtrage : Éviter que les admins soient spammés par les flux exclusifs des clients/partenaires
+      const isTargetExclusive = (notif.targetRoles?.includes("CLIENT") || notif.targetRoles?.includes("PARTNER_MANAGER")) && 
+                                !notif.targetRoles?.includes("ADMIN") && 
+                                !notif.targetRoles?.includes("SUPER_ADMIN");
       
-      if (hasAdminPrivileges && isTargetClientOnly) return;
+      if (hasAdminPrivileges && isTargetExclusive) return;
       
       processedIds.current.add(safeId);
 
+      // Affichage du toast EMENO immersif et stylisé
       toast(notif.message || `Mise à jour EMENO`, {
         icon: '🔔',
-        style: { borderRadius: '15px', background: '#1E293B', color: '#fff' },
+        style: { borderRadius: '15px', background: '#1E293B', color: '#fff', fontSize: '12px', fontWeight: 'bold' },
       });
 
       setNotifications((prev) => [{ ...notif, _id: safeId }, ...prev]);
