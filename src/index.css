@@ -53,6 +53,12 @@
 /* ==========================================================================
    GLOBAL STYLES
    ========================================================================== */
+html, body {
+  height: 100%;
+  overflow-x: hidden; /* Empêche le scroll horizontal parasite */
+  overflow-y: auto;   /* Force l'apparition du scroll vertical si le contenu dépasse */
+  -webkit-overflow-scrolling: touch; /* Rend le scroll ultra-fluide et élastique sur iOS/Android */
+}
 
 body {
   background-color: var(--bg-app);
@@ -86,9 +92,11 @@ h1, h2, h3, h4 {
 }
 
 #root {
+  min-height: 100vh;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 /* Utilitaires de cartes pour éviter la répétition dans le JSX */
