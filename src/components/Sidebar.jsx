@@ -5,7 +5,8 @@ import {
   DollarSign, Shield, PlusCircle, 
   User, LogOutIcon, X, 
   MapPin,
-  HomeIcon
+  HomeIcon,
+  Store
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
@@ -34,7 +35,8 @@ export default function Sidebar({ isOpen, onClose }) {
       { to: "/admin/drivers", label: "Livreurs", icon: <Truck size={20} /> },
       { to: "/admin/clients", label: "Clients", icon: <Users size={20} /> },
       { to: "/admin/pricing", label: "Tarifs", icon: <DollarSign size={20} /> },
-      { to: "/admin/communes", label: "Zones", icon: <MapPin size={20} /> }
+      { to: "/admin/communes", label: "Zones", icon: <MapPin size={20} /> },
+      { to: "/admin/partners", label: "Partenaires", icon: <Store size={20} /> },
     ];
 
     if (role === "SUPER_ADMIN") return [...adminBase, { to: "/admin/admins", label: "Équipe", icon: <Shield size={20} /> }];

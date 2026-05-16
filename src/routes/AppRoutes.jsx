@@ -44,6 +44,8 @@ import CommuneList from "../pages/communes/CommuneList";
 import VerifyOTP from "../pages/auth/VerifyOtp";
 import ClientHome from "../pages/client-portal/ClientHome";
 import NotificationsPage from "../pages/Notifications";
+import PartnersList from "../pages/partners/PartnersList";
+import PartnerDetails from "../pages/partners/PartnerDetails";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -92,6 +94,8 @@ export default function AppRoutes() {
           <Route path="admins/:id" element={<AdminDetails />} />
           <Route path="communes" element={<CommuneList />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="partners" element={<PartnersList />} />
+          <Route path="partners/:id" element={<PartnerDetails />} />
         </Route>
 
         {/* ===================== */}

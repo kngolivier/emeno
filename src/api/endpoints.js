@@ -77,6 +77,13 @@ export const ENDPOINTS = {
   NOTIFICATIONS_READ_ALL: "/api/notifications/read-all",
   NOTIFICATIONS_ADMIN: "/api/notifications/admin",
 
+  // ======================
+  // PARTNERS (COMMERCES)
+  // ======================
+  PARTNERS: "/api/partners",
+  PARTNER_BY_ID: (id) => `/api/partners/${id}`,
+  PARTNER_STATUS: (id) => `/api/partners/${id}/status`,
+
  // GESTION DES PAUSES
   DRIVER_UPDATE_STATE: "/api/users/drivers/my-state",
   DRIVER_PAUSE_STATUS: (driverId) => `/api/users/drivers/${driverId}/pause-status`,

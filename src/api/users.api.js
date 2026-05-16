@@ -121,3 +121,17 @@ export const deleteUser = (id) => {
 export const activateUserAccount = (payload) => {
   return API.post(`${ENDPOINTS.USERS}/activate`, payload);
 };
+
+/**
+ * CREATE Partner Manager (Gestionnaire de commerce)
+ * @param {Object} payload - { nom, telephone, email, partnerId, ... }
+ */
+export const createPartnerManager = (payload) => {
+  if (!payload.partnerId) {
+    return Promise.reject(new Error("Le partnerId est obligatoire pour un gestionnaire."));
+  }
+  return API.post(ENDPOINTS.USERS, {
+    ...payload,
+    role: "PARTNER_MANAGER"
+  });
+};
