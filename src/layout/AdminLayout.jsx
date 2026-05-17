@@ -10,7 +10,7 @@ export default function AdminLayout() {
 
   return (
     // bg-main-app applique les gradients radiaux définis dans index.css
-    <div className="min-h-screen bg-main-app flex overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-main-app flex transition-colors duration-300">
       
       {/* Sidebar : Adaptée au thème via ses propres classes dark: */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />

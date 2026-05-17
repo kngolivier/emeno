@@ -78,6 +78,7 @@ export const ENDPOINTS = {
   NOTIFICATIONS_READ: (id) => `/api/notifications/${id}/read`,
   NOTIFICATIONS_READ_ALL: "/api/notifications/read-all",
   NOTIFICATIONS_ADMIN: "/api/notifications/admin",
+  NOTIFICATIONS_SUBSCRIBE: "/api/notifications/subscribe",
 
   // ======================
   // PARTNERS (COMMERCES)

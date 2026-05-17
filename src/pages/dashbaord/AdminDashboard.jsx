@@ -197,7 +197,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <span className="text-[9px] font-black px-3 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl uppercase tracking-widest">
-              Live Socket
+              Live
             </span>
           </div>
 

@@ -3,6 +3,15 @@
 import API from "./apiClient";
 import { ENDPOINTS } from "./endpoints";
 
+
+/**
+ * Enregistrer l'appareil (Subscription Web Push) sur le backend Node.js
+ * @param {Object} payload - { subscription, userId, role }
+ */
+export const savePushSubscription = (payload) => {
+  return API.post(ENDPOINTS.NOTIFICATIONS_SUBSCRIBE, payload);
+};
+
 /**
  * GET notifications (paginées)
  * @param {Object} params - { page, limit, role }
