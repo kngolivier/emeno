@@ -5,7 +5,11 @@ import axios from "axios";
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
-  withCredentials: true // 💡 FONDAMENTAL : Autorise le passage automatique des cookies HTTP-Only
+  withCredentials: true, // 💡 FONDAMENTAL : Autorise le passage automatique des cookies HTTP-Only
+  headers: {
+    // 💡 Indispensable pour éviter que ngrok ne bloque les requêtes de l'application mobile
+    'ngrok-skip-browser-warning': 'true' 
+  }
 });
 
 // ======================

@@ -1,12 +1,13 @@
-// src/pages/driver-portal/DeliveryDetail.jsx
+// FILE: src/pages/driver-portal/DeliveryDetail.jsx
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+NPTQ_TEST
 import { 
   MapPin, Phone, ShieldCheck, ChevronLeft, 
   Package, User, Loader2, CheckCircle2, Navigation,
-  Clock, Hash, AlertCircle, Award
+  Clock, Hash, AlertCircle, Award, DollarSign, ShieldAlert
 } from "lucide-react";
 import { fetchDeliveryById, validateDelivery } from "../../api/deliveries.api";
 import { notifySuccess, notifyError } from "../../utils/notify";
@@ -28,7 +29,11 @@ export default function DeliveryDetail() {
     setLoading(true);
     try {
       const res = await fetchDeliveryById(id);
-      setDelivery(res?.data);
+      if (res?.data) {
+        setDelivery(res.data);
+        // On log "res.data" car l'état "delivery" ne sera disponible qu'au prochain render
+        console.log("Détails de la livraison chargée :", res.data);
+      }
     } catch (err) {
       notifyError("Impossible de charger la livraison");
     } finally {
@@ -61,6 +66,7 @@ export default function DeliveryDetail() {
 
   const isCompleted = delivery.status === "DELIVERED";
   const isInProgress = delivery.status === "IN_PROGRESS";
+  const isFragile = delivery.packageDetails?.isFragile;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] pb-32">
@@ -85,32 +91,81 @@ export default function DeliveryDetail() {
           </div>
         </header>
 
-        {/* --- CARTE CLIENT PRIORITAIRE --- */}
+        {/* --- CARTE TARIF & STATUS PRIORITAIRE --- */}
         <motion.div 
           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           className={`p-7 rounded-[3rem] shadow-2xl relative overflow-hidden transition-all duration-700 ${isCompleted ? 'bg-emerald-500' : 'bg-primary'}`}
         >
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-          <div className="relative z-10 flex justify-between items-start">
+          <div className="relative z-10 flex justify-between items-center">
             <div className="min-w-0 flex-1">
               <span className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/20 italic">
-                {STATUS_LABELS[delivery.status]}
+                {STATUS_LABELS[delivery.status] || delivery.status}
               </span>
-              <div className="mt-5">
-                <p className="text-white/40 text-[9px] font-black uppercase tracking-widest italic mb-1">Expéditeur</p>
+              <div className="mt-4">
+                <p className="text-white/40 text-[9px] font-black uppercase tracking-widest italic mb-0.5">Rémunération course</p>
                 <h2 className="text-3xl font-black text-white italic truncate leading-none uppercase tracking-tighter">
-                  {delivery.client?.nom || "Client"}
+                  {delivery.price ? `${delivery.price.toLocaleString('fr-FR')} FCFA` : "Tarif non défini"}
                 </h2>
               </div>
             </div>
-            <a 
-              href={`tel:${delivery.client?.telephone}`}
-              className="p-5 bg-secondary text-primary rounded-[1.8rem] shadow-xl shadow-black/20 active:scale-90 transition-all ml-4"
-            >
-              <Phone size={24} strokeWidth={3} fill="currentColor" />
-            </a>
+            <div className="p-4 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl flex flex-col items-center justify-center min-w-[70px]">
+              <DollarSign size={20} strokeWidth={2.5} className="text-secondary mb-1" />
+              <span className="text-[9px] font-black uppercase tracking-wide">{delivery.payerType === "RECEIVER" ? "Recette" : "Cash"}</span>
+            </div>
           </div>
         </motion.div>
+
+        {/* --- BLOC DIRECTORY: CONTACTS DE L'AXE (Pickup & Dropoff) --- */}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-4 shadow-sm">
+          <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-[0.2em] px-2 italic">Contacts de l'axe</p>
+          
+          {/* Expéditeur (Ajusté sur pickupContact) */}
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-transparent dark:border-white/5">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-bold text-xs">
+                EX
+              </div>
+              <div className="min-w-0">
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Expéditeur (Retrait)</p>
+                <p className="text-sm font-black text-primary dark:text-white uppercase truncate italic">
+                  {delivery.pickupContact?.name || "Non renseigné"}
+                </p>
+              </div>
+            </div>
+            {delivery.pickupContact?.phone && (
+              <a 
+                href={`tel:${delivery.pickupContact.phone}`}
+                className="p-3 bg-secondary/10 hover:bg-secondary text-secondary hover:text-primary rounded-xl transition-all active:scale-90"
+              >
+                <Phone size={16} strokeWidth={3} fill="currentColor" />
+              </a>
+            )}
+          </div>
+
+          {/* Destinataire (Ajusté sur dropoffContact) */}
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-transparent dark:border-white/5">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-secondary text-primary flex items-center justify-center shrink-0 font-bold text-xs">
+                DE
+              </div>
+              <div className="min-w-0">
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Destinataire (Dépôt)</p>
+                <p className="text-sm font-black text-primary dark:text-white uppercase truncate italic">
+                  {delivery.dropoffContact?.name || "À préciser"}
+                </p>
+              </div>
+            </div>
+            {delivery.dropoffContact?.phone && (
+              <a 
+                href={`tel:${delivery.dropoffContact.phone}`}
+                className="p-3 bg-secondary/10 hover:bg-secondary text-secondary hover:text-primary rounded-xl transition-all active:scale-90"
+              >
+                <Phone size={16} strokeWidth={3} fill="currentColor" />
+              </a>
+            )}
+          </div>
+        </div>
 
         {/* --- BLOC ITINÉRAIRE INTERACTIF --- */}
         <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-8 shadow-sm relative">
@@ -120,7 +175,7 @@ export default function DeliveryDetail() {
               <div className="w-[2px] h-12 bg-slate-100 dark:bg-slate-800" />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-black uppercase text-slate-300 italic tracking-[0.2em] mb-1">Point de retrait</p>
+              <p className="text-[9px] font-black uppercase text-slate-300 italic tracking-[0.2em] mb-1">Point de retrait ({delivery.pricingSnapshot?.from || "Départ"})</p>
               <p className="text-[13px] font-black text-primary dark:text-slate-200 uppercase leading-snug">{delivery.pickupLocation}</p>
             </div>
           </div>
@@ -128,7 +183,7 @@ export default function DeliveryDetail() {
           <div className="flex gap-5">
             <div className="w-6 h-6 rounded-full bg-white dark:bg-slate-900 border-[6px] border-secondary z-10 shadow-sm" />
             <div className="min-w-0">
-              <p className="text-[9px] font-black uppercase text-slate-300 italic tracking-[0.2em] mb-1">Destination finale</p>
+              <p className="text-[9px] font-black uppercase text-slate-300 italic tracking-[0.2em] mb-1">Destination finale ({delivery.pricingSnapshot?.to || "Arrivée"})</p>
               <p className="text-[13px] font-black text-primary dark:text-slate-200 uppercase leading-snug">{delivery.dropoffLocation}</p>
             </div>
           </div>
@@ -138,21 +193,34 @@ export default function DeliveryDetail() {
           </button>
         </div>
 
-        {/* --- INFOS COMPLÉMENTAIRES --- */}
+        {/* --- INFOS CARACTÉRISTIQUES DU COLIS --- */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+          {/* Type / Catégorie de colis traduit en français */}
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col justify-between">
              <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 bg-secondary/10 rounded-lg text-secondary"><Package size={14}/></div>
-                <p className="text-[8px] font-black uppercase text-slate-400 italic">Contenu</p>
+                <p className="text-[8px] font-black uppercase text-slate-400 italic">Type de colis</p>
              </div>
-             <p className="text-xs font-black text-primary dark:text-slate-200 uppercase truncate italic leading-none">{CATEGORY_LABELS[delivery.packageDetails?.category]}</p>
+             <p className="text-xs font-black text-primary dark:text-slate-200 uppercase truncate italic leading-none">
+               {CATEGORY_LABELS[delivery.packageDetails?.category] || "Standard"}
+             </p>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+
+          {/* Mention Fragilité dynamique */}
+          <div className={`p-5 rounded-[2rem] border shadow-sm flex flex-col justify-between transition-colors ${
+            isFragile 
+              ? "bg-rose-50/50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30" 
+              : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800"
+          }`}>
              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 bg-primary/10 rounded-lg text-primary dark:text-white"><User size={14}/></div>
-                <p className="text-[8px] font-black uppercase text-slate-400 italic">Réception</p>
+                <div className={`p-2 rounded-lg ${isFragile ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"}`}>
+                   <ShieldAlert size={14}/>
+                </div>
+                <p className="text-[8px] font-black uppercase text-slate-400 italic">Indication</p>
              </div>
-             <p className="text-xs font-black text-primary dark:text-slate-200 uppercase truncate italic leading-none">{delivery.dropoffContact?.name || "À préciser"}</p>
+             <p className={`text-xs font-black uppercase truncate italic leading-none ${isFragile ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+               {isFragile ? "⚠️ Colis Fragile" : "Non fragile"}
+             </p>
           </div>
         </div>
 

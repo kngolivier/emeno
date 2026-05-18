@@ -21,10 +21,21 @@ export const useDriver = () => {
 
   const refreshStats = useCallback(async () => {
     try {
+      // Requête sur la période du jour actuel
       const response = await fetchMyStats("TODAY"); 
-      setStats(response.data?.data || response.data);
+      
+      // Extraction sécurisée selon la structure de ton sendResponse backend
+      const statsData = response.data?.data;
+      
+      if (statsData) {
+        setStats({
+          completed: Number(statsData.completed) || 0,
+          total: Number(statsData.total) || 0,
+          distance: Number(statsData.distance) || 0
+        });
+      }
     } catch (err) {
-      console.error("Erreur stats livreur:", err.message);
+      console.error("Erreur d'extraction des stats livreur:", err.message);
     }
   }, []);
 
@@ -32,20 +43,28 @@ export const useDriver = () => {
     try {
       setLoading(true);
       const response = await driverApi.fetchActiveDeliveries();
-      setActiveOrders(response?.data?.data || []); 
+      const orders = response?.data?.data || [];
+      setActiveOrders(orders); 
+
+      // Synchronisation de l'état utilisateur global avec le nombre de courses en cours
+      if (user && user.driverState !== "OFFLINE" && user.driverState !== "PAUSE") {
+        const theoreticalState = orders.length >= maxCapacity ? "BUSY" : "IDLE";
+        if (user.driverState !== theoreticalState) {
+          updateUser({ ...user, driverState: theoreticalState });
+        }
+      }
     } catch (err) {
       console.error("Erreur missions:", err.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user, maxCapacity, updateUser]);
 
   // Déconnexion ou Connexion Globale
   const toggleDuty = async () => {
     if (updatingState) return;
     setUpdatingState(true);
     try {
-      // Si en ligne (IDLE, PAUSE, BUSY), on passe OFFLINE, sinon on passe IDLE
       const nextState = isOnline ? "OFFLINE" : "IDLE";
       const res = await driverApi.updateMyStateAction(nextState);
       const updatedData = res.data?.data || res.data;
@@ -118,7 +137,6 @@ export const useDriver = () => {
 
   useEffect(() => {
     let watchId;
-    // On traque la géolocalisation uniquement si le livreur travaille et n'est pas déconnecté/en pause
     const shouldTrack = user?.driverState === "IDLE" || user?.driverState === "BUSY";
     if (shouldTrack && navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(

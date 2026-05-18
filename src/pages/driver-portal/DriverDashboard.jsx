@@ -1,17 +1,22 @@
-// src/pages/driver-portal/DriverDashboard.jsx
+// FILE: src/pages/driver-portal/DriverDashboard.jsx
+
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CheckCircle, Clock, TrendingUp, Power, MapPin, 
   Package, Loader2, X, Phone, ShieldCheck, Navigation,
-  ChevronRight, Info, AlertCircle, Coffee, Play
+  ChevronRight, Info, AlertCircle, Coffee, Play, Award,
+  Coins, Wallet, User
 } from "lucide-react";
 import { useDriver } from "../../hooks/useDriver";
 import { useAuth } from "../../context/AuthContext";
-import StatCard from "../../components/dashboard/StatCard";
+import { CATEGORY_LABELS } from "../../constants/constants";
+import FeedbackModal from "../../components/feedback/FeedbackModal";
 
 export default function DriverDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { 
     activeOrders, 
     maxCapacity,
@@ -26,19 +31,26 @@ export default function DriverDashboard() {
     stats = { completed: 0, total: 0, distance: 0 }
   } = useDriver();
 
+  // Évaluation dynamique de l'état effectif pour forcer l'état BUSY à saturation
+  const isDriverOnline = user?.driverState && user?.driverState !== "OFFLINE";
+  const effectiveDriverState = (isDriverOnline && activeOrders.length >= maxCapacity) 
+    ? "BUSY" 
+    : user?.driverState;
+
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const scrollRef = useRef(null);
 
-  // Verrouillage du scroll arrière-plan
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [completedOrderId, setCompletedOrderId] = useState("");
+
   useEffect(() => {
     document.body.style.overflow = selectedOrder ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };
   }, [selectedOrder]);
 
-  // Ajustement auto pour le clavier mobile
   useEffect(() => {
     if (isInputFocused && scrollRef.current) {
       setTimeout(() => {
@@ -55,15 +67,24 @@ export default function DriverDashboard() {
     if (verificationCode.length !== 6 || !selectedOrder) return;
     
     setIsValidating(true);
+    const orderId = selectedOrder._id;
     try {
-      await validateDelivery(selectedOrder._id, verificationCode);
+      await validateDelivery(orderId, verificationCode);
+      setCompletedOrderId(orderId);
       setVerificationCode("");
       setSelectedOrder(null);
+      setShowFeedbackModal(true);
     } catch (error) {
-      console.error("Erreur validation:", error);
+      console.error("Erreur de validation de la course :", error);
     } finally {
       setIsValidating(false);
     }
+  };
+
+  const handleCloseFeedback = () => {
+    setShowFeedbackModal(false);
+    setCompletedOrderId("");
+    navigate(`/driver/deliveries`);
   };
 
   const getActionButtonText = (status) => {
@@ -72,6 +93,14 @@ export default function DriverDashboard() {
       case 'PICKED_UP': return "Démarrer la course";
       case 'IN_PROGRESS': return "Terminer la livraison";
       default: return "Continuer";
+    }
+  };
+
+  const getPayerLabel = (type) => {
+    switch (type) {
+      case 'SENDER': return "Expéditeur";
+      case 'RECEIVER': return "Destinataire";
+      default: return "Non spécifié";
     }
   };
 
@@ -91,7 +120,7 @@ export default function DriverDashboard() {
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] transition-colors duration-300 overflow-x-hidden">
       <div className="max-w-md mx-auto p-5 space-y-6 pb-32">
         
-        {/* 1. HEADER OPÉRATIONNEL - REDESSINÉ STYLE CHIC & CONTEXTUEL */}
+        {/* --- 1. HEADER OPÉRATIONNEL --- */}
         <header className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800/50 flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1 pr-2">
@@ -101,30 +130,27 @@ export default function DriverDashboard() {
               </h1>
             </div>
             
-            {/* Petit badge d'état condensé */}
             <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/60 px-4 py-2 rounded-2xl border border-slate-100 dark:border-slate-700/50">
               <span className={`w-2 h-2 rounded-full ${
-                user?.driverState === 'BUSY' ? 'bg-amber-500 animate-pulse' :
-                user?.driverState === 'IDLE' ? 'bg-emerald-500 animate-pulse' :
-                user?.driverState === 'PAUSE' ? 'bg-blue-500' : 'bg-slate-300'
+                effectiveDriverState === 'BUSY' ? 'bg-amber-500 animate-pulse' :
+                effectiveDriverState === 'IDLE' ? 'bg-emerald-500 animate-pulse' :
+                effectiveDriverState === 'PAUSE' ? 'bg-blue-500' : 'bg-slate-300'
               }`} />
               <p className="text-[9px] text-slate-500 dark:text-slate-300 font-black uppercase tracking-widest">
-                {user?.driverState === 'BUSY' ? "En Course" :
-                 user?.driverState === 'IDLE' ? "Disponible" :
-                 user?.driverState === 'PAUSE' ? "En Pause" : "Hors Ligne"}
+                {effectiveDriverState === 'BUSY' ? "En Course" :
+                 effectiveDriverState === 'IDLE' ? "Disponible" :
+                 effectiveDriverState === 'PAUSE' ? "En Pause" : "Hors Ligne"}
               </p>
             </div>
           </div>
 
-          {/* BOUTON D'ACTION PRINCIPAL ADAPTATIF */}
           <div className="w-full">
             {updatingState ? (
               <button disabled className="w-full bg-slate-100 dark:bg-slate-800 text-slate-400 py-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-200/50 dark:border-slate-700">
                 <Loader2 className="animate-spin text-slate-400" size={18} strokeWidth={3} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Mise à jour du statut...</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">Mise à jour...</span>
               </button>
-            ) : user?.driverState === "BUSY" ? (
-              // Cas 1 : En pleine livraison (Bloqué)
+            ) : effectiveDriverState === "BUSY" ? (
               <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 py-4 px-5 rounded-2xl flex items-center justify-between shadow-inner">
                 <div className="flex items-center gap-3">
                   <Package size={18} strokeWidth={2.5} className="animate-bounce" />
@@ -135,7 +161,6 @@ export default function DriverDashboard() {
                 </span>
               </div>
             ) : !isOnline ? (
-              // Cas 2 : Hors Ligne -> Prendre son service
               <button 
                 onClick={toggleDuty}
                 className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
@@ -144,7 +169,6 @@ export default function DriverDashboard() {
                 Prendre mon service
               </button>
             ) : (
-              // Cas 3 : En Service / En ligne -> Choix entre Pause ou Déconnexion
               <div className="flex gap-3">
                 <button 
                   onClick={togglePause}
@@ -170,7 +194,7 @@ export default function DriverDashboard() {
                 <button 
                   onClick={toggleDuty}
                   className="bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 p-4 rounded-2xl active:scale-[0.95] transition-all"
-                  title="Terminer la journée (Hors ligne)"
+                  title="Terminer le service"
                 >
                   <Power size={18} strokeWidth={3} />
                 </button>
@@ -179,25 +203,29 @@ export default function DriverDashboard() {
           </div>
         </header>
 
-        {/* 2. STATS RAPIDES */}
+        {/* --- 2. STATS RAPIDES --- */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
                <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-xl"><CheckCircle size={16}/></div>
                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Réussies</span>
             </div>
-            <p className="text-2xl font-black text-primary dark:text-white italic leading-none">{stats.completed?.toString().padStart(2, '0')}</p>
+            <p className="text-2xl font-black text-primary dark:text-white italic leading-none">
+              {stats.completed?.toString().padStart(2, '0')}
+            </p>
           </div>
           <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
                <div className="p-2 bg-secondary/10 text-secondary rounded-xl"><TrendingUp size={16}/></div>
                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Aujourd'hui</span>
             </div>
-            <p className="text-2xl font-black text-primary dark:text-white italic leading-none">+{activeOrders.length}</p>
+            <p className="text-2xl font-black text-primary dark:text-white italic leading-none">
+              {stats.total?.toString().padStart(2, '0')}
+            </p>
           </div>
         </div>
 
-        {/* 3. MISSIONS EN COURS */}
+        {/* --- 3. MISSIONS EN COURS --- */}
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Missions Prioritaires</h3>
@@ -225,7 +253,7 @@ export default function DriverDashboard() {
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                             <span className="text-[8px] font-black text-white/70 uppercase italic tracking-tighter">
-                                {order.status.replace('_', ' ')}
+                                {order.status?.replace('_', ' ')}
                             </span>
                         </div>
                       </div>
@@ -266,7 +294,7 @@ export default function DriverDashboard() {
         </div>
       </div>
 
-      {/* 4. MODALE DE MISSION (DRAWER-STYLE SUR MOBILE) */}
+      {/* --- 4. MODALE DE MISSION --- */}
       <AnimatePresence>
         {selectedOrder && (
           <motion.div 
@@ -288,83 +316,123 @@ export default function DriverDashboard() {
                 <button onClick={() => setSelectedOrder(null)} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 active:rotate-90 transition-all"><X size={24}/></button>
               </div>
 
-              <div ref={scrollRef} className="px-8 pb-10 space-y-8 overflow-y-auto custom-scrollbar">
+              <div ref={scrollRef} className="px-8 pb-10 space-y-7 overflow-y-auto custom-scrollbar">
                 
-                {/* INFO COLIS */}
-                <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex gap-5 items-center border border-slate-100 dark:border-slate-800">
-                  <div className="w-14 h-14 bg-white dark:bg-slate-800 rounded-[1.2rem] flex items-center justify-center shadow-sm text-secondary"><Package size={28}/></div>
-                  <div>
-                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Catégorie</p>
-                    <p className="text-md font-black text-primary dark:text-white italic">{selectedOrder.packageDetails?.category || "Standard"}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                    <div className="p-2 bg-primary/5 dark:bg-primary/20 text-secondary rounded-xl">
+                      <Wallet size={18} />
+                    </div>
+                    <div>
+                      <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest block">Montant</span>
+                      <p className="text-sm font-black text-primary dark:text-white italic">
+                        {selectedOrder.price ? `${selectedOrder.price} XAF` : "0 XAF"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
+                    selectedOrder.isPaid 
+                      ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                      : 'bg-amber-500/5 border-amber-500/10 text-amber-600 dark:text-amber-400'
+                  }`}>
+                    <div className="p-2 bg-current/10 rounded-xl">
+                      <Coins size={18} />
+                    </div>
+                    <div>
+                      <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest block">Qui Paie ?</span>
+                      <p className="text-[10px] font-black uppercase tracking-wide truncate">
+                        {selectedOrder.isPaid ? "Déjà Payé" : getPayerLabel(selectedOrder.payerType)}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* ITINÉRAIRE DÉTAILLÉ */}
-                <div className="relative pl-8 space-y-10 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 dark:before:bg-slate-800">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex gap-4 items-center border border-slate-100 dark:border-slate-800">
+                  <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-secondary"><Package size={22}/></div>
+                  <div>
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Catégorie</p>
+                    <p className="text-sm font-black text-primary dark:text-white italic">
+                      {CATEGORY_LABELS[selectedOrder.packageDetails?.category] || "Standard"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative pl-8 space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 dark:before:bg-slate-800">
                   <div className="relative">
                     <div className="absolute -left-8 top-1 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border-[6px] border-emerald-500 z-10" />
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Point de retrait</p>
-                    <p className="text-sm font-black text-primary dark:text-white mb-3 leading-snug">{selectedOrder.pickupLocation}</p>
-                    <a href={`tel:${selectedOrder.pickupContact?.phone}`} className="inline-flex items-center gap-3 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-[10px] uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20 active:scale-95 transition-all">
-                        <Phone size={14} strokeWidth={3} /> Appeler
-                    </a>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Point de retrait</p>
+                    <div className="flex items-center gap-1.5 mb-1 text-primary dark:text-slate-300">
+                      <User size={12} className="text-slate-400" />
+                      <span className="text-xs font-bold italic">{selectedOrder.pickupContact?.name || "Expéditeur inconnu"}</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3 leading-snug">{selectedOrder.pickupLocation}</p>
+                    {selectedOrder.pickupContact?.phone && (
+                      <a href={`tel:${selectedOrder.pickupContact.phone}`} className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-[9px] uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20 active:scale-95 transition-all">
+                          <Phone size={12} strokeWidth={3} /> Appeler l'expéditeur
+                      </a>
+                    )}
                   </div>
 
                   <div className="relative">
                     <div className="absolute -left-8 top-1 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border-[6px] border-secondary z-10" />
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Destination finale</p>
-                    <p className="text-sm font-black text-primary dark:text-white mb-3 leading-snug">{selectedOrder.dropoffLocation}</p>
-                    <a href={`tel:${selectedOrder.dropoffContact?.phone}`} className="inline-flex items-center gap-3 px-4 py-2.5 bg-primary/5 dark:bg-secondary/10 text-primary dark:text-secondary rounded-xl font-black text-[10px] uppercase tracking-widest border border-primary/5 dark:border-secondary/20 active:scale-95 transition-all">
-                        <Phone size={14} strokeWidth={3} /> Appeler
-                    </a>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Destination finale</p>
+                    <div className="flex items-center gap-1.5 mb-1 text-primary dark:text-slate-300">
+                      <User size={12} className="text-slate-400" />
+                      <span className="text-xs font-bold italic">{selectedOrder.dropoffContact?.name || "Destinataire inconnu"}</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3 leading-snug">{selectedOrder.dropoffLocation}</p>
+                    {selectedOrder.dropoffContact?.phone && (
+                      <a href={`tel:${selectedOrder.dropoffContact.phone}`} className="inline-flex items-center gap-2 px-3 py-2 bg-primary/5 dark:bg-secondary/10 text-primary dark:text-secondary rounded-xl font-black text-[9px] uppercase tracking-widest border border-primary/5 dark:border-secondary/20 active:scale-95 transition-all">
+                          <Phone size={12} strokeWidth={3} /> Appeler le destinataire
+                      </a>
+                    )}
                   </div>
                 </div>
 
-                {/* NOTES LIVREUR */}
                 {selectedOrder.notes && (
-                    <div className="p-5 bg-rose-50 dark:bg-rose-500/5 rounded-2xl flex gap-4 border border-rose-100 dark:border-rose-500/10">
-                        <AlertCircle size={18} className="text-rose-500 shrink-0" />
+                    <div className="p-4 bg-rose-50 dark:bg-rose-500/5 rounded-2xl flex gap-3 border border-rose-100 dark:border-rose-500/10">
+                        <AlertCircle size={16} className="text-rose-500 shrink-0" />
                         <p className="text-[11px] font-bold text-rose-600/80 italic leading-relaxed">{selectedOrder.notes}</p>
                     </div>
                 )}
 
-                {/* ZONE DE VALIDATION FINALE */}
                 {selectedOrder.status === 'IN_PROGRESS' ? (
-                  <div className="pt-2 space-y-6">
-                    <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-[2.5rem] border-2 border-secondary/20">
-                        <div className="text-center mb-5">
+                  <div className="pt-1 space-y-5">
+                    <div className="bg-slate-50 dark:bg-slate-800 p-5 rounded-[2.2rem] border-2 border-secondary/20">
+                        <div className="text-center mb-4">
                             <p className="text-[10px] font-black text-primary dark:text-white uppercase tracking-[0.3em] italic">Code de Validation</p>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex gap-2">
                             <input 
                                 type="text" inputMode="numeric" maxLength="6" placeholder="000000" 
                                 value={verificationCode} 
                                 onFocus={() => setIsInputFocused(true)}
                                 onBlur={() => setIsInputFocused(false)}
                                 onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))} 
-                                className="w-full bg-white dark:bg-slate-900 text-primary dark:text-white font-black text-center py-5 rounded-[1.5rem] tracking-[0.4em] text-xl outline-none border-2 border-slate-100 dark:border-slate-700 focus:border-secondary transition-all shadow-inner" 
+                                className="w-full bg-white dark:bg-slate-900 text-primary dark:text-white font-black text-center py-4 rounded-[1.2rem] tracking-[0.4em] text-lg outline-none border-2 border-slate-100 dark:border-slate-700 focus:border-secondary transition-all shadow-inner" 
                             />
                             <button 
                                 onClick={handleVerify} 
                                 disabled={verificationCode.length !== 6 || isValidating}
-                                className="bg-secondary text-primary px-6 rounded-[1.5rem] shadow-xl shadow-secondary/20 disabled:opacity-50 active:scale-90 transition-all flex items-center justify-center"
+                                className="bg-secondary text-primary px-5 rounded-[1.2rem] shadow-xl shadow-secondary/20 disabled:opacity-50 active:scale-90 transition-all flex items-center justify-center"
                             >
-                                {isValidating ? <Loader2 className="animate-spin" size={24}/> : <ShieldCheck size={28} strokeWidth={3}/>}
+                                {isValidating ? <Loader2 className="animate-spin" size={20}/> : <ShieldCheck size={24} strokeWidth={3}/>}
                             </button>
                         </div>
                     </div>
                     {isInputFocused && <div className="h-40" />}
                   </div>
                 ) : (
-                  <div className="flex gap-4 pt-4">
+                  <div className="flex gap-3 pt-2">
                     <button 
                       onClick={() => advanceStatus(selectedOrder)}
-                      className="flex-1 bg-primary text-white py-5 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl shadow-primary/30 active:scale-95 transition-all"
+                      className="flex-1 bg-primary text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl shadow-primary/30 active:scale-[0.95] transition-all"
                     >
                       {getActionButtonText(selectedOrder.status)}
                     </button>
-                    <button className="p-5 bg-slate-100 dark:bg-slate-800 rounded-[1.8rem] text-primary dark:text-white active:scale-90 transition-all border border-slate-200 dark:border-slate-700">
-                      <Navigation size={24} strokeWidth={2.5} />
+                    <button className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-primary dark:text-white active:scale-90 transition-all border border-slate-200 dark:border-slate-700">
+                      <Navigation size={20} strokeWidth={2.5} />
                     </button>
                   </div>
                 )}
@@ -373,6 +441,13 @@ export default function DriverDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <FeedbackModal 
+        isOpen={showFeedbackModal}
+        onClose={handleCloseFeedback}
+        deliveryId={completedOrderId}
+        role="DRIVER"
+      />
     </div>
   );
 }

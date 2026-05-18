@@ -7,13 +7,15 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      strategies: 'generateSW', // <-- On repasse en génération automatique sécurisée 🚀
-      registerType: 'autoUpdate',
+      strategies: 'generateSW',
+      // 💡 On passe en mode 'prompt' pour notifier l'utilisateur plutôt que de recharger brutalement
+      registerType: 'prompt',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'], // Fichiers mis en cache pour le mode offline
         cleanupOutdatedCaches: true,
-        // 🔥 MAGIE : On demande à Vite d'inclure tes écouteurs personnalisés dans le SW généré
-        importScripts: ['/sw-custom.js']
+        // 🔥 Permet au bouton "Relancer" d'activer immédiatement le nouveau SW dès que l'utilisateur clique
+        skipWaiting: false,
+        clientsClaim: true
       },
       manifest: {
         name: 'EMENO Delivery',

@@ -1,4 +1,4 @@
-// src/pages/driver-portal/DriverProfile.jsx
+// FILE: src/pages/driver-portal/DriverProfile.jsx
 
 import { 
   User, Shield, Phone, LogOut, 
@@ -8,21 +8,28 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/Theme/ThemeContext";
+import { logoutUser } from "../../api/auth.api"; // 💡 Import indispensable pour détruire le cookie HTTP-Only
 import { motion } from "framer-motion";
 
 export default function DriverProfile() {
-    const { user, logout } = useAuth();
-    const { isDarkMode, toggleTheme } = useTheme();
-    const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+    try {
+      await logoutUser(); // 1. Supprime le cookie de session sur le serveur backend
+    } catch (err) {
+      console.error("Erreur lors de la fermeture de la session backend :", err);
+    } finally {
+      logout(); // 2. Nettoie le contexte global React (setUser(null) + localStorage)
+      navigate("/login"); // 3. Redirection stricte
+    }
   };
 
   const joinYear = user?.createdAt 
     ? new Date(user.createdAt).getFullYear() 
-    : 2024;
+    : 2026;
 
   return (
     <div className="h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0B1120] overflow-hidden">
@@ -97,14 +104,14 @@ export default function DriverProfile() {
               />
             </div>
 
-            {/* --- BOUTON DÉCONNEXION --- */}
+            {/* --- BOUTON DÉCONNEXION SYNCHRONISÉ --- */}
             <div className="px-3 pt-4 pb-3">
               <button 
                 onClick={handleLogout}
                 className="w-full group flex items-center justify-between p-5 bg-rose-500/5 hover:bg-rose-500/10 rounded-[2.2rem] border-2 border-dashed border-rose-500/10 transition-all active:scale-[0.97]"
               >
                 <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20 group-hover:rotate-[15deg] transition-transform">
+                  <div className="w-12 h-12 bg-rose-50 text-white dark:bg-rose-500/20 dark:text-rose-400 rounded-2xl flex items-center justify-center shadow-md group-hover:rotate-[15deg] transition-transform">
                     <LogOut size={22} strokeWidth={3} />
                   </div>
                   <div className="text-left">

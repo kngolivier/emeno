@@ -2,8 +2,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // import { useAuth } from "../context/AuthContext";
 
+// Composant PWA Updater
+import PwaUpdater from "../components/pwa/PwaUpdater"; // Assure-toi de créer ce composant (code fourni précédemment)
+
 // Layouts et Pages
-import LandingPage from "../pages/LandingPage"; // À créer
+import LandingPage from "../pages/LandingPage";
 import AdminLayout from "../layout/AdminLayout";
 import ClientLayout from "../layout/ClientLayout";
 import Login from "../pages/auth/Login";
@@ -57,16 +60,19 @@ export default function AppRoutes() {
 
   return (
     <BrowserRouter>
+      {/* 💡 Placé ici pour écouter l'état du Service Worker globalement sur l'ensemble du cycle de vie du site */}
+      <PwaUpdater />
+      
       <Routes>
         {/* ===================== */}
-        {/*   ZONE PUBLIQUE (SITE) */}
+        {/* ZONE PUBLIQUE (SITE) */}
         {/* ===================== */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/tarifs" element={<PricingPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         {/* ===================== */}
-        {/*   AUTH (PUBLIC ONLY)  */}
+        {/* AUTH (PUBLIC ONLY)  */}
         {/* ===================== */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
@@ -77,7 +83,7 @@ export default function AppRoutes() {
         <Route path="/verify-otp" element={<VerifyOTP />} />
 
         {/* ===================== */}
-        {/*   ESPACE ADMIN (/admin) */}
+        {/* ESPACE ADMIN (/admin) */}
         {/* ===================== */}
         <Route
           path="/admin"
@@ -104,7 +110,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* ===================== */}
-        {/*   ESPACE CLIENT (/client) */}
+        {/* ESPACE CLIENT (/client) */}
         {/* ===================== */}
         <Route
           path="/client"
@@ -124,7 +130,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* ===================== */}
-        {/*   ESPACE PARTENAIRE (/partner) */}
+        {/* ESPACE PARTENAIRE (/partner) */}
         {/* ===================== */}
         <Route
           path="/partner"
@@ -156,7 +162,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* ===================== */}
-        {/*   AUTRES / FALLBACKS  */}
+        {/* AUTRES / FALLBACKS  */}
         {/* ===================== */}
         <Route path="/unauthorized" element={<Unauthorized />} />
         
