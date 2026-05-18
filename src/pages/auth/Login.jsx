@@ -1,4 +1,5 @@
 // src/pages/auth/Login.jsx
+
 import { useState } from "react";
 import { login as loginApi } from "../../api/auth.api";
 import { useNavigate, Link } from "react-router-dom";
@@ -25,10 +26,16 @@ export default function Login() {
 
     try {
       const res = await loginApi({ identifier, password });
-      const { token, user, mustChangePassword } = res.data;
-      if (!token) throw new Error("Erreur d'authentification");
+      const { user, mustChangePassword } = res.data;
+      
+      if (!user) throw new Error("Une erreur est survenue lors de la récupération du profil");
 
-      login({ user, token });
+      // 💡 1. ÉCRITURE SYNCHRONE IMMÉDIATE : On sécurise le localStorage miroir 
+      // pour que les routeurs/gardes puissent le lire instantanément sans attendre le re-render du state.
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // 💡 2. Mise à jour de l'état global React du contexte
+      login({ user });
 
       // Redirection OTP pour validation mobile (Spécifique Gabon)
       if (user.status === "PENDING") {
@@ -51,7 +58,14 @@ export default function Login() {
         PARTNER_MANAGER: "/partner"
       };
       
-      navigate(routes[user?.role] || "/unauthorized", { replace: true });
+      const destination = routes[user?.role] || "/unauthorized";
+
+      // 💡 3. LE LAISSER-PASSER : On décale la navigation d'un micro-battement (macro-task queue)
+      // pour laisser à React le temps de finaliser le cycle de mise à jour du Provider.
+      setTimeout(() => {
+        navigate(destination, { replace: true });
+      }, 10);
+
     } catch (err) {
       setError(err.message || "Identifiants incorrects");
     } finally {

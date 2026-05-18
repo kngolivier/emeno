@@ -15,6 +15,14 @@ export const login = async (credentials) => {
 };
 
 /**
+ * LOGOUT USER (Nettoie le cookie HTTP-Only côté serveur)
+ */
+export const logoutUser = async () => {
+  const res = await API.post(ENDPOINTS.LOGOUT);
+  return res;
+};
+
+/**
  * REGISTER
  */
 export const registerClient = async (data) => {

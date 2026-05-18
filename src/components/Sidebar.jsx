@@ -12,6 +12,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
 import { ROLE_LABELS } from "../constants/constants";
 import { savePushSubscription } from "../api/notifications.api";
+import { logoutUser } from "../api/auth.api";
 import { notifySuccess, notifyError } from "../utils/notify";
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -27,6 +28,17 @@ export default function Sidebar({ isOpen, onClose }) {
       setPushStatus(Notification.permission);
     }
   }, []);
+
+  const handleLogoutClick = async () => {
+    try {
+      await logoutUser(); // 1. Détruit le cookie HTTP-Only côté Backend
+    } catch (err) {
+      console.error("Erreur lors de la déconnexion de la session", err);
+    } finally {
+      logout(); // 2. Nettoie le contexte local (setUser(null) + localStorage.removeItem)
+      navigate("/login"); // 3. Redirection propre vers la page de login
+    }
+  };
 
   const urlBase64ToUint8Array = (base64String) => {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -224,7 +236,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
 
           <button
-            onClick={() => { logout(); navigate("/login"); }}
+            onClick={handleLogoutClick} // 💡 Utilisation de la nouvelle fonction asynchrone
             className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-rose-500/10 rounded-xl transition-all group"
           >
             <LogOutIcon size={18} className="group-hover:rotate-12 transition-transform shrink-0" />

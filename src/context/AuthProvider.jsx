@@ -1,95 +1,61 @@
 // FILE: src/context/AuthProvider.jsx
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import { AuthContext } from "./AuthContext";
 
 export default function AuthProvider({ children }) {
-
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // ======================
-  // INIT (refresh page)
-  // ======================
-  useEffect(() => {
-
+  // 💡 SOLUTION : Initialisation synchrone immédiate pour éviter le décalage de render
+  const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
-
-    // TOKEN SAFE
-    if (storedToken && storedToken !== "undefined") {
-      setToken(storedToken);
-    } else {
-      localStorage.removeItem("token");
-    }
-
-    // USER SAFE PARSE
     if (storedUser && storedUser !== "undefined") {
       try {
-        setUser(JSON.parse(storedUser));
+        return JSON.parse(storedUser);
       } catch (err) {
-        console.warn("User corrompu → nettoyage");
         localStorage.removeItem("user");
+        return null;
       }
-    } else {
-      localStorage.removeItem("user");
     }
-
-    setLoading(false);
-
-  }, []);
+    return null;
+  });
+  
+  // On passe loading à false directement si le user est déjà connu (ou absent) au démarrage
+  const [loading, setLoading] = useState(false);
 
   // ======================
   // LOGIN
   // ======================
-  const login = ({ user, token }) => {
-
-    if (!token) return;
-
-    setToken(token);
-    localStorage.setItem("token", token);
-
+  const login = ({ user }) => {
     if (user) {
-      setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
     }
-
   };
 
   // ======================
-  // UPDATE USER (IMPORTANT 🔥)
-  // utilisé après PATCH /users/me
+  // UPDATE USER
   // ======================
   const updateUser = (updatedUser) => {
-
-    setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
-
+    setUser(updatedUser);
   };
 
   // ======================
   // LOGOUT
   // ======================
   const logout = () => {
-
-    setUser(null);
-    setToken(null);
-
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
-
+    setUser(null);
   };
 
-  const isAuthenticated = !!token;
+  const isAuthenticated = !!user;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
         login,
         logout,
-        updateUser, // 👈 ajouté
+        updateUser,
         isAuthenticated,
         loading,
       }}

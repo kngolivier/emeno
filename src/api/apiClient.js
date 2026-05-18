@@ -5,6 +5,7 @@ import axios from "axios";
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
+  withCredentials: true // 💡 FONDAMENTAL : Autorise le passage automatique des cookies HTTP-Only
 });
 
 // ======================
@@ -12,18 +13,8 @@ const API = axios.create({
 // ======================
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-
-    if (!token && !config.url.includes("auth")) {
-      console.warn("[AUTH] Appel API sans token:", config.url);
-    }
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      console.warn("[API] Aucun token trouvé");
-    }
-
+    // Plus besoin de manipuler localStorage ni d'injecter les Headers Authorization !
+    // Le navigateur s'occupe d'inclure le cookie sécurisé en tâche de fond.
     return config;
   },
   (error) => Promise.reject(error)
@@ -35,14 +26,13 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const message =
-      error.response?.data?.message || "Erreur serveur";
+    const message = error.response?.data?.message || "Erreur serveur";
 
     console.error("[API ERROR]", message);
-    // cas token expiré
+    
+    // Cas session/cookie expiré ou invalide
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      localStorage.removeItem("user"); // On nettoie l'état miroir de l'user
       window.location.href = "/login";
     }
 

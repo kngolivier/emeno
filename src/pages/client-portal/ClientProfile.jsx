@@ -43,7 +43,8 @@ export default function ClientProfile() {
     try {
       setLoading(true);
       const res = await updateMyProfile(form);
-      login({ user: res.data, token: localStorage.getItem("token") });
+      // 💡 Plus besoin de lire ni de ré-injecter localStorage.getItem("token") ici !
+      login({ user: res.data }); 
       setOpenModal(false);
     } catch (err) {
       alert("Erreur lors de la mise à jour");

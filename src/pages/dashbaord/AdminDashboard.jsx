@@ -1,21 +1,29 @@
-// src/pages/dashboard/AdminDashboard.jsx
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from '../../../tailwind.config.js';
 
+// Leaflet & Cartographie
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// APIs & Éléments partagés EMENO
+import API from "../../api/apiClient";
+import { ENDPOINTS } from "../../api/endpoints";
 import { fetchAdminStats } from "../../api/stats.api";
 import { fetchAdminDeliveries } from "../../api/deliveries.api";
 import { useAuth } from "../../context/AuthContext";
-import { useNotifications } from "../../hooks/useNotifications"; // Import des notifications temps réel
+import { useNotifications } from "../../hooks/useNotifications"; 
+
 import PageLoader from "../../components/ui/PageLoader";
 import StatCard from "../../components/dashboard/StatCard";
 import ProgressRow from "../../components/dashboard/ProgressRow";
 
 import {
   Truck, CreditCard, PackageCheck, Activity, AlertTriangle, Bell,
-  CheckCircle, ArrowUpRight, Users, Settings, Shield, Star, Award, ShoppingBag, Eye
+  CheckCircle, ArrowUpRight, Users, Settings, Shield, Star, ShoppingBag, Eye, Navigation,
+  Award, Phone, Clock
 } from "lucide-react";
 
 import {
@@ -26,20 +34,88 @@ import {
 const fullConfig = resolveConfig(tailwindConfig);
 const theme = fullConfig.theme.colors;
 
-// Configuration pour la traduction française et le stylisme chic des statuts livreurs
+// Centrage initial de la flotte (Libreville, Gabon)
+const LIBREVILLE_CENTER = [0.4162, 9.4673]; 
+
+// Configuration sémantique des statuts livreurs EMENO
 const DRIVER_STATES_MAP = {
-  IDLE: { label: "DISPONIBLE", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
-  BUSY: { label: "EN COURSE", color: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
-  PAUSE: { label: "EN PAUSE", color: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-  OFFLINE: { label: "DÉCONNECTÉ", color: "text-slate-400 bg-slate-500/10 border-slate-500/10" }
+  IDLE: { 
+    label: "Disponible", 
+    color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20", 
+    iconColor: "#22c55e",
+    pulseClass: "bg-emerald-500"
+  },
+  BUSY: { 
+    label: "En course", 
+    color: "text-orange-500 bg-orange-500/10 border-orange-500/20", 
+    iconColor: "#f97316",
+    pulseClass: "bg-orange-500"
+  },
+  PAUSE: { 
+    label: "En pause", 
+    color: "text-amber-500 bg-amber-500/10 border-amber-500/20", 
+    iconColor: "#eab308",
+    pulseClass: "bg-amber-500"
+  },
+  OFFLINE: { 
+    label: "Déconnecté", 
+    color: "text-slate-400 bg-slate-500/10 border-slate-500/10", 
+    iconColor: "#94a3b8",
+    pulseClass: "bg-slate-400"
+  }
 };
+
+// Icône de moto personnalisée Leaflet avec effet radar pulsé
+const createBikeIcon = (state) => {
+  const config = DRIVER_STATES_MAP[state] || { iconColor: "#94a3b8", pulseClass: "bg-slate-400" }; 
+  return new L.DivIcon({
+    html: `
+      <div class="relative flex items-center justify-center" style="width: 38px; height: 38px;">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${config.pulseClass} opacity-25" style="animation-duration: 2s;"></span>
+        
+        <div style="
+          background-color: ${config.iconColor}; 
+          width: 38px; 
+          height: 38px; 
+          border-radius: 50%; 
+          display: flex; 
+          justify-content: center; 
+          align-items: center; 
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+          border: 2.5px solid white;
+          position: relative;
+          z-index: 10;
+        ">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5.5" cy="17.5" r="2.5"/><circle cx="18.5" cy="17.5" r="2.5"/>
+            <path d="M5.5 17.5H12l1.5-6H20M16 5l-2.5 4H9"/>
+          </svg>
+        </div>
+      </div>
+    `,
+    className: "",
+    iconSize: [38, 38],
+    iconAnchor: [19, 19], 
+    popupAnchor: [0, -22]
+  });
+};
+
+// Composant interne pour recentrer la carte
+function ChangeView({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+  return null;
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [period, setPeriod] = useState("TODAY");
   const [recentDeliveries, setRecentDeliveries] = useState([]);
+  const [drivers, setDrivers] = useState([]); // Positions live
   const { user } = useAuth();
-  const { notifications, unreadCount, markAllAsRead } = useNotifications(); // Hook temps réel EMENO
+  const { notifications, unreadCount, markAllAsRead } = useNotifications(); 
   const navigate = useNavigate();
 
   const isDark = document.documentElement.classList.contains('dark');
@@ -55,18 +131,26 @@ export default function AdminDashboard() {
 
   const loadData = async () => {
     try {
-      const [statsRes, deliveriesRes] = await Promise.all([
+      const [statsRes, deliveriesRes, driversRes] = await Promise.all([
         fetchAdminStats({ period }),
-        fetchAdminDeliveries()
+        fetchAdminDeliveries(),
+        API.get(ENDPOINTS.DRIVER_MAP_ACTIVE)
       ]);
+
       setStats(statsRes?.data || statsRes);
+      
+      if (driversRes?.success) {
+        setDrivers(driversRes.data || []);
+      }
+
       const deliveries = deliveriesRes?.data?.data || deliveriesRes?.data || deliveriesRes;
       const sorted = Array.isArray(deliveries) 
         ? [...deliveries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
         : [];
       setRecentDeliveries(sorted);
+
     } catch (err) {
-      console.error("Erreur Dashboard:", err);
+      console.error("Erreur de synchronisation Dashboard:", err);
     }
   };
 
@@ -76,7 +160,6 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, [period]);
 
-  // Marquer comme lu à l'ouverture du dashboard ou à la consultation des alertes
   useEffect(() => {
     if (unreadCount > 0) {
       markAllAsRead();
@@ -105,6 +188,28 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 pb-10 transition-colors duration-300">
+      
+      {/* Styles personnalisés injectés pour les Popups Leaflet de la mini-carte */}
+      <style>{`
+        .leaflet-popup-content-wrapper {
+          background: rgba(255, 255, 255, 0.96) !important;
+          backdrop-filter: blur(8px);
+          border-radius: 16px !important;
+          box-shadow: 0 15px 25px -5px rgb(0 0 0 / 0.1) !important;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          padding: 2px;
+        }
+        .dark .leaflet-popup-content-wrapper {
+          background: rgba(15, 23, 42, 0.96) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .leaflet-popup-tip {
+          background: rgba(255, 255, 255, 0.96) !important;
+        }
+        .dark .leaflet-popup-tip {
+          background: rgba(15, 23, 42, 0.96) !important;
+        }
+      `}</style>
       
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -180,7 +285,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* NOUVEAU BLOC DU MILIEU : ALERTES OPÉRATIONNELLES LIVE */}
+      {/* BLOC MILIEU : ALERTES OPÉRATIONNELLES LIVE */}
       <div className="grid grid-cols-1 gap-8">
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border-2 border-dashed border-slate-200 dark:border-white/10 shadow-soft">
           <div className="flex justify-between items-center mb-6">
@@ -211,9 +316,6 @@ export default function AdminDashboard() {
               notifications.map((notif) => {
                 const isUnassigned = notif._id?.toString().includes("unassigned");
                 
-                // ============================================================
-                // TRAITEMENT ET TRADUCTION DE L'ALERTE EN DIRECT (EMENO)
-                // ============================================================
                 let displayMessage = notif.message;
                 let matchedStateBadge = null;
 
@@ -221,21 +323,18 @@ export default function AdminDashboard() {
                   if (notif.message && notif.message.includes(`maintenant ${stateKey}`)) {
                     const stateData = DRIVER_STATES_MAP[stateKey];
                     
-                    // Transformation pour intégration naturelle dans la phrase
                     displayMessage = notif.message.replace(
                       `maintenant ${stateKey}`, 
                       `maintenant ${stateData.label.toLowerCase()}`
                     );
 
-                    // Création du badge d'état stylisé
                     matchedStateBadge = (
                       <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border tracking-widest shrink-0 ${stateData.color}`}>
-                        {stateData.label}
+                        {stateData.label.toUpperCase()}
                       </span>
                     );
                   }
                 });
-                // ============================================================
 
                 return (
                   <div 
@@ -278,7 +377,119 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* CLASSEMENTS */}
+      {/* BLOC INTEGRATION CARTOGRAPHIE LIVE & MOUVEMENTS */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        
+        {/* CARTE MINI SUR LE DASHBOARD */}
+        <div className="xl:col-span-2 bg-white dark:bg-white/[0.02] p-6 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest italic flex items-center gap-2">
+                <Navigation size={14} className="text-secondary rotate-45" /> Supervision de la flotte en mouvement
+              </h3>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Libreville • Akanda • Owendo</p>
+            </div>
+            <button 
+              onClick={() => navigate("/admin/drivers")} 
+              className="text-[10px] font-black text-secondary uppercase tracking-widest hover:underline"
+            >
+              Vue Plein écran
+            </button>
+          </div>
+
+          <div className="relative h-[380px] w-full rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800/80 z-10">
+            {/* Flottant Légende de Carte */}
+            <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-xl z-[1000] shadow-md border border-slate-100 dark:border-slate-800/60 flex gap-4 text-[9px] font-black uppercase tracking-wider">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" /> <span className="text-slate-600 dark:text-slate-300">Disponible</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#f97316] animate-pulse" /> <span className="text-slate-600 dark:text-slate-300">En course</span>
+              </div>
+            </div>
+
+            <MapContainer 
+              center={LIBREVILLE_CENTER} 
+              zoom={11} 
+              style={{ height: "100%", width: "100%" }}
+              zoomControl={false}
+            >
+              <ChangeView center={LIBREVILLE_CENTER} />
+              <TileLayer
+                attribution='&copy; CARTO'
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              />
+              {drivers.map((item) => {
+                if (!item.location?.coordinates) return null;
+                
+                const position = [item.location.coordinates[1], item.location.coordinates[0]];
+                const statusConfig = DRIVER_STATES_MAP[item.driver?.driverState] || { label: item.driver?.driverState, color: "bg-slate-100 text-slate-600" };
+                
+                return (
+                  <Marker 
+                    key={item._id} 
+                    position={position} 
+                    icon={createBikeIcon(item.driver?.driverState)}
+                  >
+                    <Popup closeButton={false}>
+                      <div className="p-1.5 space-y-2.5 min-w-[170px] text-slate-900 dark:text-white">
+                        <div className="flex justify-between items-start gap-2">
+                          <div>
+                            <p className="font-black text-xs uppercase italic tracking-tight text-slate-900 dark:text-white">
+                              {item.driver?.prenom} {item.driver?.nom}
+                            </p>
+                            <p className="text-[9px] text-slate-400 font-bold mt-0.5">Coursier EMENO</p>
+                          </div>
+                          <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${statusConfig.color}`}>
+                            {statusConfig.label}
+                          </span>
+                        </div>
+                        
+                        <div className="text-[11px] space-y-1.5 bg-slate-50 dark:bg-white/5 p-2 rounded-xl border border-slate-100 dark:border-white/5">
+                          <a href={`tel:${item.driver?.telephone}`} className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300 text-[10px]">
+                            <Phone size={10} className="text-secondary" /> {item.driver?.telephone || 'N/A'}
+                          </a>
+                          <div className="flex items-center gap-1.5 text-slate-400 text-[9px]">
+                            <Clock size={10} />
+                            <span>{new Date(item.lastUpdated).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </MapContainer>
+          </div>
+        </div>
+
+        {/* DERNIERS MOUVEMENTS RECENTRÉS */}
+        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest italic">Derniers mouvements</h3>
+            <button onClick={() => navigate("/admin/deliveries")} className="text-[10px] font-black text-secondary uppercase tracking-widest">Voir tout</button>
+          </div>
+          <div className="space-y-3 overflow-y-auto max-h-[380px] pr-1 custom-scrollbar flex-1">
+            {recentDeliveries.map((d) => (
+              <div key={d._id} onClick={() => navigate(`/admin/deliveries/${d._id}`)} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-2xl cursor-pointer group transition-all border border-transparent hover:border-slate-100 dark:hover:border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-white dark:bg-white/10 rounded-xl flex items-center justify-center text-primary dark:text-slate-300 shadow-sm group-hover:text-secondary transition-colors">
+                    <Truck size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-slate-900 dark:text-white italic uppercase tracking-tighter truncate">{d.pickupContact?.name || "Client"}</p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">ID: {d.orderNumber || "..."}</p>
+                  </div>
+                </div>
+                <ArrowUpRight size={14} className="text-slate-300 group-hover:text-secondary transition-all shrink-0" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* CLASSEMENTS TOP DRIVERS / CLIENTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
@@ -328,38 +539,15 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* FLUX BAS DE PAGE & REPARTITION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest italic">Derniers mouvements</h3>
-            <button onClick={() => navigate("/admin/deliveries")} className="text-[10px] font-black text-secondary uppercase tracking-widest">Voir tout</button>
-          </div>
-          <div className="space-y-3">
-            {recentDeliveries.map((d) => (
-              <div key={d._id} onClick={() => navigate(`/admin/deliveries/${d._id}`)} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-2xl cursor-pointer group transition-all border border-transparent hover:border-slate-100 dark:hover:border-white/10">
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 bg-white dark:bg-white/10 rounded-xl flex items-center justify-center text-primary dark:text-slate-300 shadow-sm group-hover:text-secondary transition-colors">
-                    <Truck size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter">{d.pickupContact?.name || "Client"}</p>
-                    <p className="text-[10px] text-secondary-light font-bold uppercase tracking-wider">ID: {d.orderNumber || "..."}</p>
-                  </div>
-                </div>
-                <ArrowUpRight size={16} className="text-slate-300 group-hover:text-secondary transition-all" />
-              </div>
-            ))}
-          </div>
-        </div>
-
+      {/* PERFORMANCE GLOBALE (PIE CHART) */}
+      <div className="grid grid-cols-1 gap-8">
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest mb-8 italic text-center">Performance globale</h3>
-          <div className="flex flex-col md:flex-row items-center gap-10">
-            <div className="w-full md:w-1/2">
-              <ResponsiveContainer width="100%" height={220}>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-10 max-w-4xl mx-auto">
+            <div className="w-full md:w-1/3 flex justify-center">
+              <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
-                  <Pie data={statusData} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value">
+                  <Pie data={statusData} innerRadius={50} outerRadius={75} paddingAngle={8} dataKey="value">
                     {statusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={PIE_PALETTE[index % PIE_PALETTE.length]} stroke="none" />
                     ))}
@@ -368,7 +556,7 @@ export default function AdminDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="w-full md:w-1/2 space-y-6">
+            <div className="w-full md:w-2/3 space-y-4">
               <ProgressRow label="Livrées" value={deliveryStats.completed} total={total} colorClass="bg-emerald-400" />
               <ProgressRow label="En cours" value={deliveryStats.inProgress} total={total} colorClass="bg-secondary" />
               <ProgressRow label="Annulées" value={deliveryStats.cancelled} total={total} colorClass="bg-slate-300 dark:bg-white/10" />

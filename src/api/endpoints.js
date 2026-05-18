@@ -5,6 +5,7 @@ export const ENDPOINTS = {
   // AUTH
   // ======================
   LOGIN: "/api/auth/login",
+  LOGOUT: "/api/auth/logout",
   REGISTER: "/api/auth/register",
   CHANGE_PASSWORD: "/api/auth/change-password",
 
@@ -55,6 +56,7 @@ export const ENDPOINTS = {
   // ======================
   DRIVER_ME_LOCATION: "/api/delivery-location/me",
   DRIVER_AVAILABILITY: "/api/delivery-location/availability",
+  DRIVER_MAP_ACTIVE: "/api/delivery-location/map-active",
   DRIVER_ACTIVE_DELIVERIES: "/api/deliveries/driver/active",
 
   // USER DEBT

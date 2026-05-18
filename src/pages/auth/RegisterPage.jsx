@@ -57,10 +57,11 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const response = await registerClient(formData);
-      if (response.data?.token) {
-        localStorage.setItem("token", response.data.token);
+      // response.data contient maintenant { user, credentials }
+      if (response.data?.user) {
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        navigate("/client");
+        // On force une réinitialisation de l'état utilisateur local
+        window.location.href = "/client"; 
       }
     } catch (err) { 
       setError(err.message || "Erreur lors de la création du compte"); 
