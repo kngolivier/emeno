@@ -108,9 +108,14 @@ export default function DriverLayout() {
       <header className="h-24 bg-white/90 dark:bg-slate-900/90 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between px-6 sticky top-0 z-[60] backdrop-blur-xl">
         <div className="flex items-center gap-4">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black text-primary dark:text-white italic tracking-tighter leading-none uppercase">
-              EMENO<span className="text-secondary">.</span>
-            </h1>
+            <div className="flex flex-col select-none cursor-pointer" onClick={() => navigate("/driver")}>
+              <h1 className="text-2xl font-black text-primary dark:text-white tracking-tight leading-none uppercase font-sans">
+                Emeno
+              </h1>
+              <span className="text-[7px] font-black text-secondary uppercase tracking-[0.35em] mt-0.5 pl-0.5 block leading-none">
+                Livraison
+              </span>
+            </div>
             <div className="flex items-center gap-2 mt-1.5">
               <span className="relative flex h-2 w-2">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isOnline ? 'bg-emerald-400' : 'bg-slate-300'}`}></span>

@@ -4,14 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  CheckCircle, Clock, TrendingUp, Power, MapPin, 
-  Package, Loader2, X, Phone, ShieldCheck, Navigation,
-  ChevronRight, Info, AlertCircle, Coffee, Play, Award,
-  Coins, Wallet, User
+  CheckCircle, Clock, Power, Package, Loader2, X, Phone, 
+  ShieldCheck, Navigation, ChevronRight, AlertCircle, 
+  Coffee, Play, Award, User, Coins, Moon
 } from "lucide-react";
 import { useDriver } from "../../hooks/useDriver";
 import { useAuth } from "../../context/AuthContext";
-import { CATEGORY_LABELS } from "../../constants/constants";
+import { CATEGORY_LABELS, STATUS_LABELS } from "../../constants/constants";
 import FeedbackModal from "../../components/feedback/FeedbackModal";
 
 export default function DriverDashboard() {
@@ -96,14 +95,6 @@ export default function DriverDashboard() {
     }
   };
 
-  const getPayerLabel = (type) => {
-    switch (type) {
-      case 'SENDER': return "Expéditeur";
-      case 'RECEIVER': return "Destinataire";
-      default: return "Non spécifié";
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-10 text-center">
@@ -150,16 +141,6 @@ export default function DriverDashboard() {
                 <Loader2 className="animate-spin text-slate-400" size={18} strokeWidth={3} />
                 <span className="text-[10px] font-black uppercase tracking-widest">Mise à jour...</span>
               </button>
-            ) : effectiveDriverState === "BUSY" ? (
-              <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 py-4 px-5 rounded-2xl flex items-center justify-between shadow-inner">
-                <div className="flex items-center gap-3">
-                  <Package size={18} strokeWidth={2.5} className="animate-bounce" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Livraison en cours</span>
-                </div>
-                <span className="text-[9px] font-black px-2 py-0.5 bg-amber-500 text-white rounded-lg italic shadow-sm">
-                  {activeOrders.length}/{maxCapacity}
-                </span>
-              </div>
             ) : !isOnline ? (
               <button 
                 onClick={toggleDuty}
@@ -169,71 +150,119 @@ export default function DriverDashboard() {
                 Prendre mon service
               </button>
             ) : (
-              <div className="flex gap-3">
-                <button 
-                  onClick={togglePause}
-                  className={`flex-1 py-4 px-4 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
-                    isPaused 
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
-                      : 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
-                  }`}
-                >
-                  {isPaused ? (
-                    <>
-                      <Play size={14} strokeWidth={3} fill="currentColor" />
-                      Reprendre
-                    </>
-                  ) : (
-                    <>
-                      <Coffee size={14} strokeWidth={3} />
-                      Prendre une Pause
-                    </>
-                  )}
-                </button>
+              <div className="flex flex-col gap-3">
+                {effectiveDriverState === "BUSY" && (
+                  <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 py-4 px-5 rounded-2xl flex items-center justify-between shadow-inner">
+                    <div className="flex items-center gap-3">
+                      <Package size={18} strokeWidth={2.5} className="animate-bounce" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Livraison en cours</span>
+                    </div>
+                    <span className="text-[9px] font-black px-2 py-0.5 bg-amber-500 text-white rounded-lg italic shadow-sm">
+                      {activeOrders.length}/{maxCapacity}
+                    </span>
+                  </div>
+                )}
 
-                <button 
-                  onClick={toggleDuty}
-                  className="bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 p-4 rounded-2xl active:scale-[0.95] transition-all"
-                  title="Terminer le service"
-                >
-                  <Power size={18} strokeWidth={3} />
-                </button>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={togglePause}
+                    className={`flex-1 py-4 px-4 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
+                      isPaused 
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
+                        : effectiveDriverState === "BUSY"
+                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                          : 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
+                    }`}
+                  >
+                    {isPaused ? (
+                      <>
+                        <Play size={14} strokeWidth={3} fill="currentColor" />
+                        Reprendre la dispo
+                      </>
+                    ) : effectiveDriverState === "BUSY" ? (
+                      <>
+                        <Coffee size={14} strokeWidth={3} />
+                        Pause après course
+                      </>
+                    ) : (
+                      <>
+                        <Coffee size={14} strokeWidth={3} />
+                        Prendre une Pause
+                      </>
+                    )}
+                  </button>
+
+                  <button 
+                    onClick={toggleDuty}
+                    disabled={effectiveDriverState === "BUSY" || isPaused}
+                    className="bg-slate-50 border border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 p-4 rounded-2xl active:scale-[0.95] transition-all disabled:opacity-40 disabled:pointer-events-none"
+                    title="Terminer le service"
+                  >
+                    <Power size={18} strokeWidth={3} />
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </header>
 
-        {/* --- 2. STATS RAPIDES --- */}
+        {/* --- 2. STATS RAPIDES SANS FINANCES --- */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 shadow-sm">
+          {/* Carte : Livraisons Réussies */}
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 shadow-sm flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-3">
                <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-xl"><CheckCircle size={16}/></div>
                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Réussies</span>
             </div>
-            <p className="text-2xl font-black text-primary dark:text-white italic leading-none">
-              {stats.completed?.toString().padStart(2, '0')}
-            </p>
-          </div>
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-               <div className="p-2 bg-secondary/10 text-secondary rounded-xl"><TrendingUp size={16}/></div>
-               <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Aujourd'hui</span>
+            <div>
+              <p className="text-2xl font-black text-primary dark:text-white italic leading-none">
+                {stats.completed?.toString().padStart(2, '0')}
+              </p>
+              <span className="text-[8px] text-slate-400 font-medium block mt-1">Aujourd'hui</span>
             </div>
-            <p className="text-2xl font-black text-primary dark:text-white italic leading-none">
-              {stats.total?.toString().padStart(2, '0')}
-            </p>
+          </div>
+
+          {/* Carte : Taux d'efficacité */}
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center gap-3 mb-3">
+               <div className="p-2 bg-amber-50 dark:bg-amber-500/10 text-amber-500 rounded-xl"><Award size={16}/></div>
+               <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Efficacité</span>
+            </div>
+            <div>
+              <p className="text-2xl font-black text-amber-500 italic leading-none">
+                {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+              </p>
+              <span className="text-[8px] text-slate-400 font-medium block mt-1">Sur {stats.total} mission(s)</span>
+            </div>
           </div>
         </div>
 
-        {/* --- 3. MISSIONS EN COURS --- */}
+        {/* --- 3. MISSIONS EN COURS OU ÉCRAN DE PAUSE --- */}
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Missions Prioritaires</h3>
-            {activeOrders.length > 0 && <span className="w-5 h-[1px] bg-slate-200 dark:bg-slate-800 flex-1 ml-4" />}
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
+              {isPaused ? "Statut Session" : "Missions Prioritaires"}
+            </h3>
+            {!isPaused && activeOrders.length > 0 && <span className="w-5 h-[1px] bg-slate-200 dark:bg-slate-800 flex-1 ml-4" />}
           </div>
           
           <AnimatePresence mode="popLayout">
-            {activeOrders.length > 0 ? (
+            {isPaused ? (
+              /* ☕ ÉCRAN VIDE DÉDIÉ : MODE PAUSE ACTIF */
+              <motion.div 
+                key="paused-state"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                className="bg-blue-500/5 border-2 border-dashed border-blue-500/20 p-12 rounded-[3.5rem] text-center"
+              >
+                <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                    <Moon size={30} strokeWidth={2.5} />
+                </div>
+                <h4 className="text-sm font-black text-primary dark:text-white uppercase tracking-wider mb-1 italic">Mode Pause Activé</h4>
+                <p className="text-[10px] font-bold text-slate-400 max-w-[220px] mx-auto leading-relaxed">
+                  Vos missions en cours sont masquées. Reprenez votre service pour recommencer à livrer.
+                </p>
+              </motion.div>
+            ) : activeOrders.length > 0 ? (
               <div className="space-y-4">
                 {[...activeOrders].reverse().map((order) => (
                   <motion.div 
@@ -253,7 +282,7 @@ export default function DriverDashboard() {
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                             <span className="text-[8px] font-black text-white/70 uppercase italic tracking-tighter">
-                                {order.status?.replace('_', ' ')}
+                                {STATUS_LABELS[order.status].replace('_', ' ')}
                             </span>
                         </div>
                       </div>
@@ -281,6 +310,7 @@ export default function DriverDashboard() {
               </div>
             ) : (
               <motion.div 
+                key="empty-state"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 className="bg-white dark:bg-slate-900/50 border-2 border-dashed border-slate-100 dark:border-slate-800 p-12 rounded-[3.5rem] text-center"
               >
@@ -294,7 +324,7 @@ export default function DriverDashboard() {
         </div>
       </div>
 
-      {/* --- 4. MODALE DE MISSION --- */}
+      {/* --- 4. MODALE DE MISSION SÉCURISÉE --- */}
       <AnimatePresence>
         {selectedOrder && (
           <motion.div 
@@ -318,19 +348,8 @@ export default function DriverDashboard() {
 
               <div ref={scrollRef} className="px-8 pb-10 space-y-7 overflow-y-auto custom-scrollbar">
                 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
-                    <div className="p-2 bg-primary/5 dark:bg-primary/20 text-secondary rounded-xl">
-                      <Wallet size={18} />
-                    </div>
-                    <div>
-                      <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest block">Montant</span>
-                      <p className="text-sm font-black text-primary dark:text-white italic">
-                        {selectedOrder.price ? `${selectedOrder.price} XAF` : "0 XAF"}
-                      </p>
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 gap-3">
+                  {/* ℹ️ Indicateur Logistique de Paiement Dynamique avec Prix Sécurisé */}
                   <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
                     selectedOrder.isPaid 
                       ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
@@ -340,24 +359,34 @@ export default function DriverDashboard() {
                       <Coins size={18} />
                     </div>
                     <div>
-                      <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest block">Qui Paie ?</span>
-                      <p className="text-[10px] font-black uppercase tracking-wide truncate">
-                        {selectedOrder.isPaid ? "Déjà Payé" : getPayerLabel(selectedOrder.payerType)}
+                      <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest block">Instruction Encaisser</span>
+                      <div className="text-[10px] font-black uppercase tracking-wide">
+                        {selectedOrder.isPaid ? (
+                          <p> Déjà Payé (Ne rien encaisser)</p>
+                        ) : selectedOrder.payerType === 'SENDER' ? (
+                          <p> Encaisser chez l'Expéditeur: <span className="text-xs text-primary dark:text-white ml-1 font-black underline decoration-amber-500 decoration-2">{selectedOrder.price} FCFA</span></p>
+                        ) : selectedOrder.payerType === 'RECEIVER' ? (
+                          <p> Encaisser chez le Destinataire: <span className="text-xs text-primary dark:text-white ml-1 font-black underline decoration-amber-500 decoration-2">{selectedOrder.price} FCFA</span></p>
+                        ) : (
+                          <p>Non spécifié</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Catégorie du Colis */}
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex gap-4 items-center border border-slate-100 dark:border-slate-800">
+                    <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-secondary"><Package size={22}/></div>
+                    <div>
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Catégorie du colis</p>
+                      <p className="text-sm font-black text-primary dark:text-white italic">
+                        {CATEGORY_LABELS[selectedOrder.packageDetails?.category] || "Standard"}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex gap-4 items-center border border-slate-100 dark:border-slate-800">
-                  <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-secondary"><Package size={22}/></div>
-                  <div>
-                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Catégorie</p>
-                    <p className="text-sm font-black text-primary dark:text-white italic">
-                      {CATEGORY_LABELS[selectedOrder.packageDetails?.category] || "Standard"}
-                    </p>
-                  </div>
-                </div>
-
+                {/* Tracking Itinéraire Terrain */}
                 <div className="relative pl-8 space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 dark:before:bg-slate-800">
                   <div className="relative">
                     <div className="absolute -left-8 top-1 w-6 h-6 rounded-full bg-white dark:bg-slate-900 border-[6px] border-emerald-500 z-10" />

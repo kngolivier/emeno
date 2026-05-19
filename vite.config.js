@@ -1,4 +1,3 @@
-// FILE: vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -7,15 +6,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      strategies: 'generateSW',
-      // 💡 On passe en mode 'prompt' pour notifier l'utilisateur plutôt que de recharger brutalement
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'prompt',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'], // Fichiers mis en cache pour le mode offline
-        cleanupOutdatedCaches: true,
-        // 🔥 Permet au bouton "Relancer" d'activer immédiatement le nouveau SW dès que l'utilisateur clique
-        skipWaiting: false,
-        clientsClaim: true
+      injectManifest: {
+        // ✅ On ne garde QUE globPatterns ici
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       },
       manifest: {
         name: 'EMENO Delivery',

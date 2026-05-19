@@ -41,11 +41,6 @@ export default function PriceEstimator() {
       });
       return;
     }
-    
-    if (origin === destination) {
-        toast.error("Le départ et l'arrivée doivent être différents");
-        return;
-    }
 
     setLoading(true);
     setPrice(null);

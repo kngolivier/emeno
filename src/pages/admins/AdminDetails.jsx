@@ -44,7 +44,7 @@ export default function AdminDetails() {
     setDeleting(true);
     try {
       await deleteUser(id);
-      notifySuccess("Le compte administrateur a été supprimé");
+      notifyError("Le compte administrateur a été supprimé");
       navigate("/admin/admins"); 
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Erreur lors de la suppression";

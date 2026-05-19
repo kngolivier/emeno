@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
   ChevronLeft, Phone, Activity, Truck, Package, 
-  ShieldOff, Trash2, Mail, ExternalLink, ShieldCheck, Clock 
+  ShieldOff, Trash2, Mail, ExternalLink, ShieldCheck, Clock, RefreshCw 
 } from "lucide-react";
 
 // API Services
@@ -15,6 +15,12 @@ import { fetchDriverStats } from "../../api/stats.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
 
+const PERIOD_LABELS = {
+  TODAY: "Jour",
+  WEEK: "Semaine",
+  MONTH: "Mois"
+};
+
 export default function DriverDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -22,20 +28,24 @@ export default function DriverDetails() {
   // États pour les données
   const [driver, setDriver] = useState(null);
   const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, distance: 0 });
+  const [period, setPeriod] = useState("MONTH"); // "TODAY", "WEEK" ou "MONTH"
+  
+  // États de chargement
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
   
   // États pour les actions
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   /**
-   * Chargement combiné du profil et des statistiques
+   * Chargement initial (Profil + Stats)
    */
-  const loadData = async () => {
+  const loadInitialData = async () => {
     try {
       const [driverRes, statsRes] = await Promise.all([
         fetchDriverById(id),
-        fetchDriverStats(id, "MONTH")
+        fetchDriverStats(id, period)
       ]);
       
       setDriver(driverRes?.data?.data || driverRes?.data || driverRes);
@@ -47,9 +57,32 @@ export default function DriverDetails() {
     }
   };
 
+  /**
+   * Rechargement ciblé des statistiques lors du changement de période
+   */
+  const loadUpdatedStats = async () => {
+    setStatsLoading(true);
+    try {
+      const statsRes = await fetchDriverStats(id, period);
+      setStats(statsRes?.data?.data || statsRes?.data || statsRes);
+    } catch (err) {
+      notifyError("Impossible de mettre à jour les performances");
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Premier rendu
   useEffect(() => { 
-    loadData(); 
+    loadInitialData(); 
   }, [id]);
+
+  // Écoute des changements de période (Jour/Semaine/Mois)
+  useEffect(() => {
+    if (!loading) {
+      loadUpdatedStats();
+    }
+  }, [period]);
 
   /**
    * Calcul du taux de réussite (Performance)
@@ -136,14 +169,43 @@ export default function DriverDetails() {
         </div>
       </div>
 
+      {/* FILTRE TEMPOREL DES PERFORMANCES */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-4 md:p-6 rounded-3xl border border-slate-50 dark:border-slate-800 shadow-soft">
+        <div>
+          <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 italic">
+            <Activity className="text-secondary" size={16} /> Suivi des Performances
+          </h3>
+          <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 mt-0.5 uppercase tracking-wide">
+            Statistiques basées sur l'intervalle sélectionné
+          </p>
+        </div>
+
+        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner w-full sm:w-auto">
+          {["TODAY", "WEEK", "MONTH"].map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              disabled={statsLoading}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black tracking-widest transition-all ${
+                period === p
+                  ? "bg-primary dark:bg-secondary text-white shadow-md"
+                  : "text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white"
+              }`}
+            >
+              {PERIOD_LABELS[p]}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         
         {/* CONTACT CARD */}
-        <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft space-y-6">
+        <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft space-y-6 h-full">
           <div className="flex justify-between items-center">
             <h3 className="text-[10px] font-black text-slate-300 dark:text-slate-500 uppercase tracking-[0.2em]">Contact & Localisation</h3>
             <div className="p-2 bg-secondary/10 rounded-lg text-secondary">
-                <Activity size={16} />
+                <Truck size={16} />
             </div>
           </div>
           
@@ -168,11 +230,19 @@ export default function DriverDetails() {
           </div>
         </div>
 
-        {/* REAL-TIME STATISTICS */}
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+        {/* REAL-TIME STATISTICS CARD CONTAINER */}
+        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 relative">
+          
+          {/* Effet d'overlay flouté transparent pendant le chargement des données de l'API */}
+          {statsLoading && (
+            <div className="absolute inset-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm z-20 rounded-[2.5rem] flex items-center justify-center animate-in fade-in duration-200">
+              <RefreshCw className="animate-spin text-secondary h-8 w-8" />
+            </div>
+          )}
+
           {[
-            { label: "Livraisons", val: stats.total, icon: Truck, col: "bg-primary" },
-            { label: "Réussies", val: stats.completed, icon: Package, col: "bg-secondary" },
+            { label: `Livraisons (${PERIOD_LABELS[period]})`, val: stats.total, icon: Truck, col: "bg-primary" },
+            { label: `Réussies (${PERIOD_LABELS[period]})`, val: stats.completed, icon: Package, col: "bg-secondary" },
             { label: "Performance", val: performanceRate, icon: Activity, col: "bg-emerald-500" },
           ].map((item, i) => (
             <div key={i} className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft flex flex-row sm:flex-col items-center justify-between sm:justify-center text-left sm:text-center gap-4">

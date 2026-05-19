@@ -1,4 +1,4 @@
-// FILE: src/components/drivers/NewDriverForm.jsx
+// FILE: src/pages/drivers/NewDriverForm.jsx
 
 import { useState } from "react";
 import { X, MapPin, Loader2, Truck } from "lucide-react";

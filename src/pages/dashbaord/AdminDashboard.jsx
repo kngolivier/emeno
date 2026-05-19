@@ -1,3 +1,5 @@
+// FILE: src/pages/admin/AdminDashboard.jsx
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import resolveConfig from 'tailwindcss/resolveConfig';
@@ -23,7 +25,7 @@ import ProgressRow from "../../components/dashboard/ProgressRow";
 import {
   Truck, CreditCard, PackageCheck, Activity, AlertTriangle, Bell,
   CheckCircle, ArrowUpRight, Users, Settings, Shield, Star, ShoppingBag, Eye, Navigation,
-  Award, Phone, Clock
+  Award, Phone, Clock, Store
 } from "lucide-react";
 
 import {
@@ -72,7 +74,6 @@ const createBikeIcon = (state) => {
     html: `
       <div class="relative flex items-center justify-center" style="width: 38px; height: 38px;">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${config.pulseClass} opacity-25" style="animation-duration: 2s;"></span>
-        
         <div style="
           background-color: ${config.iconColor}; 
           width: 38px; 
@@ -100,7 +101,6 @@ const createBikeIcon = (state) => {
   });
 };
 
-// Composant interne pour recentrer la carte
 function ChangeView({ center }) {
   const map = useMap();
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [period, setPeriod] = useState("TODAY");
   const [recentDeliveries, setRecentDeliveries] = useState([]);
-  const [drivers, setDrivers] = useState([]); // Positions live
+  const [drivers, setDrivers] = useState([]);
   const { user } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useNotifications(); 
   const navigate = useNavigate();
@@ -186,10 +186,16 @@ export default function AdminDashboard() {
     { name: "Annulées", value: deliveryStats.cancelled || 0 }
   ];
 
+  const formatCurrency = (amount) => {
+    if (amount >= 1000000000) return (amount / 1000000000).toFixed(1) + ' Mds F';
+    if (amount >= 1000000) return (amount / 1000000).toFixed(1) + ' M F';
+    if (amount >= 1000) return (amount / 1000).toFixed(1) + ' K F';
+    return amount.toLocaleString() + ' F';
+  };
+
   return (
     <div className="space-y-8 pb-10 transition-colors duration-300">
       
-      {/* Styles personnalisés injectés pour les Popups Leaflet de la mini-carte */}
       <style>{`
         .leaflet-popup-content-wrapper {
           background: rgba(255, 255, 255, 0.96) !important;
@@ -239,13 +245,14 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* KPI GRID */}
+      {/* KPI GRID AMÉLIORÉ (Intégration de la carte activePartners de l'API) */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard title="En attente" value={deliveryStats.pending || 0} icon={PackageCheck} color="bg-amber-500/10 text-amber-600 dark:text-amber-400" />
         <StatCard title="En cours" value={deliveryStats.inProgress || 0} icon={Activity} color="bg-blue-500/10 text-blue-600 dark:text-blue-400" />
-        <StatCard title="Livreurs" value={userStats.activeDrivers || 0} icon={Truck} color="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" />
-        <StatCard title="Clients" value={userStats.activeClients || 0} icon={Users} color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" />
-        <StatCard title="Revenus" value={`${revenue.toLocaleString()} F`} icon={CreditCard} color="bg-primary dark:bg-white/10 text-white" />
+        <StatCard title="Livreurs" value={userStats.activeDrivers || 0} icon={Truck} color="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" to="/admin/drivers" />
+        <StatCard title="Clients" value={userStats.activeClients || 0} icon={Users} color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" to="/admin/clients" />
+        <StatCard title="Partenaires" value={userStats.activePartners || 0} icon={Store} color="bg-purple-500/10 text-purple-600 dark:text-purple-400" to="/admin/pricing" />
+        <StatCard title="Revenus" value={formatCurrency(revenue)} icon={CreditCard} color="bg-primary dark:bg-white/10 text-white" />
         <StatCard title="Succès" value={successRate} icon={CheckCircle} color="bg-emerald-500/20 text-emerald-600 dark:text-emerald-500" />
       </div>
 
@@ -277,6 +284,7 @@ export default function AdminDashboard() {
             <QuickAction label="Clients" icon={Users} onClick={() => navigate("/admin/clients")} color={COLORS.secondary} />
             <QuickAction label="Livreurs" icon={Users} onClick={() => navigate("/admin/drivers")} color={COLORS.secondary} />
             <QuickAction label="Tarifs" icon={CreditCard} onClick={() => navigate("/admin/pricing")} color={COLORS.secondary} />
+            <QuickAction label="Partenaires" icon={Store} onClick={() => navigate("/admin/partners")} color={COLORS.secondary} />
             {user?.role === 'SUPER_ADMIN' && (
               <QuickAction label="Gestion Staff" icon={Shield} onClick={() => navigate("/admin/admins")} color={COLORS.secondary} />
             )}
@@ -377,7 +385,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* BLOC INTEGRATION CARTOGRAPHIE LIVE & MOUVEMENTS */}
+      {/* BLOC CARTOGRAPHIE LIVE & MOUVEMENTS */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
         {/* CARTE MINI SUR LE DASHBOARD */}
@@ -398,7 +406,6 @@ export default function AdminDashboard() {
           </div>
 
           <div className="relative h-[380px] w-full rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800/80 z-10">
-            {/* Flottant Légende de Carte */}
             <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-xl z-[1000] shadow-md border border-slate-100 dark:border-slate-800/60 flex gap-4 text-[9px] font-black uppercase tracking-wider">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" /> <span className="text-slate-600 dark:text-slate-300">Disponible</span>
@@ -489,54 +496,92 @@ export default function AdminDashboard() {
 
       </div>
 
-      {/* CLASSEMENTS TOP DRIVERS / CLIENTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* 🎯 SECTIONS DE COMPARAISON : CLASSEMENTS LIVREURS, CLIENTS & PARTENAIRES B2B */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        
+        {/* TOP 5 LIVREURS */}
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
-          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
+          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-6 italic">
             <Award size={16} className="text-secondary" /> Top 5 Livreurs
           </h3>
           <div className="space-y-4">
             {(userStats.topDrivers || []).map((driver, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
-                <div className="flex items-center gap-4">
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100/30 dark:border-white/5">
+                <div className="flex items-center gap-3">
                   <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${index === 0 ? 'bg-secondary text-primary' : 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-white'}`}>
                     {index + 1}
                   </span>
-                  <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter">{driver.name}</p>
+                  <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter truncate max-w-[140px]">{driver.name}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <span className="text-sm font-black text-slate-900 dark:text-white">{driver.deliveries}</span>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Courses</p>
+                  <p className="text-[9px] text-slate-400 font-black uppercase">Courses</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
+        {/* TOP 5 CLIENTS B2C */}
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
-          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
-            <Star size={16} className="text-secondary" /> Top 5 Clients
+          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-6 italic">
+            <Star size={16} className="text-secondary" /> Top 5 Clients B2C
           </h3>
           <div className="space-y-4">
             {(userStats.topClients || []).map((client, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white dark:bg-white/10 rounded-xl flex items-center justify-center text-primary dark:text-secondary shadow-sm">
-                    <ShoppingBag size={18} />
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100/30 dark:border-white/5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-9 h-9 bg-white dark:bg-white/10 rounded-xl flex items-center justify-center text-primary dark:text-secondary shadow-sm shrink-0">
+                    <ShoppingBag size={16} />
                   </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter">{client.name}</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">{client.orders} commandes</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter truncate">{client.name}</p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase">{client.orders} commandes</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-secondary">{client.totalSpent?.toLocaleString()} F</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase italic">Volume</p>
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-black text-secondary">{(client.totalSpent || 0).toLocaleString()} F</p>
+                  <p className="text-[8px] text-slate-400 font-black uppercase italic">Volume</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* 🎯 NOUVEAU : TOP 5 PARTENAIRES COMMERCIAUX (B2B) */}
+        <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
+          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-6 italic">
+            <Store size={16} className="text-purple-500" /> Top 5 Partenaires B2B
+          </h3>
+          <div className="space-y-4">
+            {(userStats.topPartners || []).map((partner, index) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-purple-500/10 dark:border-white/5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-9 h-9 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-600 dark:text-purple-400 shadow-sm shrink-0">
+                    <Store size={16} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black text-slate-900 dark:text-white italic uppercase tracking-tighter truncate" title={partner.name}>
+                      {partner.name || "Partenaire Pro"}
+                    </p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase">{partner.orders} flux expédiés</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-black text-purple-500">{(partner.totalSpent || 0).toLocaleString()} F</p>
+                  <p className="text-[8px] text-slate-400 font-black uppercase italic">CA Généré</p>
+                </div>
+              </div>
+            ))}
+            {(userStats.topPartners || []).length === 0 && (
+              <div className="py-8 text-center text-slate-300 dark:text-slate-700">
+                <Store size={24} className="mx-auto mb-1 opacity-30" />
+                <p className="text-[9px] font-black uppercase tracking-wider">Aucun flux B2B enregistré</p>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* PERFORMANCE GLOBALE (PIE CHART) */}

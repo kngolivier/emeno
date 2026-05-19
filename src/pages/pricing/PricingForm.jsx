@@ -63,9 +63,6 @@ export default function PricingForm({ onSave, onCancel, pricing }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.from === form.to) {
-      return notifyError("Le point de départ et d'arrivée doivent être différents");
-    }
 
     setLoading(true);
     try {

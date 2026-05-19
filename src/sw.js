@@ -1,4 +1,21 @@
-// FILE: public/sw-custom.js
+// FILE: src/sw.js
+
+import { precacheAndRoute } from 'workbox-precaching';
+// ⚡ On importe la fonction de nettoyage depuis workbox-precaching
+import { cleanupOutdatedCaches } from 'workbox-precaching';
+
+// Nettoyer automatiquement les anciens caches des builds précédents
+cleanupOutdatedCaches();
+
+// Injection de la liste des fichiers à mettre en cache
+precacheAndRoute(self.__WB_MANIFEST || []);
+
+// Forcer le nouveau SW à s'activer dès que le bouton "Relancer" est cliqué
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
 // Écouter l'événement Push envoyé par ton serveur backend
 self.addEventListener('push', (event) => {

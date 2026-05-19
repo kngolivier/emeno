@@ -21,11 +21,8 @@ export const useDriver = () => {
 
   const refreshStats = useCallback(async () => {
     try {
-      // Requête sur la période du jour actuel
-      const response = await fetchMyStats("TODAY"); 
-      
-      // Extraction sécurisée selon la structure de ton sendResponse backend
-      const statsData = response.data?.data;
+      const response = await fetchMyStats("TODAY");
+      const statsData = response.data;
       
       if (statsData) {
         setStats({
@@ -63,6 +60,13 @@ export const useDriver = () => {
   // Déconnexion ou Connexion Globale
   const toggleDuty = async () => {
     if (updatingState) return;
+
+    // 🛑 LOGIQUE MÉTIER : Interdiction stricte de se déconnecter s'il reste des commandes actives
+    if (isOnline && activeOrders.length > 0) {
+      toast.error(`Déconnexion impossible. Vous avez encore ${activeOrders.length} livraison(s) en cours à terminer.`);
+      return;
+    }
+
     setUpdatingState(true);
     try {
       const nextState = isOnline ? "OFFLINE" : "IDLE";
@@ -78,25 +82,32 @@ export const useDriver = () => {
     }
   };
 
-  // Basculer l'état de pause (IDLE <-> PAUSE)
+  // Basculer l'état de pause (IDLE/BUSY <-> PAUSE)
   const togglePause = async () => {
     if (!isOnline) {
       toast.error("Vous devez être en service pour prendre une pause");
-      return;
-    }
-    if (user?.driverState === "BUSY") {
-      toast.error("Impossible de prendre une pause pendant une livraison active");
       return;
     }
     if (updatingState) return;
 
     setUpdatingState(true);
     try {
+      // 🚀 CORRECTION : On demande toujours "IDLE" ou "PAUSE". Le backend refuse "BUSY" par cette route.
       const nextState = isPaused ? "IDLE" : "PAUSE";
+
       const res = await driverApi.updateMyStateAction(nextState);
       const updatedData = res.data?.data || res.data;
 
-      updateUser({ ...user, driverState: updatedData.driverState });
+      // On applique la réponse serveur propre
+      let finalDriverState = updatedData.driverState;
+
+      // Sécurité Front-end : Si le serveur renvoie IDLE mais qu'on sait qu'on a déjà des commandes au max,
+      // on force localement l'état à BUSY en attendant le prochain cycle de rafraîchissement.
+      if (finalDriverState === "IDLE" && activeOrders.length >= maxCapacity) {
+        finalDriverState = "BUSY";
+      }
+
+      updateUser({ ...user, driverState: finalDriverState });
       toast.success(nextState === "PAUSE" ? "Pause enregistrée" : "Reprise du service active");
     } catch (err) {
       toast.error(err.response?.data?.message || "Erreur lors du changement de pause");

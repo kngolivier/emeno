@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Bell, ChevronRight, Globe, HeartHandshake, LayoutDashboard, MapPin, Package, Plus, ShieldCheck, Sparkles, Star, Truck, Zap, Gift, Coins, Boxes } from "lucide-react";
+import { ArrowRight, Bell, ChevronRight, Globe, HeartHandshake, LayoutDashboard, MapPin, Package, Plus, ShieldCheck, Sparkles, Star, Truck, Zap, Gift, Coins, Boxes, X, ExternalLink, ChevronLeft, Phone } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/Theme/ThemeContext";
 import { fetchClientDeliveries } from "../../api/deliveries.api";
@@ -11,6 +11,18 @@ import { fetchMyStats } from "../../api/stats.api";
 import PageLoader from "../../components/ui/PageLoader";
 import { STATUS_LABELS } from "../../constants/constants";
 
+// --- VARIANTES POUR LES ANIMATIONS ---
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
+};
+
+// --- DONNÉES ---
 const heroSlides = [
   { id: 1, tag: "Livraison premium", title: "Livrez", accent: "Partout", description: "Expédiez vos colis rapidement avec suivi temps réel et notifications instantanées.", image: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=1800&auto=format&fit=crop", cta: "Nouvelle commande", route: "/client/new-order" },
   { id: 2, tag: "Programme fidélité", title: "Cumulez", accent: "Des points", description: "Recevez des récompenses et des livraisons offertes grâce à votre fidélité.", image: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=1800&auto=format&fit=crop", cta: "Voir mes avantages", route: "/client/dashboard" },
@@ -30,11 +42,98 @@ const promotions = [
 ];
 
 const partners = [
-  { name: "Nelia's Care", category: "Cosmétique" },
-  { name: "Gabon Tech", category: "Électronique" },
-  { name: "AfroPharma", category: "Santé" },
-  { name: "BioShop", category: "Alimentaire" },
+  { 
+    name: "Nelia's Care", category: "Cosmétique", desc: "Produits de soin naturels.",
+    image: "https://images.unsplash.com/photo-1556228720-1950672e3a04?q=80&w=1000",
+    phone: "+24100000000",
+    products: [
+      { name: "Crème Hydratante", price: "5 500 F", image: "https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?q=80&w=400" },
+      { name: "Savon Noir", price: "2 500 F", image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70a0b7?q=80&w=400" }
+    ]
+  },
+  { 
+    name: "Gabon Tech", category: "Électronique", desc: "Le meilleur de la tech.",
+    image: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=1000",
+    phone: "+24111111111",
+    products: [
+      { name: "Écouteurs Pro", price: "15 000 F", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=400" },
+      { name: "Montre Connectée", price: "25 000 F", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=400" }
+    ]
+  },
+  { 
+    name: "AfroPharma", category: "Santé", desc: "Votre pharmacie de proximité.",
+    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000",
+    phone: "+24122222222",
+    products: [
+      { name: "Kit Premiers Soins", price: "8 000 F", image: "https://images.unsplash.com/photo-1585435557343-3b09d3719b06?q=80&w=400" }
+    ]
+  },
+  { 
+    name: "BioShop", category: "Alimentaire", desc: "Produits bio frais.",
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1000",
+    phone: "+24133333333",
+    products: [
+      { name: "Panier Bio", price: "12 000 F", image: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?q=80&w=400" }
+    ]
+  },
 ];
+
+// --- MODAL PARTENAIRE AVEC CAROUSEL ---
+function PartnerModal({ partner, onClose }) {
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  if (!partner) return null;
+
+  const nextProduct = () => setActiveIdx((p) => (p + 1) % partner.products.length);
+  const prevProduct = () => setActiveIdx((p) => (p - 1 + partner.products.length) % partner.products.length);
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative z-10 w-full max-w-md bg-white dark:bg-[#071120] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
+        
+        {/* Header Image */}
+        <div className="relative h-40">
+          <img src={partner.image} alt={partner.name} className="w-full h-full object-cover" />
+          <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 bg-black/40 backdrop-blur text-white rounded-full hover:bg-black/60"><X size={18} /></button>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#071120] to-transparent" />
+        </div>
+
+        {/* Content */}
+        <div className="p-6 -mt-8 relative">
+          <h3 className="text-2xl font-black italic uppercase text-primary dark:text-white">{partner.name}</h3>
+          <p className="text-xs text-secondary font-bold uppercase tracking-widest mb-6">{partner.category}</p>
+
+          {/* Carousel */}
+          <div className="relative bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5">
+            <div className="flex items-center gap-4">
+              <img src={partner.products[activeIdx].image} className="w-20 h-20 rounded-xl object-cover" alt="prod" />
+              <div>
+                <h4 className="font-bold text-sm text-primary dark:text-white">{partner.products[activeIdx].name}</h4>
+                <p className="text-secondary font-black">{partner.products[activeIdx].price}</p>
+              </div>
+            </div>
+            
+            {partner.products.length > 1 && (
+              <div className="flex justify-between mt-4">
+                <button onClick={prevProduct} className="p-2 rounded-full bg-white dark:bg-black/20 shadow-sm"><ChevronLeft size={16} /></button>
+                <div className="flex gap-1 items-center">
+                   {partner.products.map((_, i) => <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === activeIdx ? "bg-secondary" : "bg-slate-300"}`} />)}
+                </div>
+                <button onClick={nextProduct} className="p-2 rounded-full bg-white dark:bg-black/20 shadow-sm"><ChevronRight size={16} /></button>
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <button onClick={() => window.location.href = `tel:${partner.phone}`} className="w-full mt-6 py-3.5 bg-secondary hover:bg-secondary-light text-white rounded-2xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-2">
+            <Phone size={14} /> Appeler le partenaire
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 export default function ClientHome() {
   const navigate = useNavigate();
@@ -45,6 +144,15 @@ export default function ClientHome() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [activeDelivery, setActiveDelivery] = useState(null);
+  const [selectedPartner, setSelectedPartner] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const slide = useMemo(() => heroSlides[currentSlide], [currentSlide]);
 
@@ -65,11 +173,7 @@ export default function ClientHome() {
           const active = deliveries.find((d) => ["PENDING", "ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(d.status));
           setActiveDelivery(active || null);
         }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      } catch (err) { console.error(err); } finally { setLoading(false); }
     };
     loadData();
   }, []);
@@ -87,7 +191,8 @@ export default function ClientHome() {
   const order = ["ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED"];
 
   return (
-    <div className="pb-28">
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="pb-28">
+      {/* --- SECTION HERO --- */}
       <section onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] min-h-[350px] md:min-h-[560px] mx-4 md:mx-8 border border-slate-200/70 dark:border-white/[0.06]">
         <AnimatePresence mode="wait">
           <motion.div key={slide.id} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.7 }} className="absolute inset-0">
@@ -112,6 +217,7 @@ export default function ClientHome() {
                 </button>
               </div>
             </div>
+            {/* Widget Tracking Hero */}
             <div className="hidden lg:flex items-center justify-end">
               <div className="w-[360px] rounded-[2.5rem] border border-white/10 bg-black/20 backdrop-blur-2xl p-4 shadow-2xl">
                 <div className="relative overflow-hidden rounded-[2rem] h-[430px] bg-gradient-to-br from-[#071120] via-[#0b1729] to-black border border-white/5">
@@ -149,17 +255,19 @@ export default function ClientHome() {
         </div>
       </section>
 
+      {/* --- SECTION STATS --- */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6 md:mt-10 space-y-10">
-        <section>
+        <motion.section variants={itemVariants}>
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5">
             {statsCards.map((item, idx) => <StatsCard key={idx} {...item} />)}
           </div>
-        </section>
+        </motion.section>
 
-        <section>
+        {/* --- SECTION LIVRAISON --- */}
+        <motion.section variants={itemVariants}>
           <SectionHeader title="Livraison en cours" subtitle="Suivi intelligent" icon={Truck} />
           <div className="mt-5">
-            {activeDelivery ? (
+             {activeDelivery ? (
               <div className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#061120]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_25%)]" />
                 <div className="relative z-10 grid lg:grid-cols-[280px_1fr]">
@@ -211,9 +319,10 @@ export default function ClientHome() {
               </div>
             )}
           </div>
-        </section>
+        </motion.section>
 
-        <section>
+        {/* --- ACTIONS RAPIDES --- */}
+        <motion.section variants={itemVariants}>
           <SectionHeader title="Actions rapides" subtitle="Accès rapide" icon={Zap} />
           <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 md:gap-5 mt-5">
             <QuickAction label="Nouvelle commande" icon={Plus} route="/client/new-order" highlight />
@@ -221,16 +330,18 @@ export default function ClientHome() {
             <QuickAction label="Notifications" icon={Bell} route="/client/notifications" />
             <QuickAction label="Dashboard" icon={LayoutDashboard} route="/client/dashboard" />
           </div>
-        </section>
+        </motion.section>
 
-        <section>
+        {/* --- SERVICES --- */}
+        <motion.section variants={itemVariants}>
           <SectionHeader title="Nos services" subtitle="EMENO Livraison" icon={ShieldCheck} />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mt-5">
             {services.map((service, idx) => <ServiceCard key={idx} {...service} />)}
           </div>
-        </section>
+        </motion.section>
 
-        <section>
+        {/* --- PROMOTIONS --- */}
+        <motion.section variants={itemVariants}>
           <div className="flex items-center justify-between mb-5">
             <SectionHeader title="Offres exclusives" subtitle="Promotions" icon={Gift} />
             <button className="text-secondary text-[10px] uppercase tracking-[0.18em] font-black flex items-center gap-1">
@@ -240,18 +351,29 @@ export default function ClientHome() {
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
             {promotions.map((promo, idx) => <PromoCard key={idx} {...promo} />)}
           </div>
-        </section>
+        </motion.section>
 
-        <section>
+        {/* --- PARTENAIRES --- */}
+        <motion.section variants={itemVariants}>
           <SectionHeader title="Partenaires" subtitle="Écosystème EMENO" icon={Globe} />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mt-5">
-            {partners.map((partner, idx) => <PartnerCard key={idx} {...partner} fallbackImage={defaultBg} />)}
+            {partners.map((partner, idx) => (
+               <motion.div key={idx} whileHover={!isMobile ? { y: -5 } : {}} onClick={() => setSelectedPartner(partner)}>
+                  <PartnerCard {...partner} fallbackImage={defaultBg} />
+               </motion.div>
+            ))}
           </div>
-        </section>
+        </motion.section>
       </div>
-    </div>
+
+      <AnimatePresence>
+        {selectedPartner && <PartnerModal partner={selectedPartner} onClose={() => setSelectedPartner(null)} />}
+      </AnimatePresence>
+    </motion.div>
   );
 }
+
+// --- COMPOSANTS AUXILIAIRES ---
 
 function SectionHeader({ title, subtitle, icon: Icon }) {
   return (
@@ -267,7 +389,7 @@ function SectionHeader({ title, subtitle, icon: Icon }) {
 
 function StatsCard({ label, value, icon: Icon }) {
   return (
-    <div className="relative overflow-hidden rounded-[1.7rem] md:rounded-[2rem] border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#071120] p-4 md:p-6">
+    <motion.div whileHover={{ y: -4 }} className="relative overflow-hidden rounded-[1.7rem] md:rounded-[2rem] border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#071120] p-4 md:p-6">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.08),transparent_35%)]" />
       <div className="relative z-10">
         <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-secondary/10 border border-secondary/10 flex items-center justify-center">
@@ -276,14 +398,14 @@ function StatsCard({ label, value, icon: Icon }) {
         <h3 className="mt-5 text-2xl md:text-4xl font-black text-primary dark:text-white">{value}</h3>
         <p className="mt-2 text-[10px] md:text-xs uppercase tracking-[0.18em] font-black text-slate-400 dark:text-white/30">{label}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function QuickAction({ label, icon: Icon, route, highlight }) {
   const navigate = useNavigate();
   return (
-    <motion.button whileTap={{ scale: 0.96 }} onClick={() => navigate(route)} className={`relative overflow-hidden rounded-[1.7rem] border p-4 md:p-5 flex flex-col items-center justify-center gap-3 transition-all duration-300 min-h-[120px] ${highlight ? "bg-gradient-to-br from-secondary to-secondary-light text-white border-secondary shadow-2xl" : "bg-white dark:bg-[#071120] border-slate-200 dark:border-white/[0.06] text-primary dark:text-white"}`}>
+    <motion.button whileHover={{ y: -4 }} whileTap={{ scale: 0.96 }} onClick={() => navigate(route)} className={`relative overflow-hidden rounded-[1.7rem] border p-4 md:p-5 flex flex-col items-center justify-center gap-3 transition-all duration-300 min-h-[120px] ${highlight ? "bg-gradient-to-br from-secondary to-secondary-light text-white border-secondary shadow-2xl" : "bg-white dark:bg-[#071120] border-slate-200 dark:border-white/[0.06] text-primary dark:text-white"}`}>
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${highlight ? "bg-white/15" : "bg-secondary/10"}`}>
         <Icon size={22} className={highlight ? "text-white" : "text-secondary"} />
       </div>
@@ -294,7 +416,7 @@ function QuickAction({ label, icon: Icon, route, highlight }) {
 
 function ServiceCard({ title, desc, icon: Icon }) {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#071120] p-5 md:p-6">
+    <motion.div whileHover={{ y: -4 }} className="relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#071120] p-5 md:p-6">
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-r from-secondary/10 via-transparent to-secondary/10" />
       <div className="relative z-10">
         <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-secondary/10 border border-secondary/10 flex items-center justify-center">
@@ -303,13 +425,13 @@ function ServiceCard({ title, desc, icon: Icon }) {
         <h3 className="mt-5 text-base md:text-lg font-black uppercase italic text-primary dark:text-white">{title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-white/40">{desc}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function PromoCard({ title, desc, badge, glow }) {
   return (
-    <div className={`relative min-w-[280px] md:min-w-[340px] overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#071120] to-black border border-white/5 p-6`}>
+    <motion.div whileHover={{ y: -4 }} className={`relative min-w-[280px] md:min-w-[340px] overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#071120] to-black border border-white/5 p-6`}>
       <div className={`absolute inset-0 bg-gradient-to-br ${glow} to-transparent`} />
       <div className="relative z-10">
         <span className="inline-flex px-3 py-1 rounded-full bg-white/10 border border-white/10 text-secondary text-[10px] uppercase tracking-[0.18em] font-black">{badge}</span>
@@ -319,14 +441,14 @@ function PromoCard({ title, desc, badge, glow }) {
           <ArrowRight size={18} />
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function PartnerCard({ name, category, image, fallbackImage }) {
   const bgImage = image || fallbackImage;
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-white/[0.06] min-h-[220px]">
+    <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-white/[0.06] min-h-[220px] cursor-pointer">
       <img src={bgImage} alt={name} className="absolute inset-0 w-full h-full object-cover opacity-20" />
       <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-[#071120]/85 to-black/95" />
       <div className="relative z-10 h-full p-5 md:p-6 flex flex-col justify-end">

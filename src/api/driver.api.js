@@ -57,7 +57,16 @@ export const updateMyStateAction = (newState) => {
   return API.patch(ENDPOINTS.DRIVER_UPDATE_STATE, { newState });
 };
 
+/**
+ * Récupération des livreurs actifs pour la carte
+ */
+export const fetchDriversForMap = () => {
+  return API.get(ENDPOINTS.DRIVER_MAP_ACTIVE);
+};
+
+
 const driverApi = {
+  fetchDriversForMap,
   fetchActiveDeliveries,
   fetchDriverHistory,
   updateDeliveryStatus,
