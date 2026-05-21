@@ -1,7 +1,7 @@
+@import "leaflet/dist/leaflet.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "leaflet/dist/leaflet.css";
 
 /* ==========================================================================
    SYSTÈME DE PALETTES DYNAMIQUES EMENO
@@ -102,4 +102,12 @@ h1, h2, h3, h4 {
 /* Utilitaires de cartes pour éviter la répétition dans le JSX */
 .emeno-card {
   @apply bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-soft transition-all duration-300;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

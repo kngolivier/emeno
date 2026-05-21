@@ -54,6 +54,7 @@ import PartnerLayout from "../layout/PartnerLayout";
 import PartnerOrdersList from "../pages/partner-portal/PartnerOrdersList";
 import PartnerSettings from "../pages/partner-portal/PartnerSettings";
 import PartnerCreateOrder from "../pages/partner-portal/PartnerCreateOrder";
+import PartnersPage from "../pages/PartnersPage";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -70,6 +71,7 @@ export default function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/tarifs" element={<PricingPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/partenaires" element={<PartnersPage />} />
 
         {/* ===================== */}
         {/* AUTH (PUBLIC ONLY)  */}
@@ -121,7 +123,7 @@ export default function AppRoutes() {
           }
         >
           <Route index element={<ClientHome />} />
-          <Route path="dashboard" element={<ClientDashboard />} />
+          {/* <Route path="dashboard" element={<ClientDashboard />} /> */}
           <Route path="orders" element={<ClientOrders />} />
           <Route path="orders/:id" element={<ClientOrderDetails />} />
           <Route path="profile" element={<ClientProfile />} />

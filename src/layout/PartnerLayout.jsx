@@ -53,7 +53,7 @@ export default function PartnerLayout() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors duration-300">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-h-screen relative overflow-y-auto">
+      <div className="flex-1 flex flex-col min-h-screen relative overflow-y-auto ml-72">
         <Header toggleSidebar={() => setSidebarOpen(true)} />
         
         <main className="p-4 lg:p-8 max-w-[1600px] mx-auto w-full text-slate-900 dark:text-slate-100 transition-colors">
