@@ -6,7 +6,8 @@ import {
   DollarSign, Shield, PlusCircle, 
   User, LogOutIcon, X, 
   MapPin, HomeIcon, Store, Settings, Layers,
-  Bell, BellOff
+  Bell, BellOff,
+  Package
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
@@ -100,8 +101,10 @@ export default function Sidebar({ isOpen, onClose }) {
       { to: "/admin/partners", label: "Partenaires", icon: <Store size={20} /> },
     ];
     if (role === "PARTNER_MANAGER") return [
+      { to: "/partner", label: "Accueil", icon: <HomeIcon size={20} /> },
       { to: "/partner/dashboard", label: "Vue d'ensemble", icon: <LayoutDashboard size={20} /> },
       { to: "/partner/orders", label: "Expéditions", icon: <Layers size={20} /> },
+      { to: "/partner/catalog", label: "Catalogue", icon: <Package size={20} /> },
       { to: "/partner/settings", label: "Mon Établissement", icon: <Settings size={20} /> },
     ];
     if (role === "SUPER_ADMIN") return [...adminBase, { to: "/admin/admins", label: "Équipe", icon: <Shield size={20} /> }];

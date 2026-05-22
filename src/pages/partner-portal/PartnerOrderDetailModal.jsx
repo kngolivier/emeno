@@ -1,9 +1,9 @@
 // FILE: src/pages/partner-portal/PartnerOrderDetailModal.jsx
 
 import React, { useState } from "react";
-import { X, Calendar, MapPin, User, ShieldCheck, Phone, DollarSign, Package, RefreshCw, Check } from "lucide-react";
+import { X, MapPin, User, ShieldCheck, Phone, DollarSign, Package, RefreshCw, Check } from "lucide-react";
 import { resendDeliveryOtp } from "../../api/deliveries.api";
-import { STATUS_LABELS } from "../../constants/constants"
+import { STATUS_LABELS } from "../../constants/constants";
 
 export default function PartnerOrderDetailModal({ delivery, onClose }) {
   const [loading, setLoading] = useState(false);
@@ -31,11 +31,11 @@ export default function PartnerOrderDetailModal({ delivery, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl w-full max-w-md overflow-hidden relative animate-in scale-in duration-200">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-t-[2.5rem] sm:rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden relative flex flex-col animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 duration-300">
         
         {/* HEADER */}
-        <div className="p-6 bg-gradient-to-r from-primary to-slate-900 text-white flex items-center justify-between">
+        <div className="p-6 bg-gradient-to-r from-primary to-slate-900 text-white flex items-center justify-between shrink-0">
           <div>
             <span className="text-[9px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full">Bordereau Logistique</span>
             <h3 className="text-xl font-black italic font-display uppercase tracking-tight mt-1 text-white">Course #{delivery.orderNumber}</h3>
@@ -46,7 +46,7 @@ export default function PartnerOrderDetailModal({ delivery, onClose }) {
         </div>
 
         {/* DETAILS BODY */}
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto scrollbar-hide">
+        <div className="p-6 space-y-6 overflow-y-auto scrollbar-hide">
           
           {/* STATUT */}
           <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl">
@@ -61,7 +61,7 @@ export default function PartnerOrderDetailModal({ delivery, onClose }) {
                 <ShieldCheck size={16} className="text-secondary mt-0.5 shrink-0" />
                 <div>
                   <h5 className="text-xs font-black text-primary dark:text-white uppercase tracking-wide">Code de Sécurité</h5>
-                  <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">Le client n'a pas reçu le SMS d'authentification ? Vous pouvez déclencher un renvoi manuel immédiat.</p>
+                  <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">Le client n'a pas reçu le SMS ? Vous pouvez déclencher un renvoi manuel immédiat.</p>
                 </div>
               </div>
               

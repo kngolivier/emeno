@@ -55,6 +55,8 @@ import PartnerOrdersList from "../pages/partner-portal/PartnerOrdersList";
 import PartnerSettings from "../pages/partner-portal/PartnerSettings";
 import PartnerCreateOrder from "../pages/partner-portal/PartnerCreateOrder";
 import PartnersPage from "../pages/PartnersPage";
+import PartnerHome from "../pages/partner-portal/PartnerHome";
+import PartnerCatalog from "../pages/partner-portal/PartnerCatalog";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -80,7 +82,7 @@ export default function AppRoutes() {
           <Route path="/login" element={<Login />} />
         </Route>
         
-        {/* Route accessible pour changer le mot de passe (souvent via lien mail) */}
+        {/* Route accessible pour changer le mot de passe */}
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
 
@@ -142,10 +144,12 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         >
+          <Route index element={<PartnerHome />} />
           <Route path="dashboard" element={<PartnerDashboard />} />
           <Route path="orders" element={<PartnerOrdersList />} />
           <Route path="settings" element={<PartnerSettings />} />
           <Route path="orders/new" element={<PartnerCreateOrder />} />
+          <Route path="catalog" element={<PartnerCatalog />} />
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 

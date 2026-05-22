@@ -12,8 +12,8 @@
   --color-primary: #0F172A;
   --color-primary-light: #1E293B;
   --color-primary-dark: #060B18;
-  --color-secondary: #10B981;
-  --color-secondary-light: #34D399;
+  --color-secondary: #06B6D4;
+  --color-secondary-light: #22D3EE;
   --color-secondary-glow: rgba(16, 185, 129, 0.2);
   --color-accent: #FBBF24;
   
@@ -36,8 +36,8 @@
   --color-primary-light: #334155;
   --color-primary-dark: #F1F5F9; 
   
-  --color-secondary: #059669; 
-  --color-secondary-light: #10B981;
+  --color-secondary: #06B6D4; 
+  --color-secondary-light: #22D3EE;
   --color-secondary-glow: rgba(5, 150, 105, 0.1);
   
   /* Variables de surfaces Light */

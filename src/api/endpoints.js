@@ -92,4 +92,11 @@ export const ENDPOINTS = {
  // GESTION DES PAUSES
   DRIVER_UPDATE_STATE: "/api/users/drivers/my-state",
   DRIVER_PAUSE_STATUS: (driverId) => `/api/users/drivers/${driverId}/pause-status`,
+
+  // ======================
+  // PRODUCTS (CATALOGUE)
+  // ======================
+  PRODUCTS: "/api/products",
+  GET_PRODUCTS_BY_PARTNER: (partnerId) => `/api/products/partner/${partnerId}`,
+  DELETE_PRODUCT: (id) => `/api/products/${id}`,
 };

@@ -6,7 +6,7 @@ import { ShoppingBag, TrendingUp, Activity, ArrowUpRight, Truck, Eye, Store } fr
 import { fetchClientDeliveries } from "../../api/deliveries.api";
 import { updatePartner } from "../../api/partners.api"; 
 import PartnerOrderDetailModal from "./PartnerOrderDetailModal"; 
-import PageLoader from "../../components/ui/PageLoader"; // Intégration du composant d'attente animé d'EMENO
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function PartnerDashboard() {
   const { currentPartner } = useOutletContext();
