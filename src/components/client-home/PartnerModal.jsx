@@ -13,7 +13,6 @@ export default function PartnerModal({ partner, onClose }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  console.log("PartnerModal received partner:", partner);
   // Normalisation des données
   const partnerId = partner?._id?.$oid || partner?._id;
   const imageUrl = partner?.coverImage?.url || partner?.logo?.url || "";

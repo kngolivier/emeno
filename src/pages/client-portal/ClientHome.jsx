@@ -38,7 +38,6 @@ export default function ClientHome() {
         fetchClientDeliveries(),
         fetchPartners()
       ]);
-      console.log("Parteners API response:", partnersRes);
 
       setStats(statsRes?.data || statsRes);
       const rawPartners = partnersRes.data?.data || partnersRes.data || [];

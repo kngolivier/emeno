@@ -7,7 +7,8 @@ import {
   User, LogOutIcon, X, 
   MapPin, HomeIcon, Store, Settings, Layers,
   Bell, BellOff,
-  Package
+  Package,
+  Clock
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
@@ -107,7 +108,11 @@ export default function Sidebar({ isOpen, onClose }) {
       { to: "/partner/catalog", label: "Catalogue", icon: <Package size={20} /> },
       { to: "/partner/settings", label: "Mon Établissement", icon: <Settings size={20} /> },
     ];
-    if (role === "SUPER_ADMIN") return [...adminBase, { to: "/admin/admins", label: "Équipe", icon: <Shield size={20} /> }];
+    if (role === "SUPER_ADMIN") return [
+      ...adminBase, { to: "/admin/admins", 
+      label: "Équipe", icon: <Shield size={20} /> },
+      { to: "/admin/audit-logs", label: "Journal d'activité", icon: <Clock size={20} /> },
+    ];
     if (role === "ADMIN") return adminBase;
     if (role === "DRIVER") return [
       { to: "/driver", label: "Dashboard", icon: <LayoutDashboard size={20} /> },

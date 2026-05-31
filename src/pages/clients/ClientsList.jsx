@@ -10,14 +10,15 @@ import { notifySuccess, notifyError } from "../../utils/notify";
 import NewClientForm from "./NewClientForm";
 import PageLoader from "../../components/ui/PageLoader";
 import TotalCard from "../../components/dashboard/TotalCard";
+import { STATUS_USER_LABELS } from "../../constants/constants";
 
-const STATUS_LABELS = {
-  ALL: "Tous les comptes",
-  ACTIVE: "Actif",
-  INACTIVE: "Inactif",
-  BLOCKED: "Bloqué",
-  DELETED: "Supprimé"
-};
+// const STATUS_LABELS = {
+//   ALL: "Tous les comptes",
+//   ACTIVE: "Actif",
+//   INACTIVE: "Inactif",
+//   BLOCKED: "Bloqué",
+//   DELETED: "Supprimé"
+// };
 
 export default function ClientsList() {
   const { data: clients = [], meta, loading, setPage, refresh, status, setStatus } = usePaginatedFetch(fetchClients, 10);
@@ -95,7 +96,7 @@ export default function ClientsList() {
                 ? "bg-primary dark:bg-secondary text-white border-primary dark:border-secondary shadow-md" 
                 : "bg-white dark:bg-white/5 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10"}`}
           >
-            {STATUS_LABELS[s]}
+            {STATUS_USER_LABELS[s]}
           </button>
         ))}
       </div>
@@ -109,7 +110,7 @@ export default function ClientsList() {
           <div>
             <h3 className="font-display font-black text-xl italic text-slate-900 dark:text-white uppercase tracking-tight">Aucun client</h3>
             <p className="text-slate-500 dark:text-slate-400 text-xs font-medium max-w-[250px] mx-auto mt-2">
-              Nous n'avons trouvé aucun compte dans la catégorie <span className="text-secondary font-bold italic">"{STATUS_LABELS[status]}"</span>.
+              Nous n'avons trouvé aucun compte dans cette catégorie.
             </p>
           </div>
           {status !== "ALL" && (
@@ -136,7 +137,7 @@ export default function ClientsList() {
                       {c.nom} {c.prenom}
                     </h3>
                     <span className={`inline-block px-2 py-0.5 rounded-lg text-[7px] font-black uppercase tracking-widest border ${getStatusStyle(c.status)}`}>
-                      {STATUS_LABELS[c.status] || c.status}
+                      {STATUS_USER_LABELS[c.status] || c.status}
                     </span>
                   </div>
                 </div>
@@ -205,7 +206,7 @@ export default function ClientsList() {
                     </td>
                     <td className="p-6 text-center">
                       <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(c.status)}`}>
-                        {STATUS_LABELS[c.status] || c.status}
+                        {STATUS_USER_LABELS[c.status] || c.status}
                       </span>
                     </td>
                     <td className="p-6 text-right">

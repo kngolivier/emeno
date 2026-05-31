@@ -1,15 +1,41 @@
-import { Truck, MapPin } from "lucide-react";
+import { Truck, MapPin, Package } from "lucide-react";
 import TrackingItem from "./TrackingItem";
-import { STATUS_LABELS } from "../../constants/constants"
+import { STATUS_LABELS } from "../../constants/constants";
 
 export default function HeroTrackingWidget({ activeDelivery }) {
+  
+  // --- EMPTY STATE ---
+  if (!activeDelivery) {
+    return (
+      <div className="w-[360px] rounded-[2.5rem] border border-white/10 bg-black/20 backdrop-blur-2xl p-4 shadow-2xl">
+        <div className="relative overflow-hidden rounded-[2rem] h-[430px] bg-gradient-to-br from-[#071120] via-[#0b1729] to-black flex flex-col items-center justify-center p-8 text-center">
+          <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(circle_at_center,white_1px,transparent_1px)] bg-[length:24px_24px]" />
+          
+          <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6 border border-white/5">
+             <Package size={40} className="text-slate-600" />
+          </div>
+          
+          <div className="space-y-2">
+            <h4 className="text-white font-black text-lg uppercase tracking-wider">Aucune livraison</h4>
+            <p className="text-slate-500 text-[11px] font-bold max-w-[200px] mx-auto uppercase">
+              Vous n'avez aucune course en cours actuellement.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- ACTIVE STATE (Ton design original) ---
   return (
     <div className="w-[360px] rounded-[2.5rem] border border-white/10 bg-black/20 backdrop-blur-2xl p-4 shadow-2xl">
       <div className="relative overflow-hidden rounded-[2rem] h-[430px] bg-gradient-to-br from-[#071120] via-[#0b1729] to-black">
         <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(circle_at_center,white_1px,transparent_1px)] bg-[length:24px_24px]" />
+        
         <div className="absolute top-1/2 left-10 w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center">
           <Truck className="text-white" />
         </div>
+        
         <div className="absolute left-4 right-4 bottom-4 rounded-[2rem] bg-white/5 backdrop-blur-xl p-5">
           <div className="flex justify-between">
             <div>
@@ -20,6 +46,7 @@ export default function HeroTrackingWidget({ activeDelivery }) {
               <MapPin className="text-secondary" />
             </div>
           </div>
+          
           <div className="space-y-4 mt-5">
             <TrackingItem active label="Livreur assigné" />
             <TrackingItem active={["PICKED_UP", "IN_PROGRESS", "DELIVERED"].includes(activeDelivery?.status)} label="Colis récupéré" />

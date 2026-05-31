@@ -4,14 +4,14 @@ import React, { useState } from "react";
 import { X, Shield, Lock, Smartphone, Mail, Loader2, User, UserCheck } from "lucide-react";
 import { notifyError, notifySuccess } from "../../utils/notify";
 import { createAdmin } from "../../api/users.api";
+import PhoneInput from "../../components/forms/PhoneInput";
 
 export default function NewAdminForm({ onClose, onCreated }) {
   const [form, setForm] = useState({ 
     nom: "", 
     prenom: "", 
     telephone: "+241", 
-    email: "", 
-    password: "" 
+    email: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -22,7 +22,7 @@ export default function NewAdminForm({ onClose, onCreated }) {
     if (!form.prenom.trim()) errs.prenom = "Prénom requis";
     if (!form.telephone.match(/^\+241[0-9]{8,9}$/)) errs.telephone = "Format: +241XXXXXXXX";
     if (form.email && !form.email.includes("@")) errs.email = "Email invalide";
-    if (form.password.length < 6) errs.password = "6 caractères min.";
+    // if (form.password.length < 6) errs.password = "6 caractères min.";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -111,16 +111,12 @@ export default function NewAdminForm({ onClose, onCreated }) {
           {/* TÉLÉPHONE */}
           <div className="space-y-1.5">
             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 ml-2">
-              Téléphone <span className="text-rose-500 font-black">*</span>
             </label>
-            <div className="relative">
-              <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-700" size={16} />
-              <input 
-                value={form.telephone} 
-                className={`${inputClass("telephone")} pl-12`} 
-                onChange={e => setForm({...form, telephone: e.target.value})} 
-              />
-            </div>
+            <PhoneInput 
+              value={form.telephone} 
+              onChange={(val) => setForm({...form, telephone: val})} 
+              error={errors.telephone}
+            />
             {errors.telephone && <p className="text-[8px] font-black text-rose-500 ml-2 uppercase tracking-tighter">{errors.telephone}</p>}
           </div>
           
@@ -142,7 +138,7 @@ export default function NewAdminForm({ onClose, onCreated }) {
           </div>
 
           {/* PASSWORD */}
-          <div className="space-y-1.5">
+          {/* <div className="space-y-1.5">
             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 ml-2">
               Mot de passe <span className="text-rose-500 font-black">*</span>
             </label>
@@ -156,7 +152,7 @@ export default function NewAdminForm({ onClose, onCreated }) {
               />
             </div>
             {errors.password && <p className="text-[8px] font-black text-rose-500 ml-2 uppercase tracking-tighter">{errors.password}</p>}
-          </div>
+          </div> */}
         </div>
 
         {/* FOOTER FIXE */}

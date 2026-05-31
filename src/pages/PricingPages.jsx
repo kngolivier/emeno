@@ -1,30 +1,22 @@
 // src/pages/PricingPage.jsx
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/landing/Navbar";
 import Footer from "../components/landing/Footer";
+import { Pagination } from "../components/Pagination";
+import { usePaginatedFetch } from "../hooks/usePaginatedFetch";
 import { fetchPricing } from "../api/pricing.api";
-import { MapPin, ArrowLeftRight, HelpCircle, ArrowUpDown, Info, LayoutGrid } from "lucide-react";
+import { MapPin, HelpCircle, ArrowUpDown, Info, LayoutGrid, Search, X } from "lucide-react";
 
 export default function PricingPage() {
-  const [pricingData, setPricingData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadPrices = async () => {
-      try {
-        const response = await fetchPricing();
-        // Adaptation à ta structure API EMENO
-        const data = response.data?.data || response.data || [];
-        setPricingData(data.filter(p => p.isActive));
-      } catch (err) {
-        console.error("Erreur chargement tarifs EMENO:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPrices();
-  }, []);
+  // Hook de pagination et recherche côté serveur
+  const { 
+    data: pricingData, 
+    meta, 
+    loading, 
+    search, 
+    setSearch, 
+    setPage 
+  } = usePaginatedFetch(fetchPricing);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0B1120] text-slate-600 dark:text-slate-200 transition-colors duration-500 overflow-x-hidden">
@@ -39,7 +31,7 @@ export default function PricingPage() {
       <main className="pt-32 lg:pt-48 pb-20 px-6 max-w-7xl mx-auto relative z-10">
         
         {/* --- HEADER --- */}
-        <header className="text-center mb-16 lg:mb-28 space-y-6">
+        <header className="text-center mb-16 space-y-6">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -49,40 +41,58 @@ export default function PricingPage() {
             <span className="text-[9px] font-black uppercase tracking-widest text-secondary">Grille Tarifaire 2026</span>
           </motion.div>
           
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl lg:text-9xl font-black text-primary dark:text-white italic tracking-tighter leading-none"
-          >
+          <h1 className="text-5xl lg:text-9xl font-black text-primary dark:text-white italic tracking-tighter leading-none">
             NOS <span className="text-secondary">TARIFS.</span>
-          </motion.h1>
+          </h1>
           
-          <p className="text-slate-400 font-black text-[10px] lg:text-xs uppercase tracking-[0.4em] max-w-md mx-auto leading-relaxed">
-            Une tarification fixe par zone pour une <br/> transparence totale sur vos livraisons.
-          </p>
+          {/* Barre de recherche (interagit avec l'URL via le hook) */}
+          <div className="relative max-w-md mx-auto mt-8">
+            <input 
+              type="text" 
+              placeholder="Rechercher une zone (ex: Akanda...)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-100 dark:bg-white/5 border-2 border-transparent focus:border-secondary/20 rounded-full py-4 pl-12 pr-4 text-sm font-bold placeholder:text-slate-400 outline-none transition-all"
+            />
+            <Search className="absolute left-4 top-4 text-slate-400" size={18} />
+            {search && (
+              <button 
+                onClick={() => setSearch("")} 
+                className="absolute right-4 top-4 text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
         </header>
 
         {/* --- GRID TARIFS --- */}
-        <section className="mb-32">
+        <section className="mb-20">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
-              {[1, 2, 3, 4, 5, 6].map(i => <PricingSkeleton key={i} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => <PricingSkeleton key={i} />)}
             </div>
           ) : pricingData.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
-              <AnimatePresence>
+            <motion.div 
+              layout
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              <AnimatePresence mode="popLayout">
                 {pricingData.map((p, index) => (
                   <PricingCard key={p._id || index} p={p} index={index} />
                 ))}
               </AnimatePresence>
-            </div>
+            </motion.div>
           ) : (
             <EmptyPricing />
           )}
         </section>
 
+        {/* --- PAGINATION --- */}
+        <Pagination meta={meta} setPage={setPage} />
+
         {/* --- FAQ SECTION --- */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 py-20 border-t border-slate-100 dark:border-white/5">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 py-20 border-t border-slate-100 dark:border-white/5 mt-20">
            <div className="space-y-8">
               <div className="space-y-4">
                 <h3 className="text-4xl lg:text-7xl font-black text-primary dark:text-white leading-[0.9] italic uppercase tracking-tighter">
@@ -138,44 +148,40 @@ export default function PricingPage() {
 function PricingCard({ p, index }) {
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      whileHover={{ y: -10, scale: 1.02 }}
-      className="group bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-100 dark:border-white/5 p-8 lg:p-10 rounded-[3rem] flex flex-col justify-between transition-all shadow-xl hover:shadow-secondary/10 hover:border-secondary/30"
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ delay: index * 0.05 }}
+      whileHover={{ y: -5 }}
+      className="group bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-100 dark:border-white/5 p-8 rounded-[2rem] flex flex-col justify-between transition-all shadow-sm hover:shadow-lg hover:border-secondary/30"
     >
-      <div className="flex justify-between items-start mb-12">
-        <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all duration-500">
-          <MapPin size={28} strokeWidth={2.5} />
+      <div className="flex justify-between items-start mb-8">
+        <div className="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary">
+          <MapPin size={24} />
         </div>
-        <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border border-slate-100 dark:border-white/10 px-4 py-2 rounded-xl">
+        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-lg">
             {p.pricingType || 'Coursier'}
         </span>
       </div>
 
-      <div className="space-y-4 mb-12">
-        <div className="flex items-center gap-4">
-            <span className="text-2xl lg:text-3xl font-black text-primary dark:text-white uppercase italic tracking-tighter">
-                {p.from?.name || 'Zone A'}
-            </span>
+      <div className="space-y-4 mb-8">
+        <div className="font-black text-lg text-primary dark:text-white italic tracking-tighter">
+            {p.from?.name || 'Zone A'}
         </div>
-        <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-slate-100 dark:bg-white/10" />
-            <ArrowLeftRight size={18} className="text-secondary shrink-0 hidden lg:block" />
-            <ArrowUpDown size={18} className="text-secondary shrink-0 lg:hidden" />
+        <div className="flex items-center gap-2 text-secondary">
+            <ArrowUpDown size={16} />
             <div className="h-px flex-1 bg-slate-100 dark:bg-white/10" />
         </div>
-        <div className="text-right">
-            <span className="text-2xl lg:text-3xl font-black text-primary dark:text-white uppercase italic tracking-tighter">
-                {p.to?.name || 'Zone B'}
-            </span>
+        <div className="font-black text-lg text-primary dark:text-white italic tracking-tighter">
+            {p.to?.name || 'Zone B'}
         </div>
       </div>
 
-      <div className="border-t border-slate-50 dark:border-white/5 pt-8 flex items-baseline justify-between">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Tarif Fixe</span>
-        <p className="text-4xl lg:text-5xl font-black text-primary dark:text-white tracking-tighter">
-          {p.basePrice?.toLocaleString()} <span className="text-xs text-secondary font-bold ml-1 uppercase">CFA</span>
+      <div className="border-t border-slate-100 dark:border-white/5 pt-6 flex items-baseline justify-between">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Prix</span>
+        <p className="text-2xl font-black text-primary dark:text-white">
+          {p.basePrice?.toLocaleString()} <span className="text-[10px] text-secondary font-bold uppercase">CFA</span>
         </p>
       </div>
     </motion.div>
@@ -184,17 +190,17 @@ function PricingCard({ p, index }) {
 
 function PricingSkeleton() {
   return (
-    <div className="h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] animate-pulse border border-slate-100 dark:border-white/5" />
+    <div className="h-[300px] bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] animate-pulse border border-slate-100 dark:border-white/5" />
   );
 }
 
 function EmptyPricing() {
   return (
-    <div className="py-20 text-center space-y-6">
-      <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-300">
-        <Info size={40} />
+    <div className="py-20 text-center space-y-4 col-span-full">
+      <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-300">
+        <Info size={32} />
       </div>
-      <p className="text-slate-400 font-black uppercase text-xs tracking-widest">Aucun tarif disponible pour le moment.</p>
+      <p className="text-slate-400 font-black uppercase text-xs tracking-widest">Aucun résultat trouvé.</p>
     </div>
   );
 }
@@ -204,6 +210,7 @@ function FAQItem({ question, answer }) {
     <motion.div 
         initial={{ opacity: 0, x: -20 }}
         whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
         className="group space-y-4"
     >
       <h4 className="text-secondary font-black uppercase text-xs lg:text-sm tracking-[0.2em] italic flex items-center gap-3">

@@ -1,7 +1,7 @@
 // FILE: src/pages/partners/NewPartnerForm.jsx
 
-import React, { useState, useEffect } from "react";
-import { Store, MapPin, Check, X, Phone, Mail, Image as ImageIcon } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Store, MapPin, Check, X, Phone, Mail, Image as ImageIcon, Upload } from "lucide-react";
 import PhoneInput from "../../components/forms/PhoneInput";
 import { fetchCommunes } from "../../api/commune.api";
 import { useTheme } from "../../context/Theme/ThemeContext";
@@ -12,23 +12,26 @@ const DEFAULT_PARTNER_LOGO_DARK = "https://res.cloudinary.com/dzzokuvat/image/up
 export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
   const isEdit = !!partnerData;
   const { isDarkMode } = useTheme();
+  const fileInputRef = useRef(null);
 
-  // Détermination du logo par défaut selon le thème actif
-  // Thème Dark -> Logo Light / Thème Light -> Logo Dark
   const currentDefaultLogo = isDarkMode ? DEFAULT_PARTNER_LOGO_LIGHT : DEFAULT_PARTNER_LOGO_DARK;
 
+  // États du formulaire
   const [partner, setPartner] = useState({
     name: "",
     email: "",
     telephone: "",
-    logo: { url: "" },
     address: {
       text: "",
       commune: "",
       coordinates: { lat: 0.3924, lng: 9.4537 }
     }
   });
-  
+
+  // États pour la gestion du logo
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(partnerData?.logo?.url || "");
+
   const [communes, setCommunes] = useState([]);
   const [errors, setErrors] = useState({});
   const [loadingCommunes, setLoadingCommunes] = useState(false);
@@ -45,20 +48,23 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
         name: partnerData.name || "",
         email: partnerData.email || "",
         telephone: partnerData.telephone || "",
-        logo: { url: partnerData.logo?.url || "" },
         address: {
           text: partnerData.address?.text || "",
           commune: partnerData.address?.commune?._id || partnerData.address?.commune || "",
           coordinates: partnerData.address?.coordinates || { lat: 0.3924, lng: 9.4537 }
         }
       });
+      setLogoPreview(partnerData.logo?.url || "");
     }
   }, [partnerData, isEdit]);
 
-  const inputClass = "w-full border-2 border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl p-4 text-sm md:text-base font-bold outline-none focus:border-secondary/30 dark:focus:border-secondary/30 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-secondary/5 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 placeholder:font-normal text-primary dark:text-white";
-  const selectClass = "w-full border-2 border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl p-4 text-sm md:text-base font-bold outline-none focus:border-secondary/30 dark:focus:border-secondary/30 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-secondary/5 transition-all text-primary dark:text-white appearance-none";
-  const labelClass = "text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 ml-2 mb-2 flex items-center gap-1";
-  const asteriskClass = "text-secondary text-sm";
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -77,15 +83,30 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
     e.preventDefault();
     if (!validate()) return;
 
-    // Si l'identifiant visuel est absent, on injecte l'alternative thématique pour la DB
-    const cleanPartner = {
-      ...partner,
-      logo: {
-        url: partner.logo.url.trim() || currentDefaultLogo
-      }
-    };
-    onSave(cleanPartner);
+    // Construction de la donnée à envoyer
+    // Si un nouveau fichier est sélectionné, on utilise FormData
+    if (logoFile) {
+      const formData = new FormData();
+      formData.append("name", partner.name);
+      formData.append("email", partner.email);
+      formData.append("telephone", partner.telephone);
+      formData.append("address[text]", partner.address.text);
+      formData.append("address[commune]", partner.address.commune);
+      formData.append("address[coordinates][lat]", partner.address.coordinates.lat);
+      formData.append("address[coordinates][lng]", partner.address.coordinates.lng);
+      formData.append("logo", logoFile);
+
+      onSave(formData);
+    } else {
+      // Sinon on envoie l'objet classique
+      onSave({ ...partner, logoUrl: logoPreview });
+    }
   };
+
+  const inputClass = "w-full border-2 border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl p-4 text-sm md:text-base font-bold outline-none focus:border-secondary/30 dark:focus:border-secondary/30 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-secondary/5 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 placeholder:font-normal text-primary dark:text-white";
+  const selectClass = "w-full border-2 border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl p-4 text-sm md:text-base font-bold outline-none focus:border-secondary/30 dark:focus:border-secondary/30 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-secondary/5 transition-all text-primary dark:text-white appearance-none";
+  const labelClass = "text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 ml-2 mb-2 flex items-center gap-1";
+  const asteriskClass = "text-secondary text-sm";
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden w-full max-w-xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
@@ -105,36 +126,38 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
             </p>
           </div>
         </div>
-        <button 
-          type="button"
-          onClick={onCancel} 
-          className="p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:border-rose-100 dark:hover:border-rose-900/30 transition-all active:scale-90"
-        >
+        <button type="button" onClick={onCancel} className="p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:border-rose-100 dark:hover:border-rose-900/30 transition-all active:scale-90">
           <X size={20} />
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 md:space-y-6">
         
-        {/* SECTION IDENTITÉ VISUELLE AVEC LOGO THÉMATIQUE RÉACTIF */}
-        <div className="p-4 bg-slate-50/60 dark:bg-slate-800/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
-          <div className="relative group">
+        {/* SECTION LOGO AVEC SÉLECTION FICHIER */}
+        <div className="p-4 bg-slate-50/60 dark:bg-slate-800/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex items-center gap-4">
+          <div 
+            onClick={() => fileInputRef.current.click()} 
+            className="relative group w-20 h-20 cursor-pointer"
+          >
             <img 
-              src={partner.logo?.url || currentDefaultLogo} 
+              src={logoPreview || currentDefaultLogo} 
               alt="Preview" 
-              onError={(e) => { e.target.src = currentDefaultLogo; }}
-              className="w-20 h-20 rounded-2xl object-cover bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-inner"
+              className="w-full h-full rounded-2xl object-cover bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-inner"
             />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-2xl transition-opacity">
+              <Upload className="text-white" size={20} />
+            </div>
           </div>
-          <div className="flex-1 w-full space-y-1">
-            <label className={labelClass}><ImageIcon size={12} /> URL Logo Enseigne</label>
-            <input 
-              type="url"
-              className={inputClass}
-              placeholder="https://link-to-logo.com/image.png"
-              value={partner.logo?.url}
-              onChange={e => setPartner({ ...partner, logo: { url: e.target.value } })}
-            />
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+            accept="image/*" 
+          />
+          <div className="flex-1">
+             <label className={labelClass}><ImageIcon size={12} /> Logo Enseigne</label>
+             <p className="text-[10px] text-slate-400 ml-2">Cliquez sur l'image pour changer le logo depuis votre appareil.</p>
           </div>
         </div>
 
@@ -154,7 +177,6 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
         <div className="grid grid-cols-1 gap-4">
           {/* TÉLÉPHONE */}
           <div className="space-y-1">
-            <label className={labelClass}>Téléphone <span className={asteriskClass}>*</span></label>
             <PhoneInput 
               value={partner.telephone} 
               onChange={(val) => setPartner({...partner, telephone: val})} 

@@ -208,7 +208,7 @@ export default function ClientOrders() {
           </div>
           <p className="text-[12px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.4em] italic">Aucune commande trouvée</p>
           <button 
-            onClick={() => navigate('/client/create-order')}
+            onClick={() => navigate('/client/new-order')}
             className="mt-8 text-secondary font-black uppercase text-[10px] tracking-widest hover:underline"
           >
             Lancer une nouvelle livraison

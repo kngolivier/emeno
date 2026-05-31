@@ -56,7 +56,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1 bg-slate-200/30 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/5">
             <NavLink to="/" active={isActive("/")}>Accueil</NavLink>
             <NavLink to="/tarifs" active={isActive("/tarifs")}>Tarifs</NavLink>
-            <NavLink to="/services" active={isActive("/services")}>Services</NavLink>
+            {/* <NavLink to="/services" active={isActive("/services")}>Services</NavLink> */}
           </div>
 
           {/* --- ACTIONS --- */}

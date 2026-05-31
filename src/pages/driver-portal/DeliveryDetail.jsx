@@ -31,8 +31,6 @@ export default function DeliveryDetail() {
       const res = await fetchDeliveryById(id);
       if (res?.data) {
         setDelivery(res.data);
-        // On log "res.data" car l'état "delivery" ne sera disponible qu'au prochain render
-        console.log("Détails de la livraison chargée :", res.data);
       }
     } catch (err) {
       notifyError("Impossible de charger la livraison");

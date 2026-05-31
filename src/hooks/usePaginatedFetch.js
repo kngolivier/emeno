@@ -1,6 +1,6 @@
 // FILE: src/hooks/usePaginatedFetch.js
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
 export const usePaginatedFetch = (fetchFn, initialLimit = 10) => {
@@ -8,91 +8,42 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10) => {
 
   const page = Number(searchParams.get("page") ?? 1);
   const limit = Number(searchParams.get("limit") ?? initialLimit);
-
-  // récupération des filtres dynamiques
   const status = searchParams.get("status") || "ALL";
+  const search = searchParams.get("search") || "";
 
   const [data, setData] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-
     try {
-      // passer un objet à la fonction
-      const res = await fetchFn({
-        page,
-        limit,
-        status
-      });
-
+      // On passe tous les paramètres au backend
+      const res = await fetchFn({ page, limit, status, search });
       setData(res?.data?.data ?? res?.data ?? []);
       setMeta(res?.data?.meta ?? res?.meta ?? null);
-
     } catch (err) {
-      console.error(err);
+      console.error("Erreur fetch paginé:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchFn, page, limit, status, search]);
 
   useEffect(() => {
     fetchData();
-  }, [page, limit, status, fetchFn]);
+  }, [fetchData]);
 
-  // ======================
-  // PAGINATION
-  // ======================
-  const setPage = (newPage) => {
+  // Handlers pour modifier l'URL (qui déclenchent le useEffect)
+  const setPage = (newPage) => updateParams({ page: newPage });
+  const setSearch = (newSearch) => updateParams({ search: newSearch, page: 1 });
+  const setStatus = (newStatus) => updateParams({ status: newStatus, page: 1 });
+
+  const updateParams = (newParams) => {
     setSearchParams((prev) => {
-      const params = Object.fromEntries(prev.entries());
-
-      return {
-        ...params,
-        page: newPage,
-        limit
-      };
+      const current = Object.fromEntries(prev.entries());
+      return { ...current, ...newParams };
     });
   };
 
-  const setLimit = (newLimit) => {
-    setSearchParams((prev) => {
-      const params = Object.fromEntries(prev.entries());
-
-      return {
-        ...params,
-        page: 1,
-        limit: newLimit
-      };
-    });
-  };
-
-  // ======================
-  // FILTER HANDLER
-  // ======================
-  const setStatus = (newStatus) => {
-    setSearchParams((prev) => {
-      const params = Object.fromEntries(prev.entries());
-
-      return {
-        ...params,
-        page: 1, // reset pagination
-        status: newStatus
-      };
-    });
-  };
-
-  return {
-    data,
-    meta,
-    loading,
-    page,
-    limit,
-    status,
-    setPage,
-    setLimit,
-    setStatus,
-    refresh: fetchData
-  };
+  return { data, meta, loading, page, limit, search, setPage, setSearch, setStatus, refresh: fetchData };
 };

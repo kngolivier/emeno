@@ -28,9 +28,18 @@ export const CATEGORY_LABELS = {
 };
 
 export const ROLE_LABELS = {
-    ADMIN: "Admin",
-    SUPER_ADMIN: "Super Admin",
-    DRIVER: "Livreur",
-    CLIENT: "Client",
-    PARTNER_MANAGER: "Partenaire"
-  };
+  ADMIN: "Admin",
+  SUPER_ADMIN: "Super Admin",
+  DRIVER: "Livreur",
+  CLIENT: "Client",
+  PARTNER_MANAGER: "Partenaire"
+};
+
+export const STATUS_USER_LABELS = {
+  ALL: "Tous les comptes",
+  ACTIVE: "Actif",
+  INACTIVE: "Inactif",
+  BLOCKED:  "Bloqué",
+  PENDING: "En attente",
+  DELETED: "Supprimé"
+};

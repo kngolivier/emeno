@@ -99,4 +99,9 @@ export const ENDPOINTS = {
   PRODUCTS: "/api/products",
   GET_PRODUCTS_BY_PARTNER: (partnerId) => `/api/products/partner/${partnerId}`,
   DELETE_PRODUCT: (id) => `/api/products/${id}`,
+
+  // ======================
+  // AUDIT LOGS (ADMIN)
+  // ======================
+  AUDIT: "/api/audit",
 };

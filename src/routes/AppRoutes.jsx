@@ -57,6 +57,7 @@ import PartnerCreateOrder from "../pages/partner-portal/PartnerCreateOrder";
 import PartnersPage from "../pages/PartnersPage";
 import PartnerHome from "../pages/partner-portal/PartnerHome";
 import PartnerCatalog from "../pages/partner-portal/PartnerCatalog";
+import AuditLogs from "../pages/audit/AuditLogs";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -105,14 +106,27 @@ export default function AppRoutes() {
           <Route path="clients" element={<ClientsList />} />
           <Route path="clients/client-details/:id" element={<ClientDetails />} />
           <Route path="pricing" element={<PricingList />} />
-          <Route path="admins" element={<AdminList />} />
-          <Route path="admins/:id" element={<AdminDetails />} />
           <Route path="communes" element={<CommuneList />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="partners" element={<PartnersList />} />
           <Route path="partners/:id" element={<PartnerDetails />} />
         </Route>
 
+        {/* ===================== */}
+        {/* ESPACE SUPER ADMIN (/admin) */}
+        {/* ===================== */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="admins" element={<AdminList />} />
+          <Route path="admins/:id" element={<AdminDetails />} />
+          <Route path="audit-logs" element={<AuditLogs />} /> 
+        </Route>
         {/* ===================== */}
         {/* ESPACE CLIENT (/client) */}
         {/* ===================== */}
