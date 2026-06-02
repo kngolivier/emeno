@@ -104,4 +104,40 @@ export const ENDPOINTS = {
   // AUDIT LOGS (ADMIN)
   // ======================
   AUDIT: "/api/audit",
+
+  // ======================
+  // PROMOTIONS
+  // ======================
+  PROMOTIONS: "/api/promotions",
+
+  PROMOTION_BY_ID: (id) => `/api/promotions/${id}`,
+
+  PROMOTIONS_ACTIVE: "/api/promotions/active",
+  PROMOTIONS_ACTIVE_LIST: "/api/promotions/active/list",
+
+  PROMOTIONS_EXPIRED: "/api/promotions/expired",
+
+  PROMOTIONS_COUNT_ACTIVE: "/api/promotions/count/active",
+
+  PROMOTIONS_VALIDATE_CODE: "/api/promotions/validate-code",
+
+  PROMOTIONS_WHATSAPP_LINK: "/api/promotions/whatsapp-link",
+
+  PROMOTIONS_VALIDATE_TOKEN: "/api/promotions/validate-token",
+
+  PROMOTIONS_MARK_TOKEN_USED: "/api/promotions/mark-token-used",
+
+  PROMOTIONS_GENERATE_ORDER:
+    "/api/promotions/order/generate-whatsapp",
+
+  PROMOTION_STATS: (id) => `/api/promotions/${id}/stats`,
+
+  PROMOTION_WITH_PRODUCTS: (id) =>
+    `/api/promotions/${id}/with-products`,
+
+  PROMOTIONS_BY_PARTNER: (partnerId) =>
+    `/api/promotions/partner/${partnerId}`,
+
+  PROMOTION_TOGGLE_STATUS: (id) =>
+    `/api/promotions/${id}/toggle-status`,
 };

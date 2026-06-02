@@ -162,9 +162,9 @@ export default function DriverDeliveries() {
                 </div>
                 
                 <div className="text-right shrink-0">
-                  <p className="text-lg font-black text-primary dark:text-white tracking-tighter leading-none mb-1">
+                  {/* <p className="text-lg font-black text-primary dark:text-white tracking-tighter leading-none mb-1">
                       {item.totalAmount?.toLocaleString()} <span className="text-[10px] italic font-black text-secondary">FCFA</span>
-                  </p>
+                  </p> */}
                   <p className="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest italic">
                     {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
                   </p>

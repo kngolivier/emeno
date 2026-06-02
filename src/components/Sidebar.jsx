@@ -8,7 +8,8 @@ import {
   MapPin, HomeIcon, Store, Settings, Layers,
   Bell, BellOff,
   Package,
-  Clock
+  Clock,
+  Gift
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
@@ -100,6 +101,7 @@ export default function Sidebar({ isOpen, onClose }) {
       { to: "/admin/pricing", label: "Tarifs", icon: <DollarSign size={20} /> },
       { to: "/admin/communes", label: "Zones", icon: <MapPin size={20} /> },
       { to: "/admin/partners", label: "Partenaires", icon: <Store size={20} /> },
+      { to: "/admin/promotions", label: "Promotions", icon: <Gift size={20} /> },
     ];
     if (role === "PARTNER_MANAGER") return [
       { to: "/partner", label: "Accueil", icon: <HomeIcon size={20} /> },
@@ -136,7 +138,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* 1. h-screen + flex-col assure une hauteur fixe de 100vh */}
       <aside className={`
-        fixed inset-y-0 left-0 z-[110] w-72 bg-white dark:bg-primary p-6 flex flex-col shadow-2xl transition-transform duration-500 ease-out h-screen
+        fixed inset-y-0 left-0 z-[110] w-72 bg-white dark:bg-primary p-6 flex flex-col shadow-2xl transition-transform duration-500 ease-out h-[97vh]
         lg:fixed lg:translate-x-0 border-r border-slate-100 dark:border-white/5
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
       `}>

@@ -13,6 +13,14 @@ export const useDriver = () => {
   const [loading, setLoading] = useState(true);
   const [updatingState, setUpdatingState] = useState(false);
 
+  const status = {
+    "ASSIGNED": "Assignée",
+    "PICKED_UP": "Ramassée",
+    "IN_PROGRESS": "En cours",
+    "COMPLETED": "Terminée",
+    "CANCELED": "Annulée"
+  };
+
   // Un livreur est considéré "En ligne" globalement s'il n'est pas OFFLINE
   const isOnline = user?.driverState && user?.driverState !== "OFFLINE";
   // Un livreur est en pause uniquement si son état vaut explicitement "PAUSE"
@@ -127,7 +135,7 @@ export const useDriver = () => {
         const updated = await driverApi.updateDeliveryStatus(order._id, nextStatus);
         const updatedOrder = updated.data?.data || updated.data;
         setActiveOrders(prev => prev.map(o => o._id === order._id ? updatedOrder : o));
-        toast.success(`Statut mis à jour : ${nextStatus}`);
+        toast.success(`Statut mis à jour : ${status[nextStatus] || nextStatus}`);
       } catch (err) {
         toast.error("Erreur de mise à jour");
       }

@@ -163,7 +163,7 @@ export default function DriverDashboard() {
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                {/* <div className="flex gap-3">
                   <button 
                     onClick={togglePause}
                     className={`flex-1 py-4 px-4 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
@@ -200,7 +200,7 @@ export default function DriverDashboard() {
                   >
                     <Power size={18} strokeWidth={3} />
                   </button>
-                </div>
+                </div> */}
               </div>
             )}
           </div>

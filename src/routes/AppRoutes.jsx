@@ -58,6 +58,8 @@ import PartnersPage from "../pages/PartnersPage";
 import PartnerHome from "../pages/partner-portal/PartnerHome";
 import PartnerCatalog from "../pages/partner-portal/PartnerCatalog";
 import AuditLogs from "../pages/audit/AuditLogs";
+import PromotionsList from "../pages/promotions/PromotionsList";
+import PromotionDetails from "../pages/promotions/PromotionDetails";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -110,6 +112,8 @@ export default function AppRoutes() {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="partners" element={<PartnersList />} />
           <Route path="partners/:id" element={<PartnerDetails />} />
+          <Route path="promotions" element={<PromotionsList />} />
+          <Route path="promotions/:id" element={<PromotionDetails />} />
         </Route>
 
         {/* ===================== */}
