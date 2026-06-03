@@ -108,12 +108,20 @@ export default function ServicePublicDetails() {
         <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
 
            {/* IMAGE WRAPPER CLICKABLE */}
-            <div onClick={() => setIsImageOpen(true)} className="relative">
+            <div onClick={() => setIsImageOpen(true)} className="relative cursor-zoom-in">
               
               <img
                 src={image}
                 alt={service.title}
-                className="h-[320px] md:h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                onClick={(e) => e.stopPropagation()}
+                className="
+                  max-h-[90vh]
+                  max-w-[95vw]
+                  object-contain
+                  rounded-xl
+                  shadow-2xl
+                  animate-[zoomIn_.25s_ease]
+                "
               />
 
               {/* overlay unique */}
@@ -127,10 +135,23 @@ export default function ServicePublicDetails() {
             </div>
 
           {/* overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
           {/* content */}
-          <div className="absolute bottom-0 p-6 md:p-10 text-white space-y-3">
+          <div
+            className="
+              absolute bottom-4 left-4 right-4
+              md:bottom-6 md:left-6 md:right-auto
+              md:max-w-2xl
+              p-5 md:p-6
+              rounded-3xl
+              bg-black/35
+              backdrop-blur-md
+              border border-white/10
+              text-white
+              space-y-3
+            "
+          >
 
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 text-[10px] font-black uppercase bg-white/10 backdrop-blur rounded-full">
