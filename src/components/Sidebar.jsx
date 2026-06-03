@@ -18,6 +18,8 @@ import { ROLE_LABELS } from "../constants/constants";
 import { savePushSubscription } from "../api/notifications.api";
 import { logoutUser } from "../api/auth.api";
 import { notifySuccess, notifyError } from "../utils/notify";
+import { usePwaInstall } from "../hooks/usePwaInstall";
+
 
 export default function Sidebar({ isOpen, onClose }) {
   const { isDarkMode } = useTheme();
@@ -26,6 +28,7 @@ export default function Sidebar({ isOpen, onClose }) {
   
   const [pushStatus, setPushStatus] = useState("default");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isInstallable, install } = usePwaInstall();
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -186,7 +189,7 @@ export default function Sidebar({ isOpen, onClose }) {
               </button>
             </div>
           )}
-          <div className="px-4 py-3 bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center gap-3">
+          {/* <div className="px-4 py-3 bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center gap-3">
              <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-xs font-black text-white shrink-0">
                {user?.prenom?.[0]}{user?.nom?.[0]}
              </div>
@@ -194,7 +197,15 @@ export default function Sidebar({ isOpen, onClose }) {
                <p className="text-primary dark:text-white text-xs font-black truncate">{user?.prenom}</p>
                <p className="text-slate-400 text-[8px] font-bold uppercase">{ROLE_LABELS[user?.role]}</p>
              </div>
-          </div>
+          </div> */}
+          {isInstallable && (
+            <button
+              onClick={install}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-primary text-white font-black uppercase text-[10px]"
+            >
+              Télécharger l’app
+            </button>
+          )}
           <button onClick={handleLogoutClick} className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-rose-500/10 rounded-xl transition-all">
             <LogOutIcon size={18} />
             <span className="font-black uppercase text-[9px]">Déconnexion</span>

@@ -8,19 +8,35 @@ import { ArrowRight } from "lucide-react";
 
 export default function ServicesCarousel() {
   const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    setLoading(true);
+
     getAll({ activeOnly: true })
       .then((res) => setServices(res.data?.data || res.data || []))
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  if (!services.length) return null;
+  if (loading) return null;
+
+  if (!services.length) {
+    return (
+      <div className="text-center py-10 text-slate-400 text-xs font-black uppercase">
+        Aucun service disponible
+      </div>
+    );
+  }
+
+  const fallbackImage =
+    "https://res.cloudinary.com/dzzokuvat/image/upload/f_auto,q_auto/service-light.png";
 
   return (
     <div className="w-full overflow-x-auto no-scrollbar">
       <div className="flex gap-5 px-1">
+
         {services.map((s, index) => (
           <motion.div
             key={s._id}
@@ -31,13 +47,16 @@ export default function ServicesCarousel() {
             onClick={() => navigate(`/services/details/${s._id}`)}
             className="min-w-[260px] md:min-w-[300px] cursor-pointer rounded-[2rem] overflow-hidden border border-slate-200 dark:border-white/10 bg-white dark:bg-[#071120] shadow-sm"
           >
+
             <img
-              src={s.image?.url}
+              src={s.image?.url || fallbackImage}
+              onError={(e) => (e.target.src = fallbackImage)}
               alt={s.title}
               className="h-40 w-full object-cover"
             />
 
             <div className="p-5 space-y-2">
+
               <h3 className="font-black text-primary dark:text-white uppercase italic">
                 {s.title}
               </h3>
@@ -52,9 +71,12 @@ export default function ServicesCarousel() {
                 </span>
                 <ArrowRight size={16} className="text-secondary" />
               </div>
+
             </div>
+
           </motion.div>
         ))}
+
       </div>
     </div>
   );
