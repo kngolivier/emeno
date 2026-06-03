@@ -1,65 +1,97 @@
-// FILE: src/pages/client-promo/PromotionDetails.jsx
+// FILE: src/pages/client-promo/ClientPromotionDetails.jsx
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Gift, Tag } from "lucide-react";
+import {
+  ArrowLeft,
+  MessageCircle,
+  Gift,
+  Tag,
+  ShoppingBag,
+} from "lucide-react";
 
-import { fetchPromotionById, generateWhatsAppLink } from "../../api/promotions.api";
+import {
+  fetchPromotionById,
+  generateWhatsAppLink,
+} from "../../api/promotions.api";
+
+import { fetchPartnerProducts } from "../../api/products.api";
+import { computeDiscount } from "../../utils/pricing/computeDiscount";
 
 export default function ClientPromotionDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [promo, setPromo] = useState(null);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
+  const [sendingId, setSendingId] = useState(null);
 
   useEffect(() => {
-    loadPromo();
+    loadData();
   }, [id]);
 
-  async function loadPromo() {
+  async function loadData() {
     try {
       setLoading(true);
-      const res = await fetchPromotionById(id);
-      const data = res?.data?.data || res?.data;
-      setPromo(data);
-    } catch (err) {
-      console.error(err);
+
+      // 1. promo
+      const promoRes = await fetchPromotionById(id);
+      const promoData = promoRes?.data?.data || promoRes?.data;
+      setPromo(promoData);
+
+      // 2. products (si partner promo)
+      const partnerId = promoData?.partnerId?._id || promoData?.partnerId;
+
+      if (partnerId) {
+        const prodRes = await fetchPartnerProducts(partnerId);
+        const prodData =
+          prodRes?.data?.data || prodRes?.data || [];
+
+        setProducts(Array.isArray(prodData) ? prodData : []);
+      } else {
+        setProducts([]);
+      }
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   }
 
-  const handleWhatsApp = async () => {
+  const handleOrder = async (product) => {
     if (!promo) return;
 
     try {
-      setSending(true);
+      setSendingId(product._id);
 
       const res = await generateWhatsAppLink({
         promoId: promo._id,
+        productId: product._id,
+        productName: product.name,
+        productPrice: product.price,
       });
 
-      const link = res?.data?.link || res?.data?.data?.link;
+      const link =
+        res?.data?.link || res?.data?.data?.link;
 
       if (link) {
-        window.open(link, "_blank", "noopener,noreferrer");
+        window.location.href = link;
       }
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
     } finally {
-      setSending(false);
+      setSendingId(null);
     }
   };
 
   if (loading) {
     return (
-      <div className="p-4 space-y-4 animate-pulse">
+      <div className="p-4 space-y-3 animate-pulse">
         <div className="h-40 bg-slate-200 dark:bg-white/10 rounded-2xl" />
         <div className="h-20 bg-slate-200 dark:bg-white/10 rounded-xl" />
-        <div className="h-12 bg-slate-200 dark:bg-white/10 rounded-xl" />
+        <div className="h-24 bg-slate-200 dark:bg-white/10 rounded-xl" />
       </div>
     );
   }
@@ -89,7 +121,7 @@ export default function ClientPromotionDetails() {
         </div>
       </div>
 
-      {/* HERO */}
+      {/* HERO PROMO */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -98,40 +130,122 @@ export default function ClientPromotionDetails() {
         <div className="absolute top-[-40px] right-[-40px] w-40 h-40 bg-white/10 rounded-full" />
         <div className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-black/10 rounded-full" />
 
-        <div className="relative z-10">
-          <Gift size={28} />
-          <h2 className="text-2xl font-black mt-3">{promo.title}</h2>
-          <p className="text-white/80 mt-2 text-sm">
-            {promo.description}
-          </p>
+        <Gift size={28} />
+        <h2 className="text-2xl font-black mt-3">
+          {promo.title}
+        </h2>
+        <p className="text-white/80 mt-2 text-sm">
+          {promo.description}
+        </p>
 
-          <div className="mt-4 inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
-            <Tag size={14} />
-            {promo.code}
-          </div>
+        <div className="mt-4 inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+          <Tag size={14} />
+          {promo.code}
         </div>
       </motion.div>
 
-      {/* INFO SECTION */}
-      <div className="px-4 mt-6 space-y-3">
+      {/* INTRO */}
+      <div className="px-4 mt-6">
         <div className="p-4 rounded-2xl bg-slate-100 dark:bg-white/5">
-          <p className="text-xs text-slate-500">Comment ça marche</p>
-          <p className="text-sm mt-1">
-            Cliquez sur le bouton ci-dessous pour ouvrir une conversation WhatsApp avec le partenaire et profiter de cette offre via EMENO.
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Choisissez un produit ci-dessous et commandez directement via WhatsApp.
+            EMENO transmettra votre commande au partenaire avec votre promotion appliquée.
           </p>
         </div>
       </div>
 
-      {/* CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-[#071120] border-t border-slate-200 dark:border-white/10">
-        <button
-          onClick={handleWhatsApp}
-          disabled={sending}
-          className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 transition"
-        >
-          <MessageCircle size={18} />
-          {sending ? "Ouverture..." : "Contacter le partenaire sur WhatsApp"}
-        </button>
+      {/* PRODUITS */}
+      <div className="px-4 mt-6 space-y-4">
+        <div className="flex items-center gap-2 font-bold text-sm text-slate-600 dark:text-white">
+          <ShoppingBag size={16} />
+          Produits disponibles
+        </div>
+
+        {products.length === 0 ? (
+          <div className="p-4 text-sm text-slate-500 bg-slate-100 dark:bg-white/5 rounded-xl">
+            Aucun produit disponible pour cette promotion.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {products.map((product) => {
+              const { price, oldPrice, percent } = computeDiscount(
+                product.price,
+                promo
+              );
+
+              const isHotDeal = percent >= 15;
+
+              return (
+                <motion.div
+                  key={product._id}
+                  whileHover={{ scale: 1.01 }}
+                  className={`p-4 rounded-2xl border transition
+                    ${
+                      isHotDeal
+                        ? "border-green-400 bg-green-50 dark:bg-green-500/10"
+                        : "border-slate-100 dark:border-white/10 bg-white dark:bg-white/5"
+                    }`}
+                >
+                  {/* HEADER PRODUIT */}
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-bold">{product.name}</h3>
+
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {product.description}
+                      </p>
+
+                      {/* PRIX */}
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-lg font-black text-green-600">
+                          {price.toLocaleString()} XAF
+                        </span>
+
+                        {oldPrice && (
+                          <span className="text-sm line-through text-slate-400">
+                            {oldPrice.toLocaleString()} XAF
+                          </span>
+                        )}
+
+                        {percent > 0 && (
+                          <span className="text-xs font-bold bg-red-500 text-white px-2 py-1 rounded-full">
+                            -{percent}%
+                          </span>
+                        )}
+                      </div>
+
+                      {/* BONUS MESSAGE MARKETING */}
+                      {percent > 0 && (
+                        <p className="text-xs text-green-600 mt-1 font-medium">
+                          💡 Vous économisez {(
+                            oldPrice - price
+                          ).toLocaleString()} XAF avec cette promo
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <button
+                    onClick={() => handleOrder(product)}
+                    disabled={sendingId === product._id}
+                    className={`mt-4 w-full flex items-center justify-center gap-2 h-10 rounded-xl font-bold transition
+                      ${
+                        isHotDeal
+                          ? "bg-green-600 hover:bg-green-700 text-white"
+                          : "bg-green-500 hover:bg-green-600 text-white"
+                      }`}
+                  >
+                    <MessageCircle size={16} />
+                    {sendingId === product._id
+                      ? "Ouverture..."
+                      : "Commander sur WhatsApp"}
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

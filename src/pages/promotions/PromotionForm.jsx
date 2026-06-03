@@ -29,6 +29,8 @@ const DEFAULT_PROMOTION = {
   startDate: "",
   endDate: "",
   isActive: true,
+  discountType: "PERCENT",
+  discountValue: 0,
 };
 
 const STEPS = [
@@ -318,6 +320,34 @@ export default function PromotionForm({ promotion, onSave, onCancel }) {
                     <option value="FIDELITY">Fidélité</option>
                   </select>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Type de réduction</label>
+                    <select
+                      className={inputClass}
+                      value={formData.discountType}
+                      onChange={(e) => setField("discountType", e.target.value)}
+                    >
+                      <option value="PERCENT">Pourcentage (%)</option>
+                      <option value="FIXED">Montant fixe (XAF)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>
+                      Valeur de réduction {formData.discountType === "PERCENT" ? "(%)" : "(XAF)"}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      className={inputClass}
+                      value={formData.discountValue}
+                      onChange={(e) => setField("discountValue", Number(e.target.value))}
+                      placeholder="Ex: 10 ou 5000"
+                    />
+                  </div>
+                </div>
               </div>
 
               {formData.promoCategory === "PARTNER" && (
@@ -342,6 +372,13 @@ export default function PromotionForm({ promotion, onSave, onCancel }) {
                 </div>
               )}
 
+              {formData.discountValue > 0 && (
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-xs font-bold text-emerald-600 dark:text-emerald-300">
+                  Aperçu : {formData.discountType === "PERCENT"
+                    ? `-${formData.discountValue}%`
+                    : `-${formData.discountValue} XAF`}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Icône</label>
