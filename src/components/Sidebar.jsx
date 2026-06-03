@@ -9,7 +9,8 @@ import {
   Bell, BellOff,
   Package,
   Clock,
-  Gift
+  Gift,
+  Layers2
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
@@ -102,6 +103,7 @@ export default function Sidebar({ isOpen, onClose }) {
       { to: "/admin/communes", label: "Zones", icon: <MapPin size={20} /> },
       { to: "/admin/partners", label: "Partenaires", icon: <Store size={20} /> },
       { to: "/admin/promotions", label: "Promotions", icon: <Gift size={20} /> },
+      { to: "/admin/services", label: "Services", icon: <Layers2 size={20} /> },
     ];
     if (role === "PARTNER_MANAGER") return [
       { to: "/partner", label: "Accueil", icon: <HomeIcon size={20} /> },

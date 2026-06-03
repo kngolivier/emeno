@@ -61,6 +61,9 @@ import AuditLogs from "../pages/audit/AuditLogs";
 import PromotionsList from "../pages/promotions/PromotionsList";
 import PromotionDetails from "../pages/promotions/PromotionDetails";
 import ClientPromotionDetails from "../pages/client-promo/ClientPromotionDetails";
+import ServicePublicDetails from "../pages/ServicePublicDetails";
+import ServicesList from "../pages/services/ServicesList";
+import ServiceDetails from "../pages/services/ServiceDetails";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -78,6 +81,7 @@ export default function AppRoutes() {
         <Route path="/tarifs" element={<PricingPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/partenaires" element={<PartnersPage />} />
+        <Route path="/services/details/:id" element={<ServicePublicDetails />} />
 
         {/* ===================== */}
         {/* AUTH (PUBLIC ONLY)  */}
@@ -115,6 +119,8 @@ export default function AppRoutes() {
           <Route path="partners/:id" element={<PartnerDetails />} />
           <Route path="promotions" element={<PromotionsList />} />
           <Route path="promotions/:id" element={<PromotionDetails />} />
+          <Route path="services" element={<ServicesList />} />
+          <Route path="services/:id" element={<ServiceDetails />} />
         </Route>
 
         {/* ===================== */}

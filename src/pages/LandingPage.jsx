@@ -6,6 +6,7 @@ import Hero from "../components/landing/Hero";
 import FeatureCard from "../components/landing/Feature";
 import Footer from "../components/landing/Footer";
 import { Zap, ShieldCheck, BellRing, ArrowRight, Wallet, MapPin, Star } from "lucide-react";
+import ServicesCarousel from "../components/services/ServicesCarousel";
 
 export default function LandingPage() {
   // Animation de groupe pour les éléments
@@ -28,6 +29,21 @@ export default function LandingPage() {
       <main className="relative z-10">
         <section className="min-h-[85vh] flex items-center pt-20">
             <Hero />
+        </section>
+
+        <section className="max-w-7xl mx-auto py-20 px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-10"
+          >
+            <h2 className="text-4xl font-black text-primary dark:text-white italic">
+              Nos Services
+            </h2>
+          </motion.div>
+
+          <ServicesCarousel />
         </section>
 
         {/* SECTION FEATURES */}

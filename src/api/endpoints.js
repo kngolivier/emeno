@@ -140,4 +140,14 @@ export const ENDPOINTS = {
 
   PROMOTION_TOGGLE_STATUS: (id) =>
     `/api/promotions/${id}/toggle-status`,
+
+  // ======================
+// SERVICES
+// ======================
+  SERVICES: "/api/services",
+
+  SERVICE_BY_ID: (id) => `/api/services/${id}`,
+
+  SERVICE_WHATSAPP: (id) =>
+  `/api/services/${id}/whatsapp`,
 };

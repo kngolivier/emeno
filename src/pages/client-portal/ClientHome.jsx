@@ -16,6 +16,7 @@ import PartnerModal from "../../components/client-home/PartnerModal";
 import SectionHeader from "../../components/client-home/SectionHeader";
 import { ShieldCheck, Globe, Zap, MapPin, CreditCard, Headset, ArrowRight } from "lucide-react";
 import { normalizePartner } from "../../utils/dataMapper"; // Import
+import ServicesCarousel from "../../components/services/ServicesCarousel";
 
 const ACTIVE_STATUS = ["PENDING", "ASSIGNED", "PICKED_UP", "IN_PROGRESS"];
 
@@ -70,12 +71,14 @@ export default function ClientHome() {
         </div>
 
         <div>
-          <SectionHeader title="Services" subtitle="EMENO" icon={ShieldCheck} />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-            <ServiceCard title="Express" desc="Livraison rapide" icon={Zap} />
-            <ServiceCard title="GPS" desc="Tracking temps réel" icon={MapPin} />
-            <ServiceCard title="Paiement" desc="Transactions sécurisées" icon={CreditCard} />
-            <ServiceCard title="Support" desc="Assistance rapide" icon={Headset} />
+          <SectionHeader
+            title="Services EMENO"
+            subtitle="Découvrez nos services disponibles"
+            icon={ShieldCheck}
+          />
+
+          <div className="mt-6">
+            <ServicesCarousel />
           </div>
         </div>
 
