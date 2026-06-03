@@ -1,15 +1,20 @@
 // FILE: src/pages/orders/NewOrderForm.jsx
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, ArrowRight, ArrowLeft, MapPin, CreditCard, Loader2, Package, AlertTriangle } from "lucide-react";
 import PhoneInput from "../../components/forms/PhoneInput";
 import CommuneSelect from "../../components/forms/CommuneSelect";
+import { getAll as getServices  } from "../../api/service.api";
+
 
 export default function NewOrderForm({ onAdd, onClose }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [services, setServices] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
 
   const [formData, setFormData] = useState({
+    serviceId: "",
     pickupContact: { name: "", phone: "" },
     dropoffContact: { name: "", phone: "" },
     pickupLocation: "",
@@ -26,6 +31,53 @@ export default function NewOrderForm({ onAdd, onClose }) {
     payerType: "SENDER",
     notes: ""
   });
+
+    useEffect(() => {
+      if (!selectedService) return;
+  
+      setFormData(prev => ({
+        ...prev,
+  
+        packageDetails: {
+          ...prev.packageDetails,
+          category: selectedService.defaultCategory || prev.packageDetails.category,
+          description: selectedService.description || prev.packageDetails.description,
+        },
+  
+        notes: `Service sélectionné: ${selectedService.title}`,
+      }));
+    }, [selectedService]);
+    
+    // ======================
+    // LOAD SERVICES (fallback)
+    // ======================
+    useEffect(() => {
+      getServices({ activeOnly: true })
+        .then(res => {
+          const list = res.data?.data || res.data || [];
+          setServices(list);
+        })
+        .catch(console.error);
+    }, []);
+
+    // ======================
+    // SERVICE CHANGE MANUAL
+    // ======================
+    const handleServiceChange = (serviceId) => {
+      const service = services.find(s => s._id === serviceId);
+      setSelectedService(service);
+
+      setFormData(prev => ({
+        ...prev,
+        serviceId: serviceId,
+        packageDetails: {
+          ...prev.packageDetails,
+          category: service?.defaultCategory || prev.packageDetails.category,
+          description: service?.description || prev.packageDetails.description,
+        },
+        notes: service ? `Service: ${service.title}` : ""
+      }));
+    };
 
   const handleNestedChange = (section, field, value) => {
     setFormData(prev => ({ ...prev, [section]: { ...prev[section], [field]: value } }));
@@ -81,6 +133,23 @@ export default function NewOrderForm({ onAdd, onClose }) {
         </div>
         <button type="button" onClick={onClose} className="p-2 md:p-3 hover:bg-white dark:hover:bg-white/5 hover:shadow-md rounded-full transition-all text-slate-400 dark:text-slate-500"><X size={20} /></button>
       </div>
+
+      {/* ================= SERVICE SELECT ================= */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border">
+              <label className={labelClass}>Service</label>
+                <select
+                  className={inputClass}
+                  value={formData.serviceId}
+                  onChange={(e) => handleServiceChange(e.target.value)}
+                >
+                  <option value="">-- choisir un service --</option>
+                  {services.map(s => (
+                    <option key={s._id} value={s._id}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+            </div>
 
       <form id="admin-new-order-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 md:p-10 scrollbar-hide dark:bg-slate-900">
         {step === 1 && (

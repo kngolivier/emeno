@@ -23,6 +23,7 @@ import {
   remove,
   update
 } from "../../api/service.api";
+import { MODE_LABELS } from "../../constants/constants";
 
 const DEFAULT_SERVICE_IMAGE_LIGHT =
   "https://res.cloudinary.com/dzzokuvat/image/upload/f_auto,q_auto/service-light.png";
@@ -41,6 +42,8 @@ export default function ServiceDetails() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [whLoading, setWhLoading] = useState(false);
+
+  const [zoomOpen, setZoomOpen] = useState(false);
 
   const fallbackImage = isDarkMode
     ? DEFAULT_SERVICE_IMAGE_DARK
@@ -169,19 +172,24 @@ export default function ServiceDetails() {
       <div className="relative z-10 max-h-[85vh] overflow-y-auto">
 
         {/* HEADER */}
-        <div className="h-36 bg-gradient-to-r from-primary to-slate-900 p-6 flex items-end justify-between relative">
+        <div className="relative h-44 bg-gradient-to-r from-primary via-slate-900 to-black p-6 flex items-end justify-between overflow-hidden">
+
+          {/* décor */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-secondary/20 blur-[80px] rounded-full" />
 
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full"
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md"
           >
             <X size={18} />
           </button>
 
+          {/* IMAGE CLICKABLE */}
           <img
             src={imageUrl}
             onError={(e) => (e.target.src = fallbackImage)}
-            className="w-24 h-24 rounded-2xl object-cover border-4 border-white dark:border-slate-800 shadow-xl"
+            onClick={() => setZoomOpen(true)}
+            className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow-2xl cursor-zoom-in hover:scale-[1.03] transition"
             alt={service.title}
           />
         </div>
@@ -190,65 +198,47 @@ export default function ServiceDetails() {
         <div className="p-6 md:p-8 pt-14 space-y-6">
 
           {/* TITLE */}
-          <div>
+          <div className="mt-6">
+
             <span className={`inline-flex items-center gap-2 text-[9px] font-black uppercase px-3 py-1 rounded-full ${statusUI.className}`}>
               {statusUI.icon}
               {statusUI.label}
             </span>
 
-            <h2 className="text-2xl font-black text-primary dark:text-white uppercase italic mt-2">
+            <h2 className="text-3xl font-black text-primary dark:text-white uppercase italic mt-3">
               {service.title}
             </h2>
+
+            <p className="text-xs text-slate-400 mt-2">
+              {service.type} • {MODE_LABELS?.[service.pricingMode] || service.pricingMode}
+            </p>
           </div>
 
           {/* GRID */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
 
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-              <DollarSign size={14} />
-              <p className="text-sm font-black mt-2">
-                {service.pricingMode || "WHATSAPP_ONLY"}
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-              <Tag size={14} />
-              <p className="text-sm font-black mt-2">
-                {service.type || "N/A"}
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-              <Users size={14} />
-              <p className="text-sm font-black mt-2">
-                {service.whatsappNumber || "N/A"}
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl">
-              <Layers size={14} />
-              <p className="text-sm font-black mt-2">
-                {service.displayOrder ?? 0}
-              </p>
-            </div>
+            <InfoCard icon={<DollarSign size={14} />} label="Mode de tarification" value={service.pricingMode} />
+            <InfoCard icon={<Tag size={14} />} label="Type" value={service.type} />
+            <InfoCard icon={<Users size={14} />} label="WhatsApp" value={service.whatsappNumber || "N/A"} />
+            <InfoCard icon={<Layers size={14} />} label="Ordre d'affichage" value={service.displayOrder ?? 0} />
 
           </div>
 
           {/* DESCRIPTION */}
-          <div>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              {service.description}
+          <div className="p-5 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              {service.description || "Aucune description"}
             </p>
           </div>
 
           {/* DATE */}
-          <div className="flex items-center justify-between text-xs text-gray-400">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
+            <span className="flex items-center gap-2">
               <Calendar size={14} />
               Créé le
-            </div>
+            </span>
 
-            <span className="text-white">
+            <span className="font-black text-primary dark:text-white">
               {service.createdAt
                 ? new Date(service.createdAt).toLocaleDateString("fr-FR")
                 : "N/A"}
@@ -256,30 +246,30 @@ export default function ServiceDetails() {
           </div>
 
           {/* ACTIONS */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3 mt-6">
 
             <button
               onClick={handleDelete}
               disabled={actionLoading}
-              className="p-3 bg-rose-500/10 text-rose-500 rounded-xl text-[10px] font-black uppercase"
+              className="flex flex-col items-center justify-center gap-1 p-4 bg-rose-500/10 text-rose-500 rounded-2xl font-black uppercase text-[9px]"
             >
-              {actionLoading ? <RefreshCw className="animate-spin" size={14} /> : <Trash2 size={14} />}
+              <Trash2 size={16} />
               Supprimer
             </button>
 
             <button
               onClick={handleToggleStatus}
               disabled={toggling}
-              className="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl text-[10px] font-black uppercase"
+              className="flex flex-col items-center justify-center gap-1 p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px]"
             >
-              {toggling ? <RefreshCw className="animate-spin" size={14} /> : <CheckCircle size={14} />}
+              <CheckCircle size={16} />
               Statut
             </button>
 
             <button
               onClick={handleWhatsApp}
               disabled={whLoading}
-              className="p-3 bg-green-500 text-white rounded-xl text-[10px] font-black uppercase"
+              className="flex flex-col items-center justify-center gap-1 p-4 bg-green-500 text-white rounded-2xl font-black uppercase text-[9px]"
             >
               WhatsApp
             </button>
@@ -288,6 +278,44 @@ export default function ServiceDetails() {
 
         </div>
       </div>
+      <ImageModal
+        open={zoomOpen}
+        src={imageUrl}
+        onClose={() => setZoomOpen(false)}
+      />
+    </div>
+  );
+}
+
+function ImageModal({ open, src, onClose }) {
+  if (!open) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-6"
+    >
+      <img
+        src={src}
+        className="max-w-full max-h-full rounded-2xl shadow-2xl"
+        alt="preview"
+      />
+    </div>
+  );
+}
+
+function InfoCard({ icon, label, value }) {
+  return (
+    <div className="p-5 bg-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl hover:shadow-lg transition-all">
+
+      <div className="flex items-center gap-2 text-slate-400 text-[10px] font-black uppercase">
+        {icon}
+        {label}
+      </div>
+
+      <p className="text-sm font-black text-primary dark:text-white mt-3">
+        {value}
+      </p>
     </div>
   );
 }

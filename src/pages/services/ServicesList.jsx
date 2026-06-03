@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Edit3, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Layers } from "lucide-react";
 
 import { getAll, remove } from "../../api/service.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
@@ -12,27 +12,10 @@ import { useCrudList } from "../../hooks/useCrudList";
 
 const normalize = (res) => res?.data?.data || res?.data || [];
 
-/* =========================
-   🌍 TRANSLATIONS / LABELS
-========================= */
-
-const SERVICE_TYPE_LABELS = {
-  STANDARD: "Standard",
-  EXPRESS: "Express",
-  PRIVATE: "Privé",
-  ADMIN: "Administration",
-  CARE: "Service client",
-  BUSINESS: "Business",
-};
-
-const PRICING_MODE_LABELS = {
-  BASE_PRICING: "Tarification de base",
-  WHATSAPP_ONLY: "Sur WhatsApp uniquement",
-};
-
-const STATUS_LABELS = {
-  true: { label: "Actif", className: "bg-emerald-500/10 text-emerald-500" },
-  false: { label: "Inactif", className: "bg-rose-500/10 text-rose-500" },
+// 🔥 traduction propre du mode
+const MODE_LABELS = {
+  BASE_PRICING: "Tarification standard",
+  WHATSAPP_ONLY: "Commande WhatsApp uniquement"
 };
 
 export default function ServicesList() {
@@ -73,181 +56,177 @@ export default function ServicesList() {
     <div className="p-4 md:p-6 space-y-6">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-50 dark:border-slate-800 shadow-sm">
+
         <div>
-          <h1 className="text-3xl font-black">Services</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl md:text-3xl font-black text-primary dark:text-white italic uppercase">
+            Services
+          </h1>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">
             Gestion des services EMENO
           </p>
         </div>
 
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-bold"
+          className="flex items-center justify-center gap-2 bg-primary dark:bg-secondary text-white font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
         >
-          <Plus size={16} />
+          <Plus size={16} strokeWidth={3} />
           Nouveau service
         </button>
       </div>
 
-      {/* EMPTY */}
+      {/* EMPTY STATE */}
       {services.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center py-20 bg-white dark:bg-white/5 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl">
-          <Plus className="text-primary mb-3" size={28} />
-          <h2 className="text-xl font-black">Aucun service</h2>
-          <p className="text-sm text-gray-500 mt-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] text-center p-16">
+          <Layers className="mx-auto text-slate-200 dark:text-slate-800 mb-4" size={48} />
+
+          <p className="font-display italic font-black uppercase text-xl text-primary dark:text-white">
+            Aucun service
+          </p>
+
+          <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">
             Créez votre premier service pour commencer
           </p>
+
+          <button
+            onClick={openCreate}
+            className="mt-6 bg-primary text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest"
+          >
+            Créer un service
+          </button>
         </div>
       ) : (
         <>
-          {/* =========================
-              📱 CARDS MOBILE
-          ========================== */}
-          <div className="grid md:grid-cols-2 lg:hidden gap-4">
-            {services.map((s) => {
-              const isActive = s.isActive ?? true;
+          {/* ================= MOBILE CARDS ================= */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-6">
 
-              return (
-                <div
-                  key={s._id}
-                  className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 p-5 rounded-2xl space-y-3"
-                >
-                  <div className="flex justify-between items-start">
-                    <h2 className="font-black text-lg">{s.title}</h2>
+            {services.map((s) => (
+              <div
+                key={s._id}
+                className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] p-6 flex flex-col justify-between hover:shadow-xl transition-all group relative overflow-hidden"
+              >
 
-                    <span
-                      className={`text-[10px] px-2 py-1 rounded-full font-black ${
-                        STATUS_LABELS[isActive].className
-                      }`}
-                    >
-                      {STATUS_LABELS[isActive].label}
-                    </span>
-                  </div>
+                {/* BADGES */}
+                <span className="absolute top-4 right-4 text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                  {s.type}
+                </span>
 
-                  <p className="text-sm text-gray-500 line-clamp-2">
+                <div>
+                  {/* TITLE */}
+                  <h3 className="font-display font-black text-lg text-primary dark:text-white uppercase italic group-hover:text-secondary transition-colors">
+                    {s.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-500 mt-2 line-clamp-2">
                     {s.description}
                   </p>
 
-                  {/* TYPE */}
-                  <div className="text-xs">
-                    <span className="text-gray-400 font-bold">Type :</span>{" "}
-                    {SERVICE_TYPE_LABELS[s.type] || s.type}
-                  </div>
-
-                  {/* MODE (AMÉLIORÉ) */}
-                  <div className="text-xs">
-                    <span className="text-gray-400 font-bold">Mode :</span>{" "}
-                    {PRICING_MODE_LABELS[s.pricingMode] || s.pricingMode}
-                  </div>
-
-                  {/* ACTIONS */}
-                  <div className="flex justify-between pt-3">
-                    <Link
-                      to={`/admin/services/${s._id}`}
-                      className="text-blue-500"
-                    >
-                      <Eye size={18} />
-                    </Link>
-
-                    <button
-                      onClick={() => openEdit(s)}
-                      className="text-yellow-500"
-                    >
-                      <Edit3 size={18} />
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(s._id)}
-                      disabled={deletingId === s._id}
-                      className="text-red-500 disabled:opacity-40"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                  {/* MODE */}
+                  <div className="mt-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Mode :{" "}
+                    <span className="text-primary dark:text-white">
+                      {MODE_LABELS[s.pricingMode] || s.pricingMode}
+                    </span>
                   </div>
                 </div>
-              );
-            })}
+
+                {/* ACTIONS */}
+                <div className="grid grid-cols-3 gap-2 mt-6 pt-3 border-t border-slate-50 dark:border-slate-800/40">
+
+                  <Link
+                    to={`/admin/services/${s._id}`}
+                    className="flex items-center justify-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl"
+                  >
+                    <Eye size={16} />
+                  </Link>
+
+                  <button
+                    onClick={() => openEdit(s)}
+                    className="flex items-center justify-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl"
+                  >
+                    <Edit size={16} />
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(s._id)}
+                    disabled={deletingId === s._id}
+                    className="flex items-center justify-center p-3 rounded-xl bg-rose-500/10 text-rose-500"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* =========================
-              🖥️ TABLE DESKTOP
-          ========================== */}
-          <div className="hidden lg:block bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl overflow-hidden">
+          {/* ================= TABLE DESKTOP ================= */}
+          <div className="hidden lg:block bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] overflow-hidden">
+
             <table className="w-full text-left">
-              <thead className="bg-gray-50 dark:bg-white/5">
+
+              <thead className="bg-slate-50 dark:bg-slate-800/20">
                 <tr>
-                  <th className="p-4 text-xs font-black uppercase">Service</th>
-                  <th className="p-4 text-xs font-black uppercase">Type</th>
-                  <th className="p-4 text-xs font-black uppercase">Mode</th>
-                  <th className="p-4 text-xs font-black uppercase">Statut</th>
-                  <th className="p-4 text-xs font-black uppercase text-right">
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Service
+                  </th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Type
+                  </th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Mode
+                  </th>
+                  <th className="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
                     Actions
                   </th>
                 </tr>
               </thead>
 
-              <tbody>
-                {services.map((s) => {
-                  const isActive = s.isActive ?? true;
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
 
-                  return (
-                    <tr
-                      key={s._id}
-                      className="border-t dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5"
-                    >
-                      <td className="p-4">
-                        <div>
-                          <p className="font-black">{s.title}</p>
-                          <p className="text-xs text-gray-500">
-                            {s.description}
-                          </p>
-                        </div>
-                      </td>
+                {services.map((s) => (
+                  <tr key={s._id} className="hover:bg-slate-50/30 dark:hover:bg-white/[0.01] transition-all group">
 
-                      <td className="p-4 text-sm">
-                        {SERVICE_TYPE_LABELS[s.type] || s.type}
-                      </td>
+                    <td className="p-5">
+                      <p className="font-display font-black text-base text-primary dark:text-white uppercase italic group-hover:text-secondary">
+                        {s.title}
+                      </p>
+                      <p className="text-[11px] text-slate-400 line-clamp-1">
+                        {s.description}
+                      </p>
+                    </td>
 
-                      <td className="p-4 text-sm">
-                        {PRICING_MODE_LABELS[s.pricingMode] || s.pricingMode}
-                      </td>
+                    <td className="p-5 text-xs font-bold text-slate-500">
+                      {s.type}
+                    </td>
 
-                      <td className="p-4">
-                        <span
-                          className={`text-[10px] px-2 py-1 rounded-full font-black ${
-                            STATUS_LABELS[isActive].className
-                          }`}
-                        >
-                          {STATUS_LABELS[isActive].label}
-                        </span>
-                      </td>
+                    <td className="p-5 text-xs font-black uppercase text-primary dark:text-white">
+                      {MODE_LABELS[s.pricingMode] || s.pricingMode}
+                    </td>
 
-                      <td className="p-4 text-right space-x-2">
-                        <Link
-                          to={`/admin/services/${s._id}`}
-                          className="text-blue-500"
-                        >
-                          <Eye size={18} />
-                        </Link>
+                    <td className="p-5 text-right space-x-2">
 
-                        <button
-                          onClick={() => openEdit(s)}
-                          className="text-yellow-500"
-                        >
-                          <Edit3 size={18} />
-                        </button>
+                      <Link to={`/admin/services/${s._id}`}>
+                        <Eye size={16} />
+                      </Link>
 
-                        <button
-                          onClick={() => handleDelete(s._id)}
-                          className="text-red-500"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      <button onClick={() => openEdit(s)}>
+                        <Edit size={16} />
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(s._id)}
+                        disabled={deletingId === s._id}
+                        className="text-rose-500"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                    </td>
+                  </tr>
+                ))}
+
               </tbody>
             </table>
           </div>

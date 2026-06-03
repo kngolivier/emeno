@@ -43,3 +43,8 @@ export const STATUS_USER_LABELS = {
   PENDING: "En attente",
   DELETED: "Supprimé"
 };
+
+export const MODE_LABELS = {
+  BASE_PRICING: "Tarification de base",
+  WHATSAPP_ONLY: "WhatsApp uniquement"
+};

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createDelivery } from "../../api/deliveries.api";
 import { calculatePrice } from "../../api/pricing.api"; 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { 
   ArrowRight, ArrowLeft, Loader2, User, MapPin, 
   Package, UserCircle, Truck, CheckCircle2, Eye, Banknote, AlertTriangle
@@ -13,6 +13,8 @@ import PhoneInput from "../../components/forms/PhoneInput";
 import CommuneSelect from "../../components/forms/CommuneSelect";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import { CATEGORY_LABELS } from "../../constants/constants";
+import { getAll as getServices  } from "../../api/service.api";
+
 
 export default function ClientCreateOrder() {
   const { user } = useAuth();
@@ -23,8 +25,15 @@ export default function ClientCreateOrder() {
   const [clientPosition, setClientPosition] = useState('SENDER');
   const [priceData, setPriceData] = useState(null);
   const [communeNames, setCommuneNames] = useState({ pickup: "", dropoff: "" });
+  const [searchParams] = useSearchParams();
+    const location = useLocation();
+  const selectedServiceFromNav = location.state?.selectedService;
+
+  const [services, setServices] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
 
   const [form, setForm] = useState({
+    serviceId: "",
     isForSomeoneElse: false,
     pickupContact: { name: "", phone: "" },
     dropoffContact: { name: "", phone: "" },
@@ -41,6 +50,69 @@ export default function ClientCreateOrder() {
     },
     notes: ""
   });
+
+
+  useEffect(() => {
+    if (!selectedService) return;
+
+    setForm(prev => ({
+      ...prev,
+
+      packageDetails: {
+        ...prev.packageDetails,
+        category: selectedService.defaultCategory || prev.packageDetails.category,
+        description: selectedService.description || prev.packageDetails.description,
+      },
+
+      notes: `Service sélectionné: ${selectedService.title}`,
+    }));
+  }, [selectedService]);
+  
+  // ======================
+  // LOAD SERVICES (fallback)
+  // ======================
+  useEffect(() => {
+    getServices({ activeOnly: true })
+      .then(res => {
+        const list = res.data?.data || res.data || [];
+        setServices(list);
+
+        // si navigation depuis service card
+        if (selectedServiceFromNav) {
+          setSelectedService(selectedServiceFromNav);
+          setForm(prev => ({
+            ...prev,
+            serviceId: selectedServiceFromNav._id,
+            packageDetails: {
+              ...prev.packageDetails,
+              category: selectedServiceFromNav.defaultCategory || prev.packageDetails.category,
+              description: selectedServiceFromNav.description || prev.packageDetails.description,
+            },
+            notes: `Service: ${selectedServiceFromNav.title}`
+          }));
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  // ======================
+  // SERVICE CHANGE MANUAL
+  // ======================
+  const handleServiceChange = (serviceId) => {
+    const service = services.find(s => s._id === serviceId);
+    setSelectedService(service);
+
+    setForm(prev => ({
+      ...prev,
+      serviceId: serviceId,
+      packageDetails: {
+        ...prev.packageDetails,
+        category: service?.defaultCategory || prev.packageDetails.category,
+        description: service?.description || prev.packageDetails.description,
+      },
+      notes: service ? `Service: ${service.title}` : ""
+    }));
+  };
 
   useEffect(() => {
     const userInfo = { name: `${user?.nom} ${user?.prenom}`, phone: user?.telephone || "" };
@@ -136,6 +208,29 @@ export default function ClientCreateOrder() {
             ))}
         </div>
       </div>
+      {/* ================= SERVICE SELECT ================= */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border">
+              <label className={labelClass}>Service</label>
+
+              {selectedServiceFromNav ? (
+                <div className="font-black text-primary dark:text-white">
+                  {selectedServiceFromNav.title}
+                </div>
+              ) : (
+                <select
+                  className={inputClass}
+                  value={form.serviceId}
+                  onChange={(e) => handleServiceChange(e.target.value)}
+                >
+                  <option value="">-- choisir un service --</option>
+                  {services.map(s => (
+                    <option key={s._id} value={s._id}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
 
       <form onSubmit={handleSubmit}>
         {/* ÉTAPE 1 : IDENTIFICATION */}
@@ -146,7 +241,7 @@ export default function ClientCreateOrder() {
                 <RoleOption active={clientPosition === 'RECEIVER'} onClick={() => setClientPosition('RECEIVER')} icon={<Truck />} title="Destinataire" desc="Je reçois le colis" />
                 <RoleOption active={clientPosition === 'NONE'} onClick={() => setClientPosition('NONE')} icon={<CheckCircle2 />} title="Envoi tiers" desc="Commande pour autrui" />
             </div>
-            
+ 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-50 dark:border-slate-800">
                 <div className="space-y-4">
                     <SectionTitle icon={<User size={16} />} title="Infos Expéditeur" />

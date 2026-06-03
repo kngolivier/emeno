@@ -14,10 +14,19 @@ export default function ServicesCarousel() {
   useEffect(() => {
     setLoading(true);
 
-    getAll({ activeOnly: true })
-      .then((res) => setServices(res.data?.data || res.data || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const loadServices = async () => {
+      try {
+        const res = await getAll({ activeOnly: true });
+        setServices(res.data?.data || res.data || []);
+        console.log("Services chargés :", res.data?.data || res.data || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadServices();
   }, []);
 
   if (loading) return null;
@@ -33,6 +42,30 @@ export default function ServicesCarousel() {
   const fallbackImage =
     "https://res.cloudinary.com/dzzokuvat/image/upload/f_auto,q_auto/service-light.png";
 
+  const handleClick = (service) => {
+    const mode = service?.pricingMode;
+
+    // 👉 WHATSAPP ONLY → redirection directe
+    if (mode === "WHATSAPP_ONLY") {
+      const phone = service?.whatsappNumber || "+24100000000";
+
+      const message =
+        `Bonjour 👋, je souhaite utiliser le service "${service.title}".`;
+
+      const url = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+
+      window.open(url, "_blank");
+      return;
+    }
+
+    // 👉 BASE PRICING → redirection formulaire commande avec service préchargé
+    navigate("/client/new-order", {
+      state: {
+        selectedService: service,
+      },
+    });
+  };
+
   return (
     <div className="w-full overflow-x-auto no-scrollbar">
       <div className="flex gap-5 px-1">
@@ -44,7 +77,7 @@ export default function ServicesCarousel() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            onClick={() => navigate(`/services/details/${s._id}`)}
+            onClick={() => handleClick(s)}
             className="min-w-[260px] md:min-w-[300px] cursor-pointer rounded-[2rem] overflow-hidden border border-slate-200 dark:border-white/10 bg-white dark:bg-[#071120] shadow-sm"
           >
 
@@ -67,7 +100,9 @@ export default function ServicesCarousel() {
 
               <div className="flex items-center justify-between pt-2">
                 <span className="text-[10px] font-black uppercase text-secondary">
-                  Voir détails
+                  {s.pricingMode === "WHATSAPP_ONLY"
+                    ? "Commander sur WhatsApp"
+                    : "Créer une commande"}
                 </span>
                 <ArrowRight size={16} className="text-secondary" />
               </div>
