@@ -94,10 +94,10 @@ export default function ServiceForm({ service, onClose, onSuccess }) {
     "text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1 mb-2 block";
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-500000 overflow-y-auto">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden"
+          className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* HEADER */}
         <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
@@ -120,7 +120,7 @@ export default function ServiceForm({ service, onClose, onSuccess }) {
         </div>
 
         {/* BODY */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* IMAGE */}
           <div>
             <label className={labelClass}>
