@@ -81,7 +81,7 @@ export default function ServicePublicDetails() {
 
       <Navbar />
       {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto px-4 pt-6">
+      <div className="max-w-5xl mx-auto px-4 pt-6 mt-15">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition"

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Lock, ArrowRight, Sun, Moon, Phone, ShieldCheck, CheckCircle2, ChevronLeft, ArrowLeft } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Sun, Moon, Phone, ShieldCheck, CheckCircle2, ChevronLeft } from "lucide-react";
 import { sendOTP, verifyOTP } from "../../api/otp.api";
 import { registerClient } from "../../api/auth.api";
 import OtpInput from "../../components/OtpInput";
@@ -59,16 +59,6 @@ export default function RegisterPage() {
     // Le conteneur utilise maintenant ta variable CSS globale pour le fond
     <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center p-6 transition-colors duration-500 overflow-hidden relative">
       
-      {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto px-4 pt-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition"
-        >
-          <ArrowLeft size={14} />
-          Retour
-        </button>
-      </div>
       {/* --- BACKGROUND GLOW DYNAMIQUE --- */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--color-secondary-glow)] blur-[120px] rounded-full -mr-64 -mt-64 opacity-50" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[var(--color-primary-light)] blur-[120px] rounded-full -ml-64 -mb-64 opacity-30" />

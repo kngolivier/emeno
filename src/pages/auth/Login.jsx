@@ -2,7 +2,7 @@ import { useState } from "react";
 import { login as loginApi } from "../../api/auth.api";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Eye, EyeOff, Lock, User, ArrowRight, Sun, Moon, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Lock, User, ArrowRight, Sun, Moon, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../context/Theme/ThemeContext";
 import { notifyError } from "../../utils/notify"; // Import de ton utilitaire de notif
@@ -38,18 +38,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-6 bg-[var(--bg-app)] transition-colors duration-500 overflow-hidden">
-
-      {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto px-4 pt-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition"
-        >
-          <ArrowLeft size={14} />
-          Retour
-        </button>
-      </div>
-
+    
       {/* Background Orbs */}
       <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[var(--color-secondary-glow)] rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-[var(--color-secondary-glow)] rounded-full blur-[120px]" />

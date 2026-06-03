@@ -14,7 +14,7 @@ export default function App() {
           <AppRoutes />
 
           {/* GLOBAL TOASTER (notifications) */}
-          <Toaster position="top-right" />
+          <Toaster position="bottom-right" />
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
