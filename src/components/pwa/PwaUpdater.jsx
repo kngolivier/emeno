@@ -31,6 +31,13 @@ export default function PwaUpdater() {
     toast.custom((t) => (
       <div className={`${t.visible ? "animate-enter" : "animate-leave"} max-w-md w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4`}>
 
+        {/* ❌ CLOSE */}
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs"
+        >
+          ✕
+        </button>
         <div className="flex items-center gap-3">
           <RefreshCw className="text-secondary animate-spin" size={18} />
           <div>
@@ -60,6 +67,13 @@ export default function PwaUpdater() {
     toast.custom((t) => (
       <div className={`${t.visible ? "animate-enter" : "animate-leave"} max-w-md w-full bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 border border-slate-200 dark:border-white/10`}>
 
+        {/* ❌ CLOSE */}
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs"
+        >
+          ✕
+        </button>
         <div className="flex items-center gap-3">
           <Download className="text-primary" size={18} />
           <div>

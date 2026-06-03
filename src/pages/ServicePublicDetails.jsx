@@ -13,6 +13,7 @@ import {
 
 import PageLoader from "../components/ui/PageLoader";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/Theme/ThemeContext";
 import { MODE_LABELS } from "../constants/constants";
 import Navbar from "../components/landing/Navbar";
 
@@ -27,6 +28,7 @@ export default function ServicePublicDetails() {
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const { toggleTheme, isDarkMode } = useTheme();
 
   useEffect(() => {
     setLoading(true);
@@ -56,6 +58,8 @@ export default function ServicePublicDetails() {
     );
   }
 
+  const isWhatsAppOnly = service.pricingMode === "WHATSAPP_ONLY";
+  const isBasePricing = service.pricingMode === "BASE_PRICING";
   const whatsapp = service.whatsappNumber?.replace(/\D/g, "");
   const image =
     service.image?.url ||
@@ -79,9 +83,8 @@ export default function ServicePublicDetails() {
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
 
-      <Navbar />
       {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto px-4 pt-6 mt-15">
+      <div className="max-w-5xl mx-auto px-4 pt-6 mt-20">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition"
@@ -89,27 +92,37 @@ export default function ServicePublicDetails() {
           <ArrowLeft size={14} />
           Retour
         </button>
+
+        <button
+          onClick={toggleTheme}
+          className="w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.05] text-slate-500 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-all"
+        >
+          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
       </div>
 
       {/* HERO */}
       <div className="max-w-5xl mx-auto mt-4 px-4">
         <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
 
-          <div className="relative group cursor-pointer" onClick={() => setIsImageOpen(true)}>
-            <img
-              src={image}
-              alt={service.title}
-              className="h-[320px] md:h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            />
+           {/* IMAGE WRAPPER CLICKABLE */}
+            <div onClick={() => setIsImageOpen(true)} className="relative">
+              
+              <img
+                src={image}
+                alt={service.title}
+                className="h-[320px] md:h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              />
 
-            {/* petit hint UX */}
-            <div className="absolute top-4 right-4 bg-black/40 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur">
-              Cliquer pour agrandir
+              {/* overlay unique */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+
+              {/* hint */}
+              <div className="absolute top-4 right-4 bg-black/40 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur">
+                Cliquer pour agrandir
+              </div>
+
             </div>
-
-            {/* overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-          </div>
 
           {/* overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -200,17 +213,28 @@ export default function ServicePublicDetails() {
         <div className="bg-gradient-to-r from-primary to-slate-900 text-white p-6 md:p-8 rounded-[2rem] shadow-xl">
 
           <h3 className="text-lg font-black uppercase text-white">
-            Prêt à utiliser ce service ?
+            {isWhatsAppOnly
+              ? "Commander via WhatsApp"
+              : "Prêt à utiliser ce service ?"}
           </h3>
 
           <p className="text-sm text-white/70 mt-2">
-            Lancez votre demande maintenant et obtenez une prise en charge rapide.
+            {isWhatsAppOnly
+              ? "Clique pour être mis en contact direct avec le prestataire."
+              : "Lancez votre demande maintenant et obtenez une prise en charge rapide."}
           </p>
 
           <div className="mt-5">
 
-            {/* CONNECTÉ */}
-            {user ? (
+            {isWhatsAppOnly ? (
+              <button
+                onClick={handleWhatsApp}
+                className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 font-black uppercase text-xs py-4 rounded-2xl transition"
+              >
+                <MessageCircle size={16} />
+                Ouvrir WhatsApp
+              </button>
+            ) : user ? (
               <button
                 onClick={handleWhatsApp}
                 className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 font-black uppercase text-xs py-4 rounded-2xl transition"
@@ -219,21 +243,13 @@ export default function ServicePublicDetails() {
                 Commander maintenant
               </button>
             ) : (
-              <div className="space-y-3">
-
-                <button
-                  onClick={() => navigate("/login")}
-                  className="w-full flex items-center justify-center gap-2 bg-white text-primary font-black uppercase text-xs py-4 rounded-2xl hover:bg-slate-100 transition"
-                >
-                  <LogIn size={16} />
-                  Se connecter pour commander
-                </button>
-
-                <p className="text-[10px] text-white/60 text-center">
-                  Connectez-vous pour accéder à la commande instantanée
-                </p>
-
-              </div>
+              <button
+                onClick={() => navigate("/login")}
+                className="w-full flex items-center justify-center gap-2 bg-white text-primary font-black uppercase text-xs py-4 rounded-2xl hover:bg-slate-100 transition"
+              >
+                <LogIn size={16} />
+                Se connecter
+              </button>
             )}
 
           </div>

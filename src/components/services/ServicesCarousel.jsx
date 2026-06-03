@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getAll } from "../../api/service.api";
+import { getAll, getWhatsappLink } from "../../api/service.api";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -44,33 +44,35 @@ export default function ServicesCarousel() {
   const fallbackImage =
     "https://res.cloudinary.com/dzzokuvat/image/upload/f_auto,q_auto/service-light.png";
 
-  const handleClick = (service) => {
+  const handleClick = async (service) => {
     const mode = service?.pricingMode;
 
-    // 👉 Service WhatsApp
     if (mode === "WHATSAPP_ONLY") {
-      const phone = service?.whatsappNumber || "+24100000000";
+      try {
+        const res = await getWhatsappLink(service._id);
 
-      const message =
-        `Bonjour 👋, je souhaite utiliser le service "${service.title}".`;
+        const link =
+          res?.data?.link || res?.data?.data?.link;
+        console.log("Lien WhatsApp reçu :", link);
 
-      const url = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
-
-      window.open(url, "_blank");
+        if (link) {
+          window.open(link, "_blank");
+        } else {
+          console.error("Lien WhatsApp introuvable");
+        }
+      } catch (err) {
+        console.error("Erreur WhatsApp link:", err);
+      }
       return;
     }
 
-    // 👉 Client connecté
     if (user && user.role === "CLIENT") {
       navigate("/client/new-order", {
-        state: {
-          selectedService: service,
-        },
+        state: { selectedService: service },
       });
       return;
     }
 
-    // 👉 Visiteur ou autre rôle
     navigate(`/services/details/${service._id}`);
   };
 
