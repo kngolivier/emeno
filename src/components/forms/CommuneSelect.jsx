@@ -60,7 +60,7 @@ export default function CommuneSelect({ value, onChange, label, error, placehold
           value={value}
           onChange={handleChange}
           disabled={loading}
-          className="w-full bg-transparent px-4 py-4 text-[13px] font-black text-primary dark:text-white outline-none italic appearance-none cursor-pointer disabled:cursor-wait"
+          className="w-full bg-transparent px-4 py-4 text-[13px] font-black text-primary outline-none italic appearance-none cursor-pointer disabled:cursor-wait"
         >
           <option value="" className="dark:bg-slate-900">{loading ? "Synchronisation..." : placeholder}</option>
           {communes.map((commune) => (

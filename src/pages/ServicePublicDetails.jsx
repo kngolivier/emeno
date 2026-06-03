@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getById } from "../api/service.api";
-import { ArrowLeft, MessageCircle, CheckCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  MessageCircle,
+  CheckCircle,
+  Sparkles,
+  LogIn
+} from "lucide-react";
+
+import PageLoader from "../components/ui/PageLoader";
+import { useAuth } from "../context/AuthContext";
 
 const unwrap = (res) =>
   res?.data?.data || res?.data?.service || res?.data || res;
@@ -11,6 +20,7 @@ const unwrap = (res) =>
 export default function ServicePublicDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,93 +34,191 @@ export default function ServicePublicDetails() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="p-6 text-slate-400 font-bold uppercase text-xs">
-        Chargement...
-      </div>
-    );
-  }
+  if (loading) return <PageLoader />;
 
   if (!service) {
     return (
-      <div className="p-6 text-red-400 font-black uppercase text-xs">
+      <div className="p-10 text-center text-red-400 font-black uppercase text-xs">
         Service introuvable
       </div>
     );
   }
 
   const whatsapp = service.whatsappNumber?.replace(/\D/g, "");
-  const imageFallback =
+  const image =
+    service.image?.url ||
     "https://res.cloudinary.com/dzzokuvat/image/upload/f_auto,q_auto/service-light.png";
 
   const benefits = service.benefits?.length
     ? service.benefits
-    : ["Service rapide", "Support client inclus", "Qualité garantie"];
+    : [
+        "Service rapide et fiable",
+        "Support client disponible",
+        "Qualité garantie",
+        "Suivi en temps réel"
+      ];
+
+  const handleWhatsApp = () => {
+    const msg = `Bonjour 👋, je suis intéressé par le service "${service.title}".`;
+    const url = `https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+  };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
 
-      {/* BACK */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase"
-      >
-        <ArrowLeft size={14} /> Retour
-      </button>
+      {/* BACK BUTTON */}
+      <div className="max-w-5xl mx-auto px-4 pt-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-slate-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition"
+        >
+          <ArrowLeft size={14} />
+          Retour
+        </button>
+      </div>
 
-      {/* IMAGE */}
-      <div className="rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800">
-        <img
-          src={service.image?.url || imageFallback}
-          onError={(e) => (e.target.src = imageFallback)}
-          className="h-64 w-full object-cover"
-          alt={service.title}
-        />
+      {/* HERO */}
+      <div className="max-w-5xl mx-auto mt-4 px-4">
+        <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
+
+          <img
+            src={image}
+            alt={service.title}
+            className="h-[320px] md:h-[420px] w-full object-cover"
+          />
+
+          {/* overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+          {/* content */}
+          <div className="absolute bottom-0 p-6 md:p-10 text-white space-y-3">
+
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 text-[10px] font-black uppercase bg-white/10 backdrop-blur rounded-full">
+                {service.pricingMode === "WHATSAPP_ONLY"
+                  ? "WhatsApp uniquement"
+                  : "Commande disponible"}
+              </span>
+
+              <span className="flex items-center gap-1 text-[10px] font-black uppercase text-emerald-300">
+                <Sparkles size={12} />
+                Premium
+              </span>
+            </div>
+
+            <h1 className="text-2xl md:text-4xl font-black uppercase italic leading-tight">
+              {service.title}
+            </h1>
+
+            <p className="text-sm text-white/80 max-w-xl">
+              {service.description}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* CONTENT */}
-      <div className="space-y-4">
-
-        <h1 className="text-2xl font-black text-primary dark:text-white uppercase italic">
-          {service.title}
-        </h1>
-
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          {service.description}
-        </p>
+      <div className="max-w-5xl mx-auto px-4 mt-10 space-y-10">
 
         {/* BENEFITS */}
-        <div className="space-y-2">
-          {benefits.map((b, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
-            >
-              <CheckCircle size={14} className="text-emerald-500" />
-              {b}
-            </div>
-          ))}
+        <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+
+          <h2 className="text-lg font-black uppercase text-primary dark:text-white mb-4">
+            Pourquoi choisir ce service ?
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-3">
+            {benefits.map((b, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
+              >
+                <CheckCircle size={14} className="text-emerald-500" />
+                {b}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* INFO BOX */}
+        <div className="grid md:grid-cols-3 gap-4">
+
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-black uppercase text-slate-400">
+              Type
+            </p>
+            <p className="font-black text-primary dark:text-white mt-1">
+              {service.type}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-black uppercase text-slate-400">
+              Mode
+            </p>
+            <p className="font-black text-primary dark:text-white mt-1">
+              {service.pricingMode}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-black uppercase text-slate-400">
+              Support
+            </p>
+            <p className="font-black text-primary dark:text-white mt-1">
+              24/7
+            </p>
+          </div>
+
         </div>
 
         {/* CTA */}
-        <div className="mt-6 p-5 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-100 dark:border-slate-800">
+        <div className="bg-gradient-to-r from-primary to-slate-900 text-white p-6 md:p-8 rounded-[2rem] shadow-xl">
 
-          <p className="text-xs font-black uppercase text-slate-400 mb-2">
-            Prêt à commander ?
+          <h3 className="text-lg font-black uppercase">
+            Prêt à utiliser ce service ?
+          </h3>
+
+          <p className="text-sm text-white/70 mt-2">
+            Lancez votre demande maintenant et obtenez une prise en charge rapide.
           </p>
 
-          <button
-            disabled={!whatsapp}
-            onClick={() => window.open(`https://wa.me/${whatsapp}`, "_blank")}
-            className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-40 text-white font-black uppercase text-xs py-4 rounded-2xl"
-          >
-            <MessageCircle size={16} />
-            Commander sur WhatsApp
-          </button>
+          <div className="mt-5">
+
+            {/* CONNECTÉ */}
+            {user ? (
+              <button
+                onClick={handleWhatsApp}
+                className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 font-black uppercase text-xs py-4 rounded-2xl transition"
+              >
+                <MessageCircle size={16} />
+                Commander maintenant
+              </button>
+            ) : (
+              <div className="space-y-3">
+
+                <button
+                  onClick={() => navigate("/login")}
+                  className="w-full flex items-center justify-center gap-2 bg-white text-primary font-black uppercase text-xs py-4 rounded-2xl hover:bg-slate-100 transition"
+                >
+                  <LogIn size={16} />
+                  Se connecter pour commander
+                </button>
+
+                <p className="text-[10px] text-white/60 text-center">
+                  Connectez-vous pour accéder à la commande instantanée
+                </p>
+
+              </div>
+            )}
+
+          </div>
         </div>
 
       </div>
+
+      <div className="h-10" />
     </div>
   );
 }

@@ -181,7 +181,7 @@ export default function AdminDetails() {
               </div>
               <div>
                 <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Privilèges</p>
-                <p className="text-lg font-black italic tracking-tight uppercase leading-none">Accès Total <br/>Dashboard</p>
+                <p className="text-lg font-black italic tracking-tight uppercase leading-none">Accès Total <br/>Tableau de bord</p>
               </div>
             </div>
             <div className="absolute -right-4 -top-4 h-24 w-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>

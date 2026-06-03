@@ -205,24 +205,38 @@ export default function ServicesList() {
                       {MODE_LABELS[s.pricingMode] || s.pricingMode}
                     </td>
 
-                    <td className="p-5 text-right space-x-2">
+                    <td className="p-5">
+                      <div className="flex items-center justify-end gap-2">
 
-                      <Link to={`/admin/services/${s._id}`}>
-                        <Eye size={16} />
-                      </Link>
+                        {/* VIEW */}
+                        <Link
+                          to={`/admin/services/${s._id}`}
+                          className="p-2.5 text-slate-400 hover:text-primary dark:hover:text-secondary hover:bg-primary/5 dark:hover:bg-secondary/5 rounded-xl transition-all"
+                          title="Voir les détails"
+                        >
+                          <Eye size={18} />
+                        </Link>
 
-                      <button onClick={() => openEdit(s)}>
-                        <Edit size={16} />
-                      </button>
+                        {/* EDIT */}
+                        <button
+                          onClick={() => openEdit(s)}
+                          className="p-2.5 text-slate-400 hover:text-primary dark:hover:text-secondary hover:bg-primary/5 dark:hover:bg-secondary/5 rounded-xl transition-all"
+                          title="Modifier"
+                        >
+                          <Edit size={18} />
+                        </button>
 
-                      <button
-                        onClick={() => handleDelete(s._id)}
-                        disabled={deletingId === s._id}
-                        className="text-rose-500"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                        {/* DELETE */}
+                        <button
+                          onClick={() => handleDelete(s._id)}
+                          disabled={deletingId === s._id}
+                          className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all disabled:opacity-40"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={18} />
+                        </button>
 
+                      </div>
                     </td>
                   </tr>
                 ))}

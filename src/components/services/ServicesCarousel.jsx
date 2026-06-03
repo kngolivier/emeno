@@ -5,11 +5,13 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getAll } from "../../api/service.api";
 import { ArrowRight } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ServicesCarousel() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     setLoading(true);
@@ -45,7 +47,7 @@ export default function ServicesCarousel() {
   const handleClick = (service) => {
     const mode = service?.pricingMode;
 
-    // 👉 WHATSAPP ONLY → redirection directe
+    // 👉 Service WhatsApp
     if (mode === "WHATSAPP_ONLY") {
       const phone = service?.whatsappNumber || "+24100000000";
 
@@ -58,12 +60,18 @@ export default function ServicesCarousel() {
       return;
     }
 
-    // 👉 BASE PRICING → redirection formulaire commande avec service préchargé
-    navigate("/client/new-order", {
-      state: {
-        selectedService: service,
-      },
-    });
+    // 👉 Client connecté
+    if (user && user.role === "CLIENT") {
+      navigate("/client/new-order", {
+        state: {
+          selectedService: service,
+        },
+      });
+      return;
+    }
+
+    // 👉 Visiteur ou autre rôle
+    navigate(`/services/details/${service._id}`);
   };
 
   return (
@@ -102,7 +110,9 @@ export default function ServicesCarousel() {
                 <span className="text-[10px] font-black uppercase text-secondary">
                   {s.pricingMode === "WHATSAPP_ONLY"
                     ? "Commander sur WhatsApp"
-                    : "Créer une commande"}
+                    : user?.role === "CLIENT"
+                      ? "Créer une commande"
+                      : "Voir les détails"}
                 </span>
                 <ArrowRight size={16} className="text-secondary" />
               </div>

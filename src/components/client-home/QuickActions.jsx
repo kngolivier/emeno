@@ -8,7 +8,7 @@ export default function QuickActions() {
     { label: "Nouvelle", icon: Plus, route: "/client/new-order", highlight: true },
     { label: "Colis", icon: Package, route: "/client/orders" },
     { label: "Notifications", icon: Bell, route: "/client/notifications" },
-    { label: "Dashboard", icon: LayoutDashboard, route: "/client/dashboard" },
+    { label: "Tableau de bord", icon: LayoutDashboard, route: "/client/dashboard" },
   ];
 
   return (

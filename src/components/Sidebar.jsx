@@ -98,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const getNavItems = () => {
     const role = user?.role;
     const adminBase = [
-      { to: "/admin", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/admin", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
       { to: "/admin/deliveries", label: "Livraisons", icon: <ShoppingCart size={20} /> },
       { to: "/admin/drivers", label: "Livreurs", icon: <Truck size={20} /> },
       { to: "/admin/clients", label: "Clients", icon: <Users size={20} /> },
@@ -122,7 +122,7 @@ export default function Sidebar({ isOpen, onClose }) {
     ];
     if (role === "ADMIN") return adminBase;
     if (role === "DRIVER") return [
-      { to: "/driver", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+      { to: "/driver", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
       { to: "/driver/deliveries", label: "Mes courses", icon: <Truck size={20} /> },
       { to: "/driver/profile", label: "Profil", icon: <User size={20} /> },
     ];
