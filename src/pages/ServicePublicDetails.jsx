@@ -8,7 +8,9 @@ import {
   MessageCircle,
   CheckCircle,
   Sparkles,
-  LogIn
+  LogIn,
+  Sun,
+  Moon
 } from "lucide-react";
 
 import PageLoader from "../components/ui/PageLoader";
