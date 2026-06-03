@@ -13,8 +13,8 @@ export const createDelivery = (data) => {
 /**
  * PARTNER - Créer une vague de livraisons (Bulk B2C)
  */
-export const createBulkDeliveries = (orders) => {
-  return API.post(ENDPOINTS.DELIVERIES_BULK, { orders });
+export const createBulkDeliveries = (serviceId, orders) => {
+  return API.post(ENDPOINTS.DELIVERIES_BULK, { serviceId, orders });
 };
 
 /**

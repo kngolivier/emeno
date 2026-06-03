@@ -13,6 +13,8 @@ import {
 
 import PageLoader from "../components/ui/PageLoader";
 import { useAuth } from "../context/AuthContext";
+import { MODE_LABELS } from "../utils/constants";
+import Navbar from "../components/landing/Navbar";
 
 const unwrap = (res) =>
   res?.data?.data || res?.data?.service || res?.data || res;
@@ -24,6 +26,7 @@ export default function ServicePublicDetails() {
 
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -33,6 +36,15 @@ export default function ServicePublicDetails() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setIsImageOpen(false);
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
 
   if (loading) return <PageLoader />;
 
@@ -67,6 +79,7 @@ export default function ServicePublicDetails() {
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
 
+      <Navbar />
       {/* BACK BUTTON */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
         <button
@@ -82,11 +95,21 @@ export default function ServicePublicDetails() {
       <div className="max-w-5xl mx-auto mt-4 px-4">
         <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
 
-          <img
-            src={image}
-            alt={service.title}
-            className="h-[320px] md:h-[420px] w-full object-cover"
-          />
+          <div className="relative group cursor-pointer" onClick={() => setIsImageOpen(true)}>
+            <img
+              src={image}
+              alt={service.title}
+              className="h-[320px] md:h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+
+            {/* petit hint UX */}
+            <div className="absolute top-4 right-4 bg-black/40 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur">
+              Cliquer pour agrandir
+            </div>
+
+            {/* overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          </div>
 
           {/* overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -158,7 +181,7 @@ export default function ServicePublicDetails() {
               Mode
             </p>
             <p className="font-black text-primary dark:text-white mt-1">
-              {service.pricingMode}
+              {MODE_LABELS[service.pricingMode]}
             </p>
           </div>
 
@@ -176,7 +199,7 @@ export default function ServicePublicDetails() {
         {/* CTA */}
         <div className="bg-gradient-to-r from-primary to-slate-900 text-white p-6 md:p-8 rounded-[2rem] shadow-xl">
 
-          <h3 className="text-lg font-black uppercase">
+          <h3 className="text-lg font-black uppercase text-white">
             Prêt à utiliser ce service ?
           </h3>
 
@@ -218,6 +241,26 @@ export default function ServicePublicDetails() {
 
       </div>
 
+        {isImageOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setIsImageOpen(false)}
+        >
+          <img
+            src={image}
+            alt={service.title}
+            className="max-h-[90vh] max-w-[95vw] object-contain rounded-xl shadow-2xl"
+          />
+
+          {/* bouton fermer */}
+          <button
+            onClick={() => setIsImageOpen(false)}
+            className="absolute top-4 right-4 text-white text-xs font-black uppercase bg-white/10 px-4 py-2 rounded-xl backdrop-blur hover:bg-white/20"
+          >
+            Fermer
+          </button>
+        </div>
+      )}
       <div className="h-10" />
     </div>
   );

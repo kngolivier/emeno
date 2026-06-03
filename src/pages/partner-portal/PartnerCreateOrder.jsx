@@ -10,6 +10,7 @@ import { fetchPartnerById } from "../../api/partners.api";
 import { calculatePrice } from "../../api/pricing.api";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader"; // Utilisation de ton loader immersif standardisé
+import { getAll as getServices } from "../../api/service.api";
 
 const INITIAL_RECIPIENT = {
   name: "",
@@ -33,6 +34,22 @@ export default function PartnerCreateOrder() {
   const [loading, setLoading] = useState(true);
   const [recipients, setRecipients] = useState([{ ...INITIAL_RECIPIENT, id: Date.now() }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [services, setServices] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
+  const [formData, setFormData] = useState({
+    serviceId: ""
+  });
+  const inputClass =
+  "w-full bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 rounded-xl px-3 py-3 text-xs font-bold focus:outline-none focus:border-secondary transition-colors text-primary dark:text-white";
+
+  useEffect(() => {
+    getServices({ activeOnly: true })
+      .then(res => {
+        const list = res.data?.data || res.data || [];
+        setServices(list);
+      })
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     async function initPage() {
@@ -135,7 +152,10 @@ export default function PartnerCreateOrder() {
     }));
 
     try {
-      await createBulkDeliveries(ordersPayload);
+      await createBulkDeliveries({
+        serviceId: formData.serviceId,
+        orders: ordersPayload
+      });
       notifySuccess(`Félicitations ! Votre vague commerciale a été lancée avec succès.`);
       navigate("/partner/orders");
     } catch (error) {
@@ -213,6 +233,40 @@ export default function PartnerCreateOrder() {
               <Plus size={12} strokeWidth={3} /> Ajout destinataire
             </button>
           </div>
+
+          <section className="bg-white dark:bg-slate-900 border rounded-2xl p-4">
+            <label className="text-[10px] font-black uppercase text-slate-400">
+              Service (obligatoire)
+            </label>
+
+            <select
+              value={formData.serviceId}
+              onChange={(e) => {
+                const service = services.find(s => s._id === e.target.value);
+                setSelectedService(service);
+
+                setFormData(prev => ({
+                  ...prev,
+                  serviceId: e.target.value
+                }));
+              }}
+              className={inputClass}
+              required
+            >
+              <option value="">-- choisir un service --</option>
+              {services.map(s => (
+                <option key={s._id} value={s._id}>
+                  {s.title}
+                </option>
+              ))}
+            </select>
+
+            {!formData.serviceId && (
+              <p className="text-[10px] text-rose-400 mt-2 font-bold">
+                Service requis pour continuer
+              </p>
+            )}
+          </section>
 
           {recipients.map((recipient, index) => (
             <div key={recipient.id} className="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/60 rounded-[2.5rem] p-5 sm:p-6 shadow-sm">
@@ -359,7 +413,7 @@ export default function PartnerCreateOrder() {
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !formData.serviceId}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary dark:bg-secondary hover:opacity-90 text-white font-black text-xs px-8 py-4 rounded-2xl transition-all shadow-lg active:scale-98 uppercase tracking-widest disabled:opacity-50"
           >
             {isSubmitting ? (
