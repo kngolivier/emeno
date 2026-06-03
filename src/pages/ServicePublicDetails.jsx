@@ -86,10 +86,10 @@ export default function ServicePublicDetails() {
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
 
       {/* BACK BUTTON */}
-      <div className="max-w-5xl mx-auto px-4 pt-6 mt-20">
+      <div className="max-w-5xl mx-auto px-4 pt-6 mt-20 flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-400 hover:text-primary font-black text-[10px] uppercase tracking-widest transition"
+          className="flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase tracking-widest transition"
         >
           <ArrowLeft size={14} />
           Retour
