@@ -13,7 +13,7 @@ import {
 
 import PageLoader from "../components/ui/PageLoader";
 import { useAuth } from "../context/AuthContext";
-import { MODE_LABELS } from "../utils/constants";
+import { MODE_LABELS } from "../constants/constants";
 import Navbar from "../components/landing/Navbar";
 
 const unwrap = (res) =>
