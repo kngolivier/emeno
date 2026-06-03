@@ -60,6 +60,7 @@ import PartnerCatalog from "../pages/partner-portal/PartnerCatalog";
 import AuditLogs from "../pages/audit/AuditLogs";
 import PromotionsList from "../pages/promotions/PromotionsList";
 import PromotionDetails from "../pages/promotions/PromotionDetails";
+import ClientPromotionDetails from "../pages/client-promo/ClientPromotionDetails";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -149,6 +150,7 @@ export default function AppRoutes() {
           <Route path="profile" element={<ClientProfile />} />
           <Route path="new-order" element={<ClientCreateOrder />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="promotions/detail/:id" element={<ClientPromotionDetails />} />
         </Route>
 
         {/* ===================== */}
