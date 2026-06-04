@@ -1,4 +1,5 @@
 // src/components/landing/PartnersCarousel.jsx
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { fetchPartners } from "../../api/partners.api";
@@ -21,23 +22,34 @@ export default function PartnersCarousel() {
   if (!partners.length) return null;
 
   return (
-    <div className="w-full overflow-hidden py-10 bg-slate-50/50 dark:bg-white/5 border-y border-slate-100 dark:border-white/5">
-      <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8">
+    // Suppression des classes bg-*, border-*, et py-* pour enlever la "bande"
+    <div className="w-full overflow-hidden py-10">
+      <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-10">
         Ils nous font confiance
       </p>
-      <div className="flex overflow-hidden">
+      
+      {/* Container qui force la largeur totale pour éviter le démarrage au milieu */}
+      <div className="flex w-full overflow-hidden">
         <motion.div
-          className="flex gap-16 items-center"
+          className="flex gap-16 md:gap-24 items-center px-8"
+          // Animation de déplacement horizontal
           animate={{ x: ["0%", "-50%"] }}
-          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+          transition={{ 
+            repeat: Infinity, 
+            duration: 30, // Légèrement plus lent pour plus d'élégance
+            ease: "linear" 
+          }}
         >
           {/* Doublage de la liste pour l'effet de boucle infinie */}
           {[...partners, ...partners].map((partner, index) => (
-            <div key={`${partner._id}-${index}`} className="flex-shrink-0 grayscale hover:grayscale-0 transition-all duration-500">
+            <div 
+              key={`${partner._id}-${index}`} 
+              className="flex-shrink-0 grayscale hover:grayscale-0 transition-all duration-500"
+            >
               <img 
                 src={partner.logo?.url} 
                 alt={partner.name} 
-                className="h-12 md:h-16 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity"
+                className="h-10 md:h-14 w-auto object-contain opacity-40 hover:opacity-100 transition-opacity"
               />
             </div>
           ))}
