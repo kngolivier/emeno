@@ -84,3 +84,10 @@ export const updateDeliveryStatus = (deliveryId, status) => {
 export const resendDeliveryOtp = (deliveryId) => {
   return API.post(ENDPOINTS.RESEND_DELIVERY_OTP(deliveryId));
 };
+
+/**
+ * PUBLIC - Suivi de colis (sans authentification)
+ */
+export const trackDeliveryPublic = (orderNumber) => {
+  return API.get(`/api/deliveries/track/${orderNumber}`);
+};

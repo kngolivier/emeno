@@ -17,10 +17,18 @@ export default function SupportPage() {
 
         {/* Grille de catégories */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-          <SupportCard icon={HelpCircle} title="FAQ & Aide" desc="Consultez nos questions fréquentes." />
-          <SupportCard icon={FileText} title="Guides d'utilisation" desc="Apprenez à utiliser EMENO." />
-          <SupportCard icon={MessageCircle} title="Support WhatsApp" desc="Discutez en direct avec un agent." />
-          <SupportCard icon={Mail} title="Email" desc="Envoyez-nous un message détaillé." />
+          <Link to="/faq">
+            <SupportCard icon={HelpCircle} title="FAQ & Aide" desc="Consultez nos questions fréquentes." />
+          </Link>
+          <Link to="/guides">
+            <SupportCard icon={FileText} title="Guides d'utilisation" desc="Apprenez à utiliser EMENO." />
+          </Link>
+          <a href="https://wa.me/24107000000" target="_blank" rel="noopener noreferrer">
+            <SupportCard icon={MessageCircle} title="Support WhatsApp" desc="Discutez en direct avec un agent." />
+          </a>
+          <a href="mailto:support@emeno.ga">
+            <SupportCard icon={Mail} title="Email" desc="Envoyez-nous un message détaillé." />
+          </a>
         </div>
 
         {/* Contact direct section */}
