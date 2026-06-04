@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Search, Loader2, Package, MapPin, User, CheckCircle, Clock, XCircle, Truck } from "lucide-react";
 import { trackDeliveryPublic } from "../api/deliveries.api";
+import Navbar from "../components/landing/Navbar";
+import Footer from "../components/landing/Footer";
 
 // 1. Fonction utilitaire pour rendre le statut humain
 const getStatusLabel = (status) => {
@@ -44,6 +46,8 @@ export default function TrackingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050810] py-16 px-6">
+
+        <Navbar />
       <div className="max-w-lg mx-auto">
         <h1 className="text-3xl font-black italic text-center mb-8">Suivi de commande</h1>
         
@@ -109,6 +113,7 @@ export default function TrackingPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
