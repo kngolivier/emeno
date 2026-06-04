@@ -34,7 +34,7 @@ export default function PwaUpdater() {
         {/* ❌ CLOSE */}
         <button
           onClick={() => toast.dismiss(t.id)}
-          className="absolute top-2 left-2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs"
+          className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs"
         >
           ✕
         </button>
@@ -70,7 +70,7 @@ export default function PwaUpdater() {
         {/* ❌ CLOSE */}
         <button
           onClick={() => toast.dismiss(t.id)}
-          className="absolute top-2 left-2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs"
+          className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs"
         >
           ✕
         </button>
