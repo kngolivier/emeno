@@ -20,7 +20,6 @@ export default function ServicesCarousel() {
       try {
         const res = await getAll({ activeOnly: true });
         setServices(res.data?.data || res.data || []);
-        console.log("Services chargés :", res.data?.data || res.data || []);
       } catch (error) {
         console.error(error);
       } finally {
@@ -53,8 +52,6 @@ export default function ServicesCarousel() {
 
         const link =
           res?.data?.link || res?.data?.data?.link;
-        console.log("Lien WhatsApp reçu :", link);
-
         if (link) {
           window.open(link, "_blank");
         } else {

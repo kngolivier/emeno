@@ -7,6 +7,7 @@ import { deletePromotion, fetchPromotionById, fetchPromotionStats, generateWhats
 import { notifyError, notifySuccess } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
 import PromotionForm from "./PromotionForm";
+import { useAuth } from "../../context/AuthContext";
 
 const unwrap = (response) => response?.data?.data || response?.data?.promotion || response?.data || response;
 
@@ -25,6 +26,7 @@ export default function PromotionDetails() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { user } = useAuth();
 
   const loadData = async () => {
     setLoading(true);
@@ -84,8 +86,7 @@ export default function PromotionDetails() {
 
   const handleWhatsAppPreview = async () => {
     try {
-      const response = await generateWhatsAppLink({ promoId: promo._id });
-      console.log("WhatsApp Link Response:", response);
+      const response = await generateWhatsAppLink({ promoId: promo._id, customerId: user._id, phone: user.telephone});
       const link = response?.data?.link || response?.data?.data?.link;
       if (link) window.open(link, "_blank", "noopener,noreferrer");
       else notifyError("Lien WhatsApp indisponible");
