@@ -1,50 +1,50 @@
 // FILE: src/context/AuthProvider.jsx
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
+import { getMe } from "../api/auth.api"; // Importez la nouvelle fonction
 
 export default function AuthProvider({ children }) {
-  // 💡 SOLUTION : Initialisation synchrone immédiate pour éviter le décalage de render
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser && storedUser !== "undefined") {
-      try {
-        return JSON.parse(storedUser);
-      } catch (err) {
-        localStorage.removeItem("user");
-        return null;
-      }
-    }
-    return null;
+    return storedUser ? JSON.parse(storedUser) : null;
   });
   
-  // On passe loading à false directement si le user est déjà connu (ou absent) au démarrage
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Initialisez à true
 
-  // ======================
-  // LOGIN
-  // ======================
+  const logout = useCallback(() => {
+    localStorage.removeItem("user");
+    setUser(null);
+  }, []);
+  // 💡 Effet de synchronisation au chargement
+  useEffect(() => {
+    const syncUser = async () => {
+      const token = localStorage.getItem("user"); // Vérifie si on a une session
+      if (token) {
+        try {
+          const freshData = await getMe();
+          // Mise à jour avec les données réelles du serveur (incluant le driverState/PAUSE)
+          localStorage.setItem("user", JSON.stringify(freshData.data));
+          setUser(freshData.data);
+        } catch (err) {
+          // Si le token est expiré ou invalide
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+
+    syncUser();
+  }, [logout]);
+
   const login = ({ user }) => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
-    }
+    localStorage.setItem("user", JSON.stringify(user));
+    setUser(user);
   };
 
-  // ======================
-  // UPDATE USER
-  // ======================
   const updateUser = (updatedUser) => {
     localStorage.setItem("user", JSON.stringify(updatedUser));
     setUser(updatedUser);
-  };
-
-  // ======================
-  // LOGOUT
-  // ======================
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
   };
 
   const isAuthenticated = !!user;

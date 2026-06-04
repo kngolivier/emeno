@@ -15,6 +15,14 @@ export const login = async (credentials) => {
 };
 
 /**
+ * RÉCUPÉRER LE PROFIL ACTUEL
+ */
+export const getMe = async () => {
+  const res = await API.get("/api/auth/me");
+  return res;
+};
+
+/**
  * LOGOUT USER (Nettoie le cookie HTTP-Only côté serveur)
  */
 export const logoutUser = async () => {
