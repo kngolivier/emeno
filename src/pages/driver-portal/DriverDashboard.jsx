@@ -27,9 +27,14 @@ export default function DriverDashboard() {
     validateDelivery,
     isPaused,
     updatingState,
+    refreshLifetimeStats,
     stats = { completed: 0, total: 0, distance: 0 },
     lifetimeStats = { completed: 0, total: 0, distance: 0, efficiency: 0 }
   } = useDriver();
+
+  useEffect(() => {
+    console.log("Stats chargées dans le dashboard :", lifetimeStats);
+  }, [lifetimeStats]);
 
 
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -43,6 +48,12 @@ export default function DriverDashboard() {
   const [pauseCountdown, setPauseCountdown] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
 
+  useEffect(() => {
+    // On force le chargement des stats au montage du composant
+    if (refreshLifetimeStats) {
+      refreshLifetimeStats();
+    }
+  }, []);
   useEffect(() => {
     document.body.style.overflow = selectedOrder ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };

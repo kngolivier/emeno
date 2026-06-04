@@ -17,33 +17,13 @@ export default function DriverProfile() {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  useEffect(() => {
-    refreshStats();
-  }, [refreshStats]);
-
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-    setIsLoggingOut(true);
-    try {
-      await logoutUser();
-    } catch (err) {
-      console.error("Erreur lors de la fermeture de la session backend :", err);
-    } finally {
-      logout();
-      setIsLoggingOut(false);
-      navigate("/login");
-    }
-  };
-
-  // 🎯 CALCUL DE LA NOTE BASÉ SUR L'INDICE DE RÉUSSITE
   const { stats, refreshStats, lifetimeStats, refreshLifetimeStats } = useDriver();
-
+  
   useEffect(() => {
     refreshStats();
-    refreshLifetimeStats(); // Ajoutez cette ligne pour charger les données réelles
+    refreshLifetimeStats();
   }, [refreshStats, refreshLifetimeStats]);
-
+  
   // Calcul basé sur les stats réelles du livreur (lifetime)
   const getRating = () => {
     // On utilise la propriété 'rating' renvoyée par votre API si elle existe,
@@ -54,8 +34,22 @@ export default function DriverProfile() {
     const efficiencyRatio = lifetimeStats.completed / lifetimeStats.total;
     return (efficiencyRatio * 5).toFixed(1);
   };
-
+  
   const dynamicRating = getRating();
+  
+    const handleLogout = async () => {
+      if (isLoggingOut) return;
+      setIsLoggingOut(true);
+      try {
+        await logoutUser();
+      } catch (err) {
+        console.error("Erreur lors de la fermeture de la session backend :", err);
+      } finally {
+        logout();
+        setIsLoggingOut(false);
+        navigate("/login");
+      }
+    };
 
   return (
     <div className="h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0B1120] overflow-hidden">
