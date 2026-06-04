@@ -21,7 +21,6 @@ const DEFAULT_PROMOTION = {
   code: "",
   badge: "",
   icon: "Gift",
-  gradient: "from-emerald-500 to-green-600",
   partnerId: "",
   promoCategory: "PARTNER",
   type: "DISCOUNT",
@@ -387,15 +386,6 @@ export default function PromotionForm({ promotion, onSave, onCancel }) {
                     placeholder="Gift"
                     value={formData.icon}
                     onChange={(e) => setField("icon", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Gradient</label>
-                  <input
-                    className={inputClass}
-                    placeholder="from-emerald-500 to-green-600"
-                    value={formData.gradient}
-                    onChange={(e) => setField("gradient", e.target.value)}
                   />
                 </div>
               </div>
