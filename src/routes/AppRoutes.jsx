@@ -66,6 +66,7 @@ import ServicesList from "../pages/services/ServicesList";
 import ServiceDetails from "../pages/services/ServiceDetails";
 import CGUPage from "../pages/CGUPage";
 import PrivacyPage from "../pages/PrivacyPage";
+import SupportPage from "../pages/SupportPage";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -86,6 +87,7 @@ export default function AppRoutes() {
         <Route path="/services/details/:id" element={<ServicePublicDetails />} />
         <Route path="/legal/cgu" element={<CGUPage />} />
         <Route path="/legal/confidentialite" element={<PrivacyPage />} />
+        <Route path="/help" element={<SupportPage />} />
 
         {/* ===================== */}
         {/* AUTH (PUBLIC ONLY)  */}

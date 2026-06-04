@@ -11,47 +11,47 @@ export default function CGUPage() {
         <div className="space-y-8 text-slate-600 dark:text-slate-400">
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">1. Objet</h2>
-            <p>Les présentes CGU définissent les modalités d'accès et d'utilisation de la plateforme EMENO[cite: 5]. Elle permet la gestion, le suivi et l'exécution de livraisons[cite: 6].</p>
+            <p>Les présentes CGU définissent les modalités d'accès et d'utilisation de la plateforme EMENO. Elle permet la gestion, le suivi et l'exécution de livraisons.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">2. Acceptation</h2>
-            <p>Toute utilisation implique l'acceptation pleine et entière des présentes conditions[cite: 8, 9].</p>
+            <p>Toute utilisation implique l'acceptation pleine et entière des présentes conditions.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">3. Création de compte</h2>
-            <p>L'utilisateur s'engage à fournir des informations exactes, préserver la confidentialité de ses identifiants et signaler toute utilisation non autorisée[cite: 12, 14, 15, 16]. EMENO se réserve le droit de suspendre tout compte frauduleux[cite: 17].</p>
+            <p>L'utilisateur s'engage à fournir des informations exactes, préserver la confidentialité de ses identifiants et signaler toute utilisation non autorisée. EMENO se réserve le droit de suspendre tout compte frauduleux.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">4. Utilisation du service</h2>
-            <p>Il est interdit de transmettre des informations trompeuses, d'utiliser la plateforme à des fins illégales ou de tenter des accès non autorisés[cite: 21, 22, 23, 24, 26].</p>
+            <p>Il est interdit de transmettre des informations trompeuses, d'utiliser la plateforme à des fins illégales ou de tenter des accès non autorisés.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">5. Obligations des livreurs</h2>
-            <p>Les livreurs doivent respecter les instructions, assurer la prise en charge des colis, respecter les délais et adopter un comportement professionnel[cite: 28, 29, 30, 31, 32].</p>
+            <p>Les livreurs doivent respecter les instructions, assurer la prise en charge des colis, respecter les délais et adopter un comportement professionnel.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">6. Responsabilité</h2>
-            <p>EMENO ne garantit pas une disponibilité continue et décline toute responsabilité en cas de force majeure ou d'utilisation abusive[cite: 36, 39, 40].</p>
+            <p>EMENO ne garantit pas une disponibilité continue et décline toute responsabilité en cas de force majeure ou d'utilisation abusive.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">7. Propriété intellectuelle</h2>
-            <p>Tous les éléments (logos, textes, logiciels) sont protégés. Toute reproduction est interdite[cite: 42, 43].</p>
+            <p>Tous les éléments (logos, textes, logiciels) sont protégés. Toute reproduction est interdite.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">8 à 11. Divers</h2>
-            <p>La protection des données est traitée dans la politique dédiée[cite: 46]. EMENO peut résilier un compte en cas de violation[cite: 49]. Les conditions peuvent être modifiées à tout moment[cite: 54].</p>
+            <p>La protection des données est traitée dans la politique dédiée. EMENO peut résilier un compte en cas de violation. Les conditions peuvent être modifiées à tout moment.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold text-primary dark:text-white mb-3">12. Droit applicable</h2>
-            <p>Ces CGU sont régies par les lois de la République Gabonaise, avec compétence exclusive des tribunaux gabonais[cite: 57, 59].</p>
+            <p>Ces CGU sont régies par les lois de la République Gabonaise, avec compétence exclusive des tribunaux gabonais.</p>
           </section>
         </div>
       </article>

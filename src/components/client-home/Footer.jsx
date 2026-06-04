@@ -8,7 +8,7 @@ export default function Footer() {
         <p>© 2026 EMENO. Tous droits réservés.</p>
         
         <div className="flex items-center gap-6">
-          <Link to="#" className="hover:text-secondary transition-colors">Support</Link>
+          <Link to="/help" className="hover:text-secondary transition-colors">Support</Link>
           <Link to="/legal/cgu" className="hover:text-secondary transition-colors">Conditions</Link>
           <Link to="/legal/confidentialite" className="hover:text-secondary transition-colors">Confidentialité</Link>
         </div>
