@@ -7,6 +7,7 @@ import FeatureCard from "../components/landing/Feature";
 import Footer from "../components/landing/Footer";
 import { Zap, ShieldCheck, BellRing, ArrowRight, Wallet, MapPin, Star } from "lucide-react";
 import ServicesCarousel from "../components/services/ServicesCarousel";
+import PartnersCarousel from "../components/landing/PartnersCarousel";
 
 export default function LandingPage() {
   // Animation de groupe pour les éléments
@@ -75,6 +76,8 @@ export default function LandingPage() {
             <FeatureCard icon={<BellRing size={32} strokeWidth={1.5} />} title="Alertes Live" desc="Notifications en temps réel." delay={0.3} />
           </motion.div>
         </section>
+
+        <PartnersCarousel />
 
         {/* SECTION PRICING TEASER */}
         <section className="max-w-7xl mx-auto py-12 px-6">

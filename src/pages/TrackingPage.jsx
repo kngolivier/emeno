@@ -101,7 +101,7 @@ export default function TrackingPage() {
               <StatusIcon size={32} />
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Statut actuel</p>
-                <h2 className="text-xl font-black">{statusInfo.text}</h2>
+                <h2 className="text-xl font-black text-primary">{statusInfo.text}</h2>
               </div>
             </div>
 
