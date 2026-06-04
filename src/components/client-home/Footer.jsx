@@ -1,3 +1,5 @@
+import { Link } from "lucide-react";
+
 // src/components/Footer.jsx
 export default function Footer() {
   return (
@@ -6,9 +8,9 @@ export default function Footer() {
         <p>© 2026 EMENO. Tous droits réservés.</p>
         
         <div className="flex items-center gap-6">
-          <a href="#" className="hover:text-secondary transition-colors">Support</a>
-          <a href="#" className="hover:text-secondary transition-colors">Conditions</a>
-          <a href="#" className="hover:text-secondary transition-colors">Confidentialité</a>
+          <Link to="#" className="hover:text-secondary transition-colors">Support</Link>
+          <Link to="/legal/cgu" className="hover:text-secondary transition-colors">Conditions</Link>
+          <Link to="/legal/confidentialite" className="hover:text-secondary transition-colors">Confidentialité</Link>
         </div>
       </div>
     </footer>

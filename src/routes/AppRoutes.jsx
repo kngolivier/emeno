@@ -64,6 +64,7 @@ import ClientPromotionDetails from "../pages/client-promo/ClientPromotionDetails
 import ServicePublicDetails from "../pages/ServicePublicDetails";
 import ServicesList from "../pages/services/ServicesList";
 import ServiceDetails from "../pages/services/ServiceDetails";
+import LegalPage from "../pages/LegalPage";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -82,6 +83,7 @@ export default function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/partenaires" element={<PartnersPage />} />
         <Route path="/services/details/:id" element={<ServicePublicDetails />} />
+        <Route path="/legal/:type" element={<LegalPage />} />
 
         {/* ===================== */}
         {/* AUTH (PUBLIC ONLY)  */}

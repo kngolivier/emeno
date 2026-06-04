@@ -46,7 +46,8 @@ export default function Footer() {
             <ul className="space-y-4">
               <FooterLink to="/help">Centre d'aide</FooterLink>
               <FooterLink to="/whatsapp">Contact WhatsApp</FooterLink>
-              <FooterLink to="/terms">Conditions Générales</FooterLink>
+              <FooterLink to="/legal/cgu">Conditions Générales</FooterLink>
+              <FooterLink to="/legal/confidentialite">Politique de Confidentialité</FooterLink>
             </ul>
           </div>
 
