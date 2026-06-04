@@ -56,6 +56,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1 bg-slate-200/30 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/5">
             <NavLink to="/" active={isActive("/")}>Accueil</NavLink>
             <NavLink to="/tarifs" active={isActive("/tarifs")}>Tarifs</NavLink>
+            <NavLink to="/tracking" active={isActive("/tracking")}>Suivi</NavLink>
             {/* <NavLink to="/services" active={isActive("/services")}>Services</NavLink> */}
           </div>
 
@@ -102,47 +103,42 @@ export default function Navbar() {
         <AnimatePresence>
           {isOpen && (
             <>
-              {/* Background Backdrop pour mobile */}
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-primary/20 backdrop-blur-md md:hidden -z-10"
+                className="fixed inset-0 bg-white/80 dark:bg-[#050810]/80 backdrop-blur-xl md:hidden z-[105]"
                 onClick={() => setIsOpen(false)}
               />
               
               <motion.div 
-                initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                className="absolute top-20 left-0 right-0 md:hidden z-[105]"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="fixed top-24 left-6 right-6 md:hidden z-[110]"
               >
-                <div className="bg-white dark:bg-[#0B1120] border border-slate-100 dark:border-white/10 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden relative">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 blur-3xl rounded-full" />
-                  
-                  <div className="flex flex-col gap-6 relative z-10">
+                <div className="flex flex-col gap-6">
+                  {/* Navigation Links */}
+                  <div className="flex flex-col gap-2">
                     <MobileNavLink to="/" label="Accueil" active={isActive("/")} />
                     <MobileNavLink to="/tarifs" label="Tarifs" active={isActive("/tarifs")} />
-                    <MobileNavLink to="/services" label="Services" active={isActive("/services")} />
-                    
-                    <div className="h-[1px] bg-slate-100 dark:bg-white/5 my-2" />
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                      <button 
-                        onClick={() => navigate("/login")}
-                        className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-primary dark:text-white border border-slate-100 dark:border-white/10 rounded-xl flex items-center justify-center gap-2"
-                      >
-                        Compte Client
-                      </button>
-                      
-                      <button 
-                        onClick={() => navigate("/register")}
-                        className="w-full py-5 bg-secondary text-primary-dark text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-secondary/20"
-                      >
-                        Ouvrir un compte
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
+                    <MobileNavLink to="/tracking" label="Suivi Colis" active={isActive("/tracking")} />
+                  </div>
+                  
+                  {/* Actions - design plus fin */}
+                  <div className="flex flex-col gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+                    <button 
+                      onClick={() => navigate("/login")}
+                      className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-secondary transition-colors"
+                    >
+                      Connexion
+                    </button>
+                    <button 
+                      onClick={() => navigate("/register")}
+                      className="w-full py-4 bg-primary dark:bg-secondary text-white dark:text-primary-dark text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl"
+                    >
+                      Créer un compte
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -173,17 +169,13 @@ function NavLink({ to, children, active }) {
 
 function MobileNavLink({ to, label, active }) {
   return (
-    <Link to={to} className="flex items-center justify-between group">
-      <span className={`text-2xl font-black italic tracking-tighter uppercase transition-all ${
-        active ? "text-secondary translate-x-2" : "text-primary dark:text-white"
+    <Link to={to} className="flex items-center justify-between py-2 group">
+      <span className={`text-xl font-bold tracking-tight uppercase transition-all ${
+        active ? "text-secondary" : "text-primary dark:text-white"
       }`}>
         {label}
       </span>
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-        active ? "bg-secondary text-primary-dark" : "bg-slate-50 dark:bg-white/5 text-slate-300"
-      }`}>
-        <ArrowRight size={20} strokeWidth={2.5} className={active ? "" : "group-hover:translate-x-1 transition-transform"} />
-      </div>
+      {active && <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />}
     </Link>
   );
 }

@@ -29,6 +29,7 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050810] py-16 px-6">
       <div className="max-w-3xl mx-auto">
+        <SupportNav />
         <h1 className="text-4xl font-black italic text-primary dark:text-white mb-8">FAQ</h1>
         <div className="space-y-4">
           {faqs.map((item, index) => (

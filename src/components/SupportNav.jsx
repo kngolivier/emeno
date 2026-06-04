@@ -1,8 +1,9 @@
-// Exemple de composant pour naviguer entre les pages d'aide
+// FILE: src/components/SupportNav.jsx
 export function SupportNav() {
   const links = [
     { name: "Accueil Aide", path: "/help" },
     { name: "FAQ", path: "/faq" },
+    { name: "Suivi", path: "/tracking" },
     { name: "Guides", path: "/guides" },
   ];
 
