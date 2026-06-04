@@ -41,7 +41,7 @@ export default function PricingPage() {
             <span className="text-[9px] font-black uppercase tracking-widest text-secondary">Grille Tarifaire 2026</span>
           </motion.div>
           
-          <h1 className="text-5xl lg:text-9xl font-black text-primary dark:text-white italic tracking-tighter leading-none">
+          <h1 className="text-3xl lg:text-7xl font-black text-primary dark:text-white italic tracking-tighter leading-none">
             NOS <span className="text-secondary">TARIFS.</span>
           </h1>
           

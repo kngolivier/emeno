@@ -100,51 +100,51 @@ export default function Navbar() {
         </div>
 
         {/* --- MOBILE MENU OVERLAY --- */}
-        <AnimatePresence>
-          {isOpen && (
-            <>
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-white/80 dark:bg-[#050810]/80 backdrop-blur-xl md:hidden z-[105]"
-                onClick={() => setIsOpen(false)}
-              />
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="fixed top-24 left-6 right-6 md:hidden z-[110]"
-              >
-                <div className="flex flex-col gap-6">
-                  {/* Navigation Links */}
-                  <div className="flex flex-col gap-2">
-                    <MobileNavLink to="/" label="Accueil" active={isActive("/")} />
-                    <MobileNavLink to="/tarifs" label="Tarifs" active={isActive("/tarifs")} />
-                    <MobileNavLink to="/tracking" label="Suivi Colis" active={isActive("/tracking")} />
-                  </div>
-                  
-                  {/* Actions - design plus fin */}
-                  <div className="flex flex-col gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
-                    <button 
-                      onClick={() => navigate("/login")}
-                      className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-secondary transition-colors"
-                    >
-                      Connexion
-                    </button>
-                    <button 
-                      onClick={() => navigate("/register")}
-                      className="w-full py-4 bg-primary dark:bg-secondary text-white dark:text-primary-dark text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl"
-                    >
-                      Créer un compte
-                    </button>
-                  </div>
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-white/80 dark:bg-[#050810]/80 backdrop-blur-xl md:hidden z-[105]"
+              onClick={() => setIsOpen(false)}
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="fixed top-24 left-6 right-6 md:hidden z-[110]"
+            >
+              <div className="flex flex-col gap-6">
+                {/* Navigation Links */}
+                <div className="flex flex-col gap-2">
+                  <MobileNavLink to="/" label="Accueil" active={isActive("/")} />
+                  <MobileNavLink to="/tarifs" label="Tarifs" active={isActive("/tarifs")} />
+                  <MobileNavLink to="/tracking" label="Suivi Colis" active={isActive("/tracking")} />
                 </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+                
+                {/* Actions - design plus fin */}
+                <div className="flex flex-col gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+                  <button 
+                    onClick={() => navigate("/login")}
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-secondary transition-colors"
+                  >
+                    Connexion
+                  </button>
+                  <button 
+                    onClick={() => navigate("/register")}
+                    className="w-full py-4 bg-primary dark:bg-secondary text-white dark:text-primary-dark text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl"
+                  >
+                    Créer un compte
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       </div>
     </nav>
   );
@@ -169,13 +169,17 @@ function NavLink({ to, children, active }) {
 
 function MobileNavLink({ to, label, active }) {
   return (
-    <Link to={to} className="flex items-center justify-between py-2 group">
-      <span className={`text-xl font-bold tracking-tight uppercase transition-all ${
-        active ? "text-secondary" : "text-primary dark:text-white"
+    <Link to={to} className="flex items-center justify-between group">
+      <span className={`text-2xl font-black italic tracking-tighter uppercase transition-all ${
+        active ? "text-secondary translate-x-2" : "text-primary dark:text-white"
       }`}>
         {label}
       </span>
-      {active && <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />}
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+        active ? "bg-secondary text-primary-dark" : "bg-slate-50 dark:bg-white/5 text-slate-300"
+      }`}>
+        <ArrowRight size={20} strokeWidth={2.5} className={active ? "" : "group-hover:translate-x-1 transition-transform"} />
+      </div>
     </Link>
   );
 }

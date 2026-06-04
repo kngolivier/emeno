@@ -46,28 +46,53 @@ export default function TrackingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050810] py-16 px-6">
-
-        <Navbar />
-      <div className="max-w-lg mx-auto">
-        <h1 className="text-3xl font-black italic text-center mb-8">Suivi de commande</h1>
+      <Navbar />
+      <div className="max-w-lg mx-auto mt-24">
+        {/* Titre et description pour guider l'utilisateur */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-black italic text-primary dark:text-white mb-4">
+            Suivi de colis
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400">
+            Entrez votre numéro de commande ci-dessous pour suivre votre livraison 
+            en temps réel, de l'entrepôt à votre porte.
+          </p>
+        </div>
         
-        <div className="relative mb-12">
+        {/* Input avec inputMode pour forcer le clavier numérique mobile sans flèches */}
+        <div className="relative mb-8">
           <input 
-            type="number" 
-            placeholder="N° de commande (ex: 12345)" 
-            className="w-full p-6 pr-16 rounded-[2rem] border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] text-lg font-bold shadow-lg focus:ring-4 focus:ring-secondary/20 transition-all"
-            onChange={(e) => setTrackId(e.target.value)}
+            type="text" 
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder="Ex: 12345" 
+            className="w-full p-6 pr-16 rounded-[2rem] border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1120] text-lg font-bold shadow-lg focus:border-secondary outline-none transition-all"
+            onChange={(e) => setTrackId(e.target.value.replace(/[^0-9]/g, ''))} // Nettoyage strict
           />
           <button 
             onClick={handleSearch}
             disabled={loading}
-            className="absolute right-4 top-4 p-3 bg-secondary text-white rounded-2xl hover:bg-secondary/90 transition-all active:scale-95"
+            className="absolute right-3 top-3 p-3 bg-secondary text-white rounded-2xl hover:bg-secondary/90 transition-all active:scale-95"
           >
             {loading ? <Loader2 className="animate-spin" /> : <Search size={24} />}
           </button>
         </div>
 
-        {error && <p className="text-center text-red-500 font-bold bg-red-50 p-4 rounded-2xl">{error}</p>}
+        {/* État vide illustratif */}
+        {!delivery && !error && !loading && (
+          <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-600">
+            <div className="w-20 h-20 bg-slate-100 dark:bg-white/5 rounded-3xl flex items-center justify-center mb-6">
+              <Truck size={40} className="opacity-50" />
+            </div>
+            <p className="text-sm font-bold uppercase tracking-widest text-slate-300">Aucune recherche active</p>
+          </div>
+        )}
+
+        {error && (
+          <p className="text-center text-red-500 font-bold bg-red-50 dark:bg-red-500/10 p-4 rounded-2xl">
+            {error}
+          </p>
+        )}
 
         {delivery && (
           <div className="bg-white dark:bg-[#0B1120] rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
@@ -113,7 +138,6 @@ export default function TrackingPage() {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 }
