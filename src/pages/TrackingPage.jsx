@@ -30,8 +30,8 @@ export default function TrackingPage() {
     setDelivery(null);
 
     try {
-      const data = await trackDeliveryPublic(trackId);
-      setDelivery(data);
+      const res = await trackDeliveryPublic(trackId);
+      setDelivery(res?.data?.data || res?.data || res);
     } catch (err) {
       setError("Désolé, nous n'avons pas trouvé de commande avec ce numéro.");
     } finally {
