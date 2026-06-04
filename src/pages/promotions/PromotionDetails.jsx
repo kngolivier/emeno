@@ -86,10 +86,17 @@ export default function PromotionDetails() {
 
   const handleWhatsAppPreview = async () => {
     try {
-      const response = await generateWhatsAppLink({ promoId: promo._id, customerId: user._id, phone: user.telephone});
+      const response = await generateWhatsAppLink({
+        promoId: promo._id,
+        customerId: user._id,
+        customerName: `${user.prenom} ${user.nom}`,
+        customerPhone: user.telephone
+      });
+
       const link = response?.data?.link || response?.data?.data?.link;
       if (link) window.open(link, "_blank", "noopener,noreferrer");
       else notifyError("Lien WhatsApp indisponible");
+
     } catch (err) {
       notifyError("Impossible de générer le lien WhatsApp");
     }
