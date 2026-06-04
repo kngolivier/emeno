@@ -1,4 +1,4 @@
-import { Link } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // src/components/Footer.jsx
 export default function Footer() {
