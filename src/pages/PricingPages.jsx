@@ -124,11 +124,11 @@ export default function PricingPage() {
         {/* --- INFO BANNER --- */}
         <div className="mt-20 p-8 lg:p-12 bg-primary dark:bg-secondary rounded-[3rem] text-white dark:text-primary-dark flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl">
             <div className="flex items-center gap-6 text-center lg:text-left">
-                <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
-                    <Info size={32} />
+                <div className="hidden md:flex w-16 h-16 rounded-2xl bg-white/10 items-center justify-center shrink-0">
+                  <Info size={32} />
                 </div>
                 <div>
-                    <h4 className="text-xl lg:text-2xl font-black italic uppercase tracking-tight">Besoin d'un contrat pro ?</h4>
+                    <h4 className="text-xl lg:text-2xl font-black italic uppercase tracking-tight text-white">Besoin d'un contrat pro ?</h4>
                     <p className="opacity-80 text-xs lg:text-sm font-bold uppercase tracking-widest mt-1">Tarifs dégressifs pour les entreprises et e-commerçants.</p>
                 </div>
             </div>

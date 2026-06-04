@@ -35,8 +35,8 @@ export default function Footer() {
             <p className="text-[10px] font-black text-primary dark:text-secondary uppercase tracking-[0.4em] border-l-2 border-secondary pl-4">Services</p>
             <ul className="space-y-4">
               <FooterLink to="/tarifs">Grille Tarifaire</FooterLink>
-              <FooterLink to="/express">Livraison Express</FooterLink>
-              <FooterLink to="/pro">E-commerce B2B</FooterLink>
+              {/* <FooterLink to="/express">Livraison Express</FooterLink>
+              <FooterLink to="/pro">E-commerce B2B</FooterLink> */}
               <FooterLink to="/tracking">Suivi de colis</FooterLink>
             </ul>
           </div>
@@ -45,7 +45,7 @@ export default function Footer() {
             <p className="text-[10px] font-black text-primary dark:text-secondary uppercase tracking-[0.4em] border-l-2 border-secondary pl-4">Support</p>
             <ul className="space-y-4">
               <FooterLink to="/help">Centre d'aide</FooterLink>
-              <FooterLink to="/whatsapp">Contact WhatsApp</FooterLink>
+              {/* <FooterLink to="/whatsapp">Contact WhatsApp</FooterLink> */}
               <FooterLink to="/legal/cgu">Conditions Générales</FooterLink>
               <FooterLink to="/legal/confidentialite">Politique de Confidentialité</FooterLink>
             </ul>
@@ -60,7 +60,7 @@ export default function Footer() {
                   <p className="text-[9px] font-black text-primary dark:text-white uppercase tracking-widest">Siège Social</p>
                </div>
                <p className="text-[11px] font-bold text-slate-400 uppercase italic">
-                 Libreville, Gabon <br /> Quartier Louis, Imm. Emeno
+                 Libreville, Gabon <br /> Quartier Alibandeng
                </p>
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function Footer() {
         
         <div className="pt-10 border-t border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em] text-center">
-            © {currentYear} EMENO DELIVERY SYSTEM • GABON
+            © {currentYear} EMENO Livraison • GABON
           </p>
           <div className="flex gap-8">
             {["Instagram", "Facebook", "LinkedIn"].map(social => (
