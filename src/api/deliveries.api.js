@@ -13,9 +13,8 @@ export const createDelivery = (data) => {
 /**
  * PARTNER - Créer une vague de livraisons (Bulk B2C)
  */
-export const createBulkDeliveries = (serviceId, orders) => {
-  console.log("Creating bulk deliveries for serviceId:", serviceId, "with orders:", orders);
-  return API.post(ENDPOINTS.DELIVERIES_BULK, { serviceId, orders });
+export const createBulkDeliveries = (payload) => {
+  return API.post( ENDPOINTS.DELIVERIES_BULK, payload );
 };
 
 /**
