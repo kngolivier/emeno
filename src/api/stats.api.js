@@ -21,7 +21,7 @@ export const fetchDriverStats = async (driverId, period = "MONTH") => {
 };
 
 export const fetchDriverLifetimeStats = (driverId) => {
-  return API.get(`${ENDPOINTS.STATS}/driver/${driverId}/lifetime`);
+  return API.get(`${ENDPOINTS.STATS}/driver/lifetime/${driverId}`);
 };
 
 export const fetchMyStats = async (period = "MONTH") => {
