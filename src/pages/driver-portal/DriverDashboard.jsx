@@ -27,7 +27,8 @@ export default function DriverDashboard() {
     validateDelivery,
     isPaused,
     updatingState,
-    stats = { completed: 0, total: 0, distance: 0 }
+    stats = { completed: 0, total: 0, distance: 0 },
+    lifetimeStats = { completed: 0, total: 0, distance: 0, efficiency: 0 }
   } = useDriver();
 
 
@@ -39,22 +40,8 @@ export default function DriverDashboard() {
 
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [completedOrderId, setCompletedOrderId] = useState("");
-  const [lifetimeStats, setLifetimeStats] = useState(null);
-
-  useEffect(() => {
-    if (!user?._id) return;
-
-    const load = async () => {
-      try {
-        const res = await fetchDriverLifetimeStats(user._id);
-        setLifetimeStats(res.data.data);
-      } catch (err) {
-        console.error("Erreur stats driver:", err);
-      }
-    };
-
-    load();
-  }, [user?._id]);
+  const [pauseCountdown, setPauseCountdown] = useState("");
+  const [isUrgent, setIsUrgent] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = selectedOrder ? 'hidden' : 'unset';
@@ -71,6 +58,32 @@ export default function DriverDashboard() {
       }, 300);
     }
   }, [isInputFocused]);
+
+  useEffect(() => {
+    if (isPaused && user?.pauseTracking) {
+      const timer = setInterval(() => {
+        const start = new Date(user.pauseTracking.currentPauseStart).getTime();
+        const durationMs = (user.pauseTracking.maxPauseDuration || 3600) * 1000;
+        const end = start + durationMs;
+        const remainingMs = end - Date.now();
+
+        if (remainingMs <= 0) {
+          setPauseCountdown("Reprise imminente");
+          setIsUrgent(true);
+          clearInterval(timer);
+        } else {
+          // Alerte si moins de 5 minutes restantes
+          setIsUrgent(remainingMs < 5 * 60 * 1000);
+          
+          const minutes = Math.floor((remainingMs / 1000 / 60) % 60);
+          const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+          setPauseCountdown(`${hours > 0 ? hours + 'h ' : ''}${minutes}min`);
+        }
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [isPaused, user?.pauseTracking]);
 
   const handleVerify = async (e) => {
     if (e) e.stopPropagation();
@@ -240,17 +253,20 @@ export default function DriverDashboard() {
             </div>
           </div>
 
-          {/* Carte : Taux d'efficacité */}
+          {/* Carte : Taux d'efficacité (Lifetime) */}
           <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/50 shadow-sm flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-3">
-               <div className="p-2 bg-amber-50 dark:bg-amber-500/10 text-amber-500 rounded-xl"><Award size={16}/></div>
-               <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Efficacité</span>
+              <div className="p-2 bg-amber-50 dark:bg-amber-500/10 text-amber-500 rounded-xl"><Award size={16}/></div>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Efficacité Globale</span>
             </div>
             <div>
               <p className="text-2xl font-black text-amber-500 italic leading-none">
                 {lifetimeStats?.efficiency || 0}%
               </p>
-              <span className="text-[8px] text-slate-400 font-medium block mt-1">Sur {stats.total} mission(s)</span>
+              {/* Utilisation de lifetimeStats.total au lieu de stats.total */}
+              <span className="text-[8px] text-slate-400 font-medium block mt-1">
+                Sur {lifetimeStats?.total || 0} mission(s) depuis le début
+              </span>
             </div>
           </div>
         </div>
@@ -270,14 +286,29 @@ export default function DriverDashboard() {
               <motion.div 
                 key="paused-state"
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                className="bg-blue-500/5 border-2 border-dashed border-blue-500/20 p-12 rounded-[3.5rem] text-center"
+                className={`p-12 rounded-[3.5rem] text-center border-2 border-dashed transition-colors duration-500 ${
+                  isUrgent 
+                    ? "bg-rose-500/5 border-rose-500/30" 
+                    : "bg-blue-500/5 border-blue-500/20"
+                }`}
               >
-                <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                  isUrgent ? "bg-rose-500/10 text-rose-500 animate-pulse" : "bg-blue-500/10 text-blue-500"
+                }`}>
                     <Moon size={30} strokeWidth={2.5} />
                 </div>
-                <h4 className="text-sm font-black text-primary dark:text-white uppercase tracking-wider mb-1 italic">Mode Pause Activé</h4>
+                <h4 className={`text-sm font-black uppercase tracking-wider mb-1 italic ${
+                  isUrgent ? "text-rose-500" : "text-primary dark:text-white"
+                }`}>
+                    {isUrgent ? "Fin de pause proche" : "En mode pause"}
+                </h4>
+                <p className={`text-4xl font-black mb-2 ${isUrgent ? "text-rose-600 animate-pulse" : "text-blue-500"}`}>
+                    {pauseCountdown}
+                </p>
                 <p className="text-[10px] font-bold text-slate-400 max-w-[220px] mx-auto leading-relaxed">
-                  Vos missions en cours sont masquées. Reprenez votre service pour recommencer à livrer.
+                  {isUrgent 
+                    ? "Préparez-vous à reprendre votre service." 
+                    : "Vos missions en cours sont masquées."}
                 </p>
               </motion.div>
             ) : activeOrders.length > 0 ? (

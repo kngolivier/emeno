@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import driverApi from '../api/driver.api';
-import { fetchMyStats } from '../api/stats.api'; 
+import { fetchMyStats, fetchDriverLifetimeStats } from '../api/stats.api'; 
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -26,6 +26,21 @@ export const useDriver = () => {
   // Un livreur est en pause uniquement si son état vaut explicitement "PAUSE"
   const isPaused = user?.driverState === "PAUSE";
   const maxCapacity = user?.maxActiveDeliveries || 1;
+
+  // Ajoutez cet état dans useDriver
+  const [lifetimeStats, setLifetimeStats] = useState({ completed: 0, total: 0, distance: 0, efficiency: 0 });
+
+  // Ajoutez cette fonction
+  const refreshLifetimeStats = useCallback(async () => {
+    if (!user?._id) return;
+    try {
+      const response = await fetchDriverLifetimeStats(user._id); // Votre fonction API existante
+      const data = response.data.data;
+      setLifetimeStats(data);
+    } catch (err) {
+      console.error("Erreur stats lifetime:", err);
+    }
+  }, [user?._id]);
 
   const refreshStats = useCallback(async () => {
     try {
@@ -172,7 +187,8 @@ export const useDriver = () => {
   useEffect(() => {
     refreshActiveOrders();
     refreshStats();
-  }, [refreshActiveOrders, refreshStats]);
+    refreshLifetimeStats();
+  }, [refreshActiveOrders, refreshStats, refreshLifetimeStats]);
 
   return {
     activeOrders,
@@ -187,6 +203,8 @@ export const useDriver = () => {
     advanceStatus,
     validateDelivery,
     refreshActiveOrders,
-    refreshStats
+    refreshStats,
+    refreshLifetimeStats,
+    lifetimeStats
   };
 };

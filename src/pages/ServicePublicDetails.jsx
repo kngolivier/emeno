@@ -257,9 +257,9 @@ export default function ServicePublicDetails() {
                 <MessageCircle size={16} />
                 Ouvrir WhatsApp
               </button>
-            ) : user ? (
+            ) : (user && user.role === "CLIENT") ? (
               <button
-                onClick={handleWhatsApp}
+                onClick={() => navigate("/client/new-order", { state: { selectedService: service } })}
                 className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 font-black uppercase text-xs py-4 rounded-2xl transition"
               >
                 <MessageCircle size={16} />

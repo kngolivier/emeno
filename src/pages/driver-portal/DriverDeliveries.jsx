@@ -4,42 +4,30 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Loader2, Search, X, Calendar, Filter, ChevronRight, Hash } from "lucide-react";
 import driverApi from "../../api/driver.api";
+import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
+import { Pagination } from "../../components/Pagination";
 
 export default function DriverDeliveries() {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL"); 
   const [selectedDate, setSelectedDate] = useState(""); 
+  const { 
+    data: history, 
+    meta, 
+    loading, 
+    search, 
+    setSearch, 
+    setStatus, 
+    setPage 
+  } = usePaginatedFetch(driverApi.fetchDriverHistory);
 
-  useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const res = await driverApi.fetchDriverHistory();
-        setHistory(Array.isArray(res.data.data) ? res.data.data : []);
-      } catch (err) {
-        console.error("Erreur historique:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadHistory();
-  }, []);
 
   const filteredHistory = useMemo(() => {
-    return history.filter(item => {
-      const orderNum = String(item.orderNumber || "").toLowerCase();
-      const location = String(item.dropoffLocation || "").toLowerCase();
-      const search = searchQuery.toLowerCase();
-      const itemDate = new Date(item.createdAt).toLocaleDateString('fr-CA'); 
-      
-      const matchesSearch = orderNum.includes(search) || location.includes(search);
-      const matchesStatus = activeFilter === "ALL" || item.status === activeFilter;
-      const matchesDate = !selectedDate || itemDate === selectedDate;
-      
-      return matchesSearch && matchesStatus && matchesDate;
-    });
-  }, [history, searchQuery, activeFilter, selectedDate]);
+    if (!selectedDate) return history;
+    return history.filter(item => 
+      new Date(item.createdAt).toLocaleDateString('fr-CA') === selectedDate
+    );
+  }, [history, selectedDate]);
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -100,7 +88,7 @@ export default function DriverDeliveries() {
                 label="Livrées" 
                 count={history.filter(h => h.status === 'DELIVERED').length} 
                 active={activeFilter === "DELIVERED"} 
-                onClick={() => setActiveFilter("DELIVERED")} 
+                onClick={() => setStatus("DELIVERED")}
                 activeClass="bg-emerald-500 text-white shadow-emerald-500/20" 
             />
             <FilterButton 
@@ -172,6 +160,9 @@ export default function DriverDeliveries() {
               </motion.div>
             ))}
           </div>
+        )}
+        {meta && (
+            <Pagination meta={meta} setPage={setPage} />
         )}
       </div>
     </div>

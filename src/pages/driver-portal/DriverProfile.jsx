@@ -18,9 +18,6 @@ export default function DriverProfile() {
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Extraction des stats et de la fonction de rafraîchissement depuis le hook partagé
-  const { stats, refreshStats } = useDriver();
-
   useEffect(() => {
     refreshStats();
   }, [refreshStats]);
@@ -40,13 +37,25 @@ export default function DriverProfile() {
   };
 
   // 🎯 CALCUL DE LA NOTE BASÉ SUR L'INDICE DE RÉUSSITE
-  const calculateRatingFromStats = () => {
-    if (!stats || !stats.total || stats.total === 0) return "5.0";
-    const efficiencyRatio = stats.completed / stats.total;
+  const { stats, refreshStats, lifetimeStats, refreshLifetimeStats } = useDriver();
+
+  useEffect(() => {
+    refreshStats();
+    refreshLifetimeStats(); // Ajoutez cette ligne pour charger les données réelles
+  }, [refreshStats, refreshLifetimeStats]);
+
+  // Calcul basé sur les stats réelles du livreur (lifetime)
+  const getRating = () => {
+    // On utilise la propriété 'rating' renvoyée par votre API si elle existe,
+    // sinon on calcule par défaut sur le ratio completed/total
+    if (lifetimeStats?.rating) return lifetimeStats.rating.toFixed(1);
+    if (!lifetimeStats || lifetimeStats.total === 0) return "5.0";
+    
+    const efficiencyRatio = lifetimeStats.completed / lifetimeStats.total;
     return (efficiencyRatio * 5).toFixed(1);
   };
 
-  const dynamicRating = calculateRatingFromStats();
+  const dynamicRating = getRating();
 
   return (
     <div className="h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0B1120] overflow-hidden">
@@ -87,9 +96,13 @@ export default function DriverProfile() {
             <span className="px-4 py-1.5 bg-primary text-white dark:bg-white dark:text-primary text-[9px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-primary/10">
               Partenaire Certifié
             </span>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20 shadow-sm" title="Basé sur l'efficacité des missions du jour">
+            {/* Badge Note Étoilée mis à jour */}
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20 shadow-sm" 
+                title="Note basée sur l'ensemble de vos missions">
               <Star size={12} strokeWidth={3} fill="currentColor" />
-              <span className="text-[10px] font-black tracking-wider italic">{dynamicRating}</span>
+              <span className="text-[10px] font-black tracking-wider italic">
+                {dynamicRating}
+              </span>
             </div>
           </div>
         </div>
