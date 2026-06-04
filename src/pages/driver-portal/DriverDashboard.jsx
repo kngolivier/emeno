@@ -12,6 +12,7 @@ import { useDriver } from "../../hooks/useDriver";
 import { useAuth } from "../../context/AuthContext";
 import { CATEGORY_LABELS, STATUS_LABELS } from "../../constants/constants";
 import FeedbackModal from "../../components/feedback/FeedbackModal";
+import { fetchDriverLifetimeStats } from "../../api/stats.api";
 
 export default function DriverDashboard() {
   const { user } = useAuth();
@@ -24,17 +25,11 @@ export default function DriverDashboard() {
     toggleDuty, 
     advanceStatus,
     validateDelivery,
-    togglePause,
     isPaused,
     updatingState,
     stats = { completed: 0, total: 0, distance: 0 }
   } = useDriver();
 
-  // Évaluation dynamique de l'état effectif pour forcer l'état BUSY à saturation
-  const isDriverOnline = user?.driverState && user?.driverState !== "OFFLINE";
-  const effectiveDriverState = (isDriverOnline && activeOrders.length >= maxCapacity) 
-    ? "BUSY" 
-    : user?.driverState;
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [verificationCode, setVerificationCode] = useState("");
@@ -44,6 +39,22 @@ export default function DriverDashboard() {
 
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [completedOrderId, setCompletedOrderId] = useState("");
+  const [lifetimeStats, setLifetimeStats] = useState(null);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const load = async () => {
+      try {
+        const res = await fetchDriverLifetimeStats(user._id);
+        setLifetimeStats(res.data.data);
+      } catch (err) {
+        console.error("Erreur stats driver:", err);
+      }
+    };
+
+    load();
+  }, [user?._id]);
 
   useEffect(() => {
     document.body.style.overflow = selectedOrder ? 'hidden' : 'unset';
@@ -94,6 +105,13 @@ export default function DriverDashboard() {
       default: return "Continuer";
     }
   };
+
+  const effectiveDriverState = (() => {
+    if (!user?.driverState || user.driverState === "OFFLINE") return "OFFLINE";
+    if (isPaused) return "PAUSE";
+    if (activeOrders.length >= maxCapacity) return "BUSY";
+    return user.driverState;
+  })();
 
   if (loading) {
     return (
@@ -230,7 +248,7 @@ export default function DriverDashboard() {
             </div>
             <div>
               <p className="text-2xl font-black text-amber-500 italic leading-none">
-                {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+                {lifetimeStats?.efficiency || 0}%
               </p>
               <span className="text-[8px] text-slate-400 font-medium block mt-1">Sur {stats.total} mission(s)</span>
             </div>
