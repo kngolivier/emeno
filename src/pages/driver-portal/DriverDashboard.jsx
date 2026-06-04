@@ -12,7 +12,6 @@ import { useDriver } from "../../hooks/useDriver";
 import { useAuth } from "../../context/AuthContext";
 import { CATEGORY_LABELS, STATUS_LABELS } from "../../constants/constants";
 import FeedbackModal from "../../components/feedback/FeedbackModal";
-import { fetchDriverLifetimeStats } from "../../api/stats.api";
 
 export default function DriverDashboard() {
   const { user } = useAuth();
@@ -32,11 +31,6 @@ export default function DriverDashboard() {
     lifetimeStats = { completed: 0, total: 0, distance: 0, efficiency: 0 }
   } = useDriver();
 
-  useEffect(() => {
-    console.log("Stats chargées dans le dashboard :", lifetimeStats);
-  }, [lifetimeStats]);
-
-
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -54,6 +48,7 @@ export default function DriverDashboard() {
       refreshLifetimeStats();
     }
   }, []);
+
   useEffect(() => {
     document.body.style.overflow = selectedOrder ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };

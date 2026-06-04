@@ -36,7 +36,6 @@ export const useDriver = () => {
     try {
       const response = await fetchDriverLifetimeStats(user._id); // Votre fonction API existante
       const data = response?.data?.data || response?.data; // S'adapter à la structure de votre réponse
-      console.log("Stats lifetime reçues du serveur :", data);
       setLifetimeStats(data);
     } catch (err) {
       console.error("Erreur stats lifetime:", err);
