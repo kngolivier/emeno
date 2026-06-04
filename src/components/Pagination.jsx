@@ -11,16 +11,23 @@ export const Pagination = ({ meta, setPage }) => {
 
   // Logique intelligente pour afficher les numéros de page (1 ... 4 5 6 ... 20)
   const getPages = () => {
-    const delta = 1;
+    // Sur mobile, on affiche moins de pages pour éviter le débordement
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const delta = isMobile ? 0 : 1; 
+
     const range = [];
     for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
       range.push(i);
     }
+    
     if (current - delta > 2) range.unshift("...");
     if (current + delta < total - 1) range.push("...");
+    
     range.unshift(1);
     if (total > 1) range.push(total);
-    return range;
+    
+    // Supprimer les doublons éventuels si delta est petit
+    return [...new Set(range)];
   };
 
   const pages = getPages();
@@ -29,7 +36,7 @@ export const Pagination = ({ meta, setPage }) => {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-12 bg-white dark:bg-[#0B1120] p-4 lg:p-6 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.05)] transition-colors duration-500"
+      className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 mt-8 bg-white dark:bg-[#0B1120] p-4 lg:p-6 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.05)] transition-colors duration-500"
     >
       {/* Infos de progression */}
       <div className="flex items-center gap-3">
@@ -51,20 +58,22 @@ export const Pagination = ({ meta, setPage }) => {
           <ChevronLeft size={18} strokeWidth={3} />
         </button>
 
-        <div className="flex items-center gap-1.5 mx-2">
+        {/* Dans votre JSX, remplacez la div des boutons par ceci */}
+        <div className="flex items-center gap-1 mx-0 sm:mx-2">
           {pages.map((p, idx) => (
             p === "..." ? (
-              <div key={idx} className="px-2 text-slate-300 dark:text-slate-700">
-                <MoreHorizontal size={16} />
+              <div key={idx} className="px-1 text-slate-300 dark:text-slate-700">
+                <MoreHorizontal size={14} />
               </div>
             ) : (
               <button
                 key={idx}
                 onClick={() => setPage(p)}
-                className={`min-w-[40px] h-10 px-3 rounded-xl text-[10px] font-black transition-all duration-300 uppercase italic ${
+                // 💡 Astuce : On réduit le min-w sur mobile et on cache certains éléments
+                className={`h-9 w-9 sm:min-w-[40px] sm:h-10 flex items-center justify-center rounded-xl text-[10px] font-black transition-all ${
                   p === current 
-                    ? "bg-primary dark:bg-secondary text-white dark:text-primary-dark shadow-lg shadow-primary/20 dark:shadow-secondary/20 scale-110 z-10" 
-                    : "bg-transparent text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5"
+                    ? "bg-primary text-white scale-105" 
+                    : "text-slate-400 hover:bg-slate-100 hidden sm:flex" // 👈 'hidden sm:flex' masque les pages numérotées sur mobile
                 }`}
               >
                 {p}
