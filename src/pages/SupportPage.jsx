@@ -1,6 +1,7 @@
 // FILE: EMENO/src/pages/SupportPage.jsx
 
 import { Mail, MessageCircle, HelpCircle, FileText, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function SupportPage() {
   return (
