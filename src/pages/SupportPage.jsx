@@ -2,11 +2,16 @@
 
 import { Mail, MessageCircle, HelpCircle, FileText, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useSettings } from "../context/Settings/SettingsContext";
+import Navbar from "../components/landing/Navbar";
 
 export default function SupportPage() {
+  const { settings } = useSettings();
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050810] py-16 px-6 transition-colors duration-500">
-      <div className="max-w-4xl mx-auto">
+      <Navbar />
+      <div className="max-w-4xl mx-auto mt-20">
         
         {/* Header */}
         <div className="text-center mb-16">
@@ -24,10 +29,10 @@ export default function SupportPage() {
           <Link to="/guides">
             <SupportCard icon={FileText} title="Guides d'utilisation" desc="Apprenez à utiliser EMENO." />
           </Link>
-          <a href="https://wa.me/24107000000" target="_blank" rel="noopener noreferrer">
+          <a href={`https://wa.me/${settings.contact?.whatsapp}`} target="_blank" rel="noopener noreferrer">
             <SupportCard icon={MessageCircle} title="Support WhatsApp" desc="Discutez en direct avec un agent." />
           </a>
-          <a href="mailto:support@emeno.ga">
+          <a href={`mailto:${settings.contact?.email}`} target="_blank" rel="noopener noreferrer">
             <SupportCard icon={Mail} title="Email" desc="Envoyez-nous un message détaillé." />
           </a>
         </div>
@@ -39,7 +44,7 @@ export default function SupportPage() {
             <p className="text-sm text-slate-500">Nos agents répondent du Lundi au Samedi, de 8h à 18h.</p>
           </div>
           <a 
-            href="https://wa.me/24107000000" 
+            href={`https://wa.me/${settings.contact?.whatsapp}`} 
             target="_blank" 
             rel="noopener noreferrer"
             className="px-8 py-4 bg-secondary text-white font-black rounded-2xl hover:bg-secondary/90 transition-all active:scale-95"

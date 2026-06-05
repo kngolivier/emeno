@@ -5,8 +5,10 @@ import { Truck, MapPin, Loader2, AlertCircle, Phone, ChevronDown, ArrowRight } f
 import { calculatePrice } from "../../api/pricing.api";
 import { fetchCommunes } from "../../api/commune.api";
 import toast from "react-hot-toast";
+import { useSettings } from "../../context/Settings/SettingsContext";
 
 export default function PriceEstimator() {
+  const { settings } = useSettings();
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [price, setPrice] = useState(null);
@@ -102,7 +104,7 @@ export default function PriceEstimator() {
                 <p className="text-slate-500 dark:text-slate-400 text-[11px] font-bold mb-4">
                   Ce trajet n'est pas standard. Contactez notre centrale pour un devis personnalisé.
                 </p>
-                <a href="tel:+24107000000" className="flex items-center justify-center gap-2 w-full py-3 bg-white dark:bg-white/5 border border-rose-200 dark:border-rose-500/30 rounded-xl text-rose-600 dark:text-rose-500 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-rose-600 hover:text-white">
+                <a href={`tel:${settings.contact?.phone}`} className="flex items-center justify-center gap-2 w-full py-3 bg-white dark:bg-white/5 border border-rose-200 dark:border-rose-500/30 rounded-xl text-rose-600 dark:text-rose-500 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-rose-600 hover:text-white">
                     <Phone size={14} /> Appeler le support
                 </a>
               </motion.div>

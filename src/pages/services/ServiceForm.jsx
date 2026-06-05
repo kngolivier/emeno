@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { X, Check, Image as ImageIcon, Info } from "lucide-react";
 import { create, update } from "../../api/service.api";
 import { notifyError, notifySuccess } from "../../utils/notify";
+import PhoneInput from "../../components/forms/PhoneInput";
 
 const SERVICE_TYPE_LABELS = {
   STANDARD: "Standard (Livraison classique)",
@@ -219,12 +220,12 @@ export default function ServiceForm({ service, onClose, onSuccess }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Numéro WhatsApp</label>
-              <input
-                name="whatsappNumber"
+              <PhoneInput
                 value={form.whatsappNumber}
-                onChange={handleChange}
+                // On passe une fonction qui appelle setForm directement 
+                // pour correspondre à la signature de votre PhoneInput
+                onChange={(value) => setForm(prev => ({ ...prev, whatsappNumber: value }))}
                 placeholder="+241 07 XX XX XX"
-                className={inputClass}
                 required
               />
             </div>

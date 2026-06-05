@@ -1,154 +1,127 @@
 // FILE: src/pages/drivers/NewDriverForm.jsx
 
 import { useState } from "react";
-import { X, MapPin, Loader2, Truck } from "lucide-react";
+import { X, Loader2, Truck, Mail, MapPin } from "lucide-react";
 import PhoneInput from "../../components/forms/PhoneInput";
 
 export default function NewDriverForm({ onSave, onCancel, driver }) {
-  const [nom, setNom] = useState(driver?.nom || "");
-  const [prenom, setPrenom] = useState(driver?.prenom || "");
-  const [telephone, setTelephone] = useState(driver?.telephone || "");
-  const [email, setEmail] = useState(driver?.email || "");
-  const [adresse, setAdresse] = useState(driver?.adresse || "");
-  // Ajout du contrôle de capacité (maxActiveDeliveries mentionné dans le service)
-  const [maxActiveDeliveries, setMaxActiveDeliveries] = useState(driver?.maxActiveDeliveries || 1);
-  // const [status, setStatus] = useState(driver?.status || "ACTIVE");
+  const [formData, setFormData] = useState({
+    nom: driver?.nom || "",
+    prenom: driver?.prenom || "",
+    telephone: driver?.telephone || "",
+    email: driver?.email || "",
+    adresse: driver?.adresse || "",
+    maxActiveDeliveries: driver?.maxActiveDeliveries || 1,
+    maxActiveDeliveriesB2C: driver?.maxActiveDeliveriesB2C || 5,
+    scheduledPauseAt: driver?.scheduledPauseAt || "13:00",
+    maxPauseDuration: driver?.pauseTracking?.maxPauseDuration / 60 || 60,
+    status: driver?.status || "ACTIVE"
+  });
 
-  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-
-  const validate = () => {
-    const newErrors = {};
-    if (!nom.trim()) newErrors.nom = "Nom requis";
-    if (!prenom.trim()) newErrors.prenom = "Prénom requis";
-    if (!telephone.trim()) {
-      newErrors.telephone = "Téléphone requis";
-    } else if (!/^\+241[0-9]{8}$/.test(telephone)) {
-      newErrors.telephone = "Format gabonais requis";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
     setLoading(true);
     try {
       await onSave({
-        _id: driver?._id,
-        nom: nom.trim(),
-        prenom: prenom.trim(),
-        telephone: telephone.trim(),
-        email: email.trim() || undefined, // Gère le nettoyage d'email du service
-        adresse: adresse.trim(),
-        maxActiveDeliveries: Number(maxActiveDeliveries), // Champ spécifique au service
-        role: "DRIVER",
-        status,
+        ...driver,
+        ...formData,
+        maxPauseDuration: Number(formData.maxPauseDuration) * 60,
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const inputClass = (field) =>
-    `w-full bg-[var(--color-primary-light)] border-2 rounded-xl p-3 text-xs font-bold text-[var(--text-h)] outline-none transition-all ${
-      errors[field] ? "border-red-500/50" : "border-[var(--color-border-glass)] focus:border-[var(--color-secondary)]"
-    }`;
-
+  const inputClass = "w-full bg-[var(--color-primary-light)] border-2 rounded-xl p-3 text-xs font-bold text-[var(--text-h)] outline-none transition-all border-[var(--color-border-glass)] focus:border-[var(--color-secondary)]";
   const labelClass = "text-[9px] font-black uppercase tracking-widest text-[var(--text)] opacity-60 mb-1.5 block ml-1";
 
   return (
-    <div className="bg-[var(--color-primary)] w-full max-w-lg shadow-2xl border border-[var(--color-border-glass)] flex flex-col max-h-[90vh] overflow-hidden rounded-xl">
+    <div className="bg-[var(--color-primary)] w-full max-w-lg shadow-2xl border border-[var(--color-border-glass)] flex flex-col max-h-[90vh] rounded-xl overflow-hidden">
       
       <div className="p-5 border-b border-[var(--color-border-glass)] bg-[var(--color-primary-light)]/30 flex justify-between items-center shrink-0">
-        <div>
-          <h2 className="text-xl font-black text-[var(--text-h)] italic uppercase">
-            {driver ? "Modifier Profil" : "Nouveau Livreur"}
-          </h2>
-          <p className="text-[8px] font-black uppercase text-[var(--color-secondary)]">
-            {driver ? `ID: ${driver._id.slice(-6)}` : "Génération auto du mot de passe par SMS"}
-          </p>
-        </div>
+        <h2 className="text-xl font-black text-[var(--text-h)] italic uppercase">
+          {driver ? "Modifier le livreur" : "Nouveau Livreur"}
+        </h2>
         <button type="button" onClick={onCancel} className="text-[var(--text)] hover:rotate-90 transition-transform">
           <X size={20}/>
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
+      <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
         
-        {/* Identité */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>Nom</label>
-            <input value={nom} onChange={(e) => setNom(e.target.value)} className={inputClass("nom")} />
+        {/* IDENTITÉ */}
+        <div className="space-y-4">
+          <p className="text-[10px] font-black uppercase text-[var(--color-secondary)] border-b border-[var(--color-border-glass)] pb-1">Informations personnelles</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Nom</label>
+              <input value={formData.nom} onChange={(e) => setFormData({...formData, nom: e.target.value})} className={inputClass} required />
+            </div>
+            <div>
+              <label className={labelClass}>Prénom</label>
+              <input value={formData.prenom} onChange={(e) => setFormData({...formData, prenom: e.target.value})} className={inputClass} required />
+            </div>
           </div>
           <div>
-            <label className={labelClass}>Prénom</label>
-            <input value={prenom} onChange={(e) => setPrenom(e.target.value)} className={inputClass("prenom")} />
+             <label className={labelClass}>Email</label>
+             <div className="relative">
+                <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className={inputClass + " pl-10"} />
+                <Mail size={14} className="absolute left-3 top-3.5 opacity-40" />
+             </div>
           </div>
+          <PhoneInput value={formData.telephone} onChange={(val) => setFormData({...formData, telephone: val})} />
         </div>
 
-        {/* Contact */}
-        <div className="grid grid-cols-1 gap-4">
-          <div className="md:col-span-1">
-            <label className={labelClass}>Téléphone</label>
-            <PhoneInput value={telephone} onChange={setTelephone} error={errors.telephone} />
-          </div>
-          <div className="md:col-span-1">
-            <label className={labelClass}>Capacité Max (Courses)</label>
-            <div className="relative">
-               <input type="number" min="1" max="10" value={maxActiveDeliveries} onChange={(e) => setMaxActiveDeliveries(e.target.value)} className={inputClass() + " pl-10"} />
-               <Truck size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40 text-[var(--text)]" />
+        {/* LOGISTIQUE */}
+        <div className="space-y-4">
+          <p className="text-[10px] font-black uppercase text-[var(--color-secondary)] border-b border-[var(--color-border-glass)] pb-1">Paramètres logistiques</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Capacité (Standard)</label>
+              <input type="number" value={formData.maxActiveDeliveries} onChange={(e) => setFormData({...formData, maxActiveDeliveries: e.target.value})} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Capacité (B2C)</label>
+              <input type="number" value={formData.maxActiveDeliveriesB2C} onChange={(e) => setFormData({...formData, maxActiveDeliveriesB2C: e.target.value})} className={inputClass} />
             </div>
           </div>
         </div>
 
-        {/* Localisation */}
-        <div>
-          <label className={labelClass}>Adresse de résidence</label>
-          <div className="relative">
-            <input value={adresse} onChange={(e) => setAdresse(e.target.value)} className={inputClass() + " pl-10"} placeholder="Quartier, Ville" />
-            <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40 text-[var(--text)]" />
+        {/* PRÉFÉRENCES & STATUT */}
+        <div className="space-y-4">
+          <p className="text-[10px] font-black uppercase text-[var(--color-secondary)] border-b border-[var(--color-border-glass)] pb-1">Gestion</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Heure de pause</label>
+              <input type="time" value={formData.scheduledPauseAt} onChange={(e) => setFormData({...formData, scheduledPauseAt: e.target.value})} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Statut</label>
+              <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className={inputClass}>
+                <option value="ACTIVE">Actif</option>
+                <option value="INACTIVE">Inactif</option>
+                <option value="BLOCKED">Bloqué</option>
+              </select>
+            </div>
           </div>
-        </div>
-
-        {/* Statut (Uniquement en modification)
-        {driver && (
           <div>
-            <label className={labelClass}>Statut Compte</label>
-            <select 
-              value={status} 
-              onChange={(e) => setStatus(e.target.value)} 
-              disabled={driver.status === "PENDING"} // Protection hiérarchique du service
-              className={inputClass() + " appearance-none"}
-            >
-              <option value="ACTIVE">Actif / Disponible</option>
-              <option value="INACTIVE">Inactif / Pause</option>
-              <option value="BLOCKED">Bloqué / Suspendu</option>
-            </select>
-            {driver.status === "PENDING" && (
-              <p className="text-[7px] text-[var(--color-secondary)] mt-1 ml-2 font-bold uppercase italic">
-                En attente de validation OTP client
-              </p>
-            )}
+            <label className={labelClass}>Adresse</label>
+            <div className="relative">
+              <input value={formData.adresse} onChange={(e) => setFormData({...formData, adresse: e.target.value})} className={inputClass + " pl-10"} />
+              <MapPin size={14} className="absolute left-3 top-3.5 opacity-40" />
+            </div>
           </div>
-        )} */}
-
-        {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t border-[var(--color-border-glass)]">
-          <button 
-            type="submit" 
-            disabled={loading} 
-            className="flex-[2] bg-[var(--color-secondary)] text-[var(--color-primary-dark)] py-4 rounded-xl font-black uppercase tracking-tighter text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="animate-spin" size={16} /> : (driver ? "Enregistrer les modifications" : "Créer le livreur")}
-          </button>
-          <button type="button" onClick={onCancel} className="flex-1 py-4 rounded-xl font-black uppercase text-xs text-[var(--text)] hover:bg-[var(--color-primary-light)] transition-all">
-            Annuler
-          </button>
         </div>
+
       </form>
+
+      <div className="p-6 border-t border-[var(--color-border-glass)] bg-[var(--color-primary)] shrink-0">
+        <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-[var(--color-secondary)] text-[var(--color-primary-dark)] py-4 rounded-xl font-black uppercase text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2">
+          {loading ? <Loader2 className="animate-spin" size={16} /> : "Enregistrer les modifications"}
+        </button>
+      </div>
     </div>
   );
 }

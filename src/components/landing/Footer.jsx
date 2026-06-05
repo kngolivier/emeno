@@ -19,7 +19,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-16 mb-20">
           
           <div className="space-y-6">
-            <h2 className="text-4xl font-black text-primary dark:text-white italic tracking-tighter leading-none">
+            <h2 className="text-2xl lg:text-3xl font-black text-primary dark:text-white italic tracking-tighter leading-none">
               {settings.name}
             </h2>
             <p className="text-slate-400 dark:text-slate-500 text-[11px] font-black uppercase tracking-widest leading-loose max-w-[200px]">
