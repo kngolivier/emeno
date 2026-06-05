@@ -18,8 +18,9 @@ export const SettingsProvider = ({ children }) => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const data = await fetchCompanySettings();
-        setSettings(data);
+        const res = await fetchCompanySettings();
+        setSettings(res);
+        console.log("Paramètres chargés:", res);
       } catch (err) {
         console.error("Erreur chargement paramètres:", err);
       } finally {
