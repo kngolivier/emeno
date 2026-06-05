@@ -19,7 +19,15 @@ export default function PartnerHome() {
         const { data } = await fetchMyPartnerStats("MONTH");
         // Transformation des données (ex: [{ _id: 'DELIVERED', count: 5 }...])
         const summary = data.reduce((acc, curr) => {
-            acc[curr._id === 'DELIVERED' ? 'delivered' : 'pending'] = curr.count;
+            // Si c'est DELIVERED, on ajoute aux livrés
+            if (curr._id === 'DELIVERED') {
+                acc.delivered += curr.count;
+            } 
+            // Sinon, on considère que tout le reste est "en cours/attente"
+            else if (curr._id !== 'CANCELLED') { // On exclut les annulés si besoin
+                acc.pending += curr.count;
+            }
+            
             acc.total += curr.count;
             return acc;
         }, { delivered: 0, pending: 0, total: 0 });
