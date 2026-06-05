@@ -19,8 +19,7 @@ export const SettingsProvider = ({ children }) => {
     const loadSettings = async () => {
       try {
         const res = await fetchCompanySettings();
-        setSettings(res);
-        console.log("Paramètres chargés:", res);
+        setSettings(res.data);
       } catch (err) {
         console.error("Erreur chargement paramètres:", err);
       } finally {
