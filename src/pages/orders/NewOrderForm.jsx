@@ -55,7 +55,8 @@ export default function NewOrderForm({ onAdd, onClose }) {
       getServices({ activeOnly: true })
         .then(res => {
           const list = res.data?.data || res.data || [];
-          setServices(list);
+          const filteredList = list.filter(s => s.pricingMode === 'BASE_PRICING');
+          setServices(filteredList);
         })
         .catch(console.error);
     }, []);
@@ -135,7 +136,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
       </div>
 
       {/* ================= SERVICE SELECT ================= */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border">
+            <div className="bg-white dark:bg-slate-900 p-5 dark:bg-primary dark:text-white">
               <label className={labelClass}>Service</label>
                 <select
                   className={inputClass}

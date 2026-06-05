@@ -49,8 +49,8 @@ export default function AddProductModal({ onClose, onSuccess, partnerId }) {
     }
   };
 
-  const inputStyles = "w-full p-4 pl-10 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs font-bold uppercase border border-transparent focus:border-secondary outline-none dark:text-white transition-all";
-
+const inputStyles = "w-full p-4 pl-11 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs font-bold uppercase border border-transparent focus:border-secondary outline-none dark:text-white transition-all";
+const iconStyles = "absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none";
   return (
     <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg shadow-2xl border dark:border-slate-800 overflow-hidden">
@@ -78,25 +78,29 @@ export default function AddProductModal({ onClose, onSuccess, partnerId }) {
 
           {/* Champs */}
           <div className="space-y-4">
+            {/* Nom */}
             <div className="relative">
               <input name="name" placeholder="Nom du produit" className={inputStyles} onChange={handleChange} required />
-              <Package size={14} className="absolute left-4 top-4.5 text-slate-400" />
+              <Package size={14} className={iconStyles} />
             </div>
 
+            {/* Prix & Catégorie */}
             <div className="grid grid-cols-2 gap-4">
               <div className="relative">
                 <input type="number" name="price" placeholder="Prix" min="0" className={inputStyles} onChange={handleChange} required />
-                <DollarSign size={14} className="absolute left-4 top-4.5 text-slate-400" />
+                <DollarSign size={14} className={iconStyles} />
               </div>
               <div className="relative">
                 <input name="category" placeholder="Catégorie" className={inputStyles} onChange={handleChange} />
-                <Tag size={14} className="absolute left-4 top-4.5 text-slate-400" />
+                <Tag size={14} className={iconStyles} />
               </div>
             </div>
 
+            {/* Description */}
             <div className="relative">
-              <textarea name="description" placeholder="Description..." className={inputStyles + " min-h-[100px] resize-none"} onChange={handleChange} />
-              <AlignLeft size={14} className="absolute left-4 top-4.5 text-slate-400" />
+              <textarea name="description" placeholder="Description..." className={`${inputStyles} min-h-[100px] resize-none`} onChange={handleChange} />
+              {/* Pour le textarea, on peut garder top-5 si on veut que l'icône soit alignée avec le début du texte */}
+              <AlignLeft size={14} className="absolute left-4 top-5 text-slate-400" />
             </div>
           </div>
 

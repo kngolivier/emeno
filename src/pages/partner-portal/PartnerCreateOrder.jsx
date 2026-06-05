@@ -47,7 +47,8 @@ export default function PartnerCreateOrder() {
     getServices({ activeOnly: true })
       .then(res => {
         const list = res.data?.data || res.data || [];
-        setServices(list);
+        const filteredList = list.filter(s => s.pricingMode === 'BASE_PRICING');
+        setServices(filteredList);
       })
       .catch(console.error);
   }, []);
@@ -107,8 +108,13 @@ export default function PartnerCreateOrder() {
 
       try {
         const res = await calculatePrice(fromCommune, toCommune);
-        const priceCalculated = res?.data?.price || res?.data?.amount || res?.price || 0;
+        let priceCalculated = res?.data?.price || res?.data?.amount || res?.price || 0;
 
+        // --- NOUVEAU : Appliquer la majoration du service sélectionné ---
+        if (selectedService?.pricingIncreasePercent > 0) {
+          const increase = (priceCalculated * selectedService.pricingIncreasePercent) / 100;
+          priceCalculated = Math.round(priceCalculated + increase);
+        }
         setRecipients(prev => prev.map(r => 
           r.id === id ? { ...r, estimatedPrice: priceCalculated } : r
         ));
