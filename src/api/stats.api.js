@@ -39,3 +39,12 @@ export const fetchClientStats = async (clientId, period = "MONTH") => {
     params: { period }
   });
 };
+
+/**
+ * Récupère les stats du partenaire connecté
+ */
+export const fetchMyPartnerStats = async (period = "MONTH") => {
+  return API.get(`/api/stats/partner/me`, {
+    params: { period }
+  });
+};

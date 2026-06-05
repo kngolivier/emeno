@@ -1,13 +1,37 @@
 // FILE: src/pages/partner-portal/PartnerHome.jsx
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { Plus, ChevronRight, TrendingUp, ShieldCheck, Activity } from "lucide-react";
 import { getCloudinaryUrl } from "../../utils/imageUtils";
+import { fetchMyPartnerStats } from "../../api/stats.api";
 
 export default function PartnerHome() {
   const { currentPartner } = useOutletContext();
   const navigate = useNavigate();
+
+  const [stats, setStats] = useState({ delivered: 0, pending: 0, total: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const { data } = await fetchMyPartnerStats("MONTH");
+        // Transformation des données (ex: [{ _id: 'DELIVERED', count: 5 }...])
+        const summary = data.reduce((acc, curr) => {
+            acc[curr._id === 'DELIVERED' ? 'delivered' : 'pending'] = curr.count;
+            acc.total += curr.count;
+            return acc;
+        }, { delivered: 0, pending: 0, total: 0 });
+        setStats(summary);
+      } catch (err) {
+        console.error("Erreur chargement stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
 
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen">
@@ -59,13 +83,28 @@ export default function PartnerHome() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Card En cours */}
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800">
-             <div className="flex items-center gap-3 mb-4"><div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl"><TrendingUp size={20}/></div><h3 className="text-xs font-black uppercase tracking-widest">Revenu (Jours)</h3></div>
-             <p className="text-2xl font-black text-primary dark:text-white">0 <span className="text-xs font-normal">FCFA</span></p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-amber-500/10 text-amber-500 rounded-xl"><Activity size={20}/></div>
+              <h3 className="text-xs font-black uppercase tracking-widest">En cours / Attente</h3>
+            </div>
+            <p className="text-2xl font-black text-primary dark:text-white">
+              {loading ? "..." : stats.pending} 
+              <span className="text-xs font-normal ml-1">Commandes</span>
+            </p>
           </div>
+
+          {/* Card Livrées */}
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800">
-             <div className="flex items-center gap-3 mb-4"><div className="p-2 bg-amber-500/10 text-amber-500 rounded-xl"><Activity size={20}/></div><h3 className="text-xs font-black uppercase tracking-widest">En cours</h3></div>
-             <p className="text-2xl font-black text-primary dark:text-white">0 <span className="text-xs font-normal">Livraison</span></p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl"><ShieldCheck size={20}/></div>
+              <h3 className="text-xs font-black uppercase tracking-widest">Livrées</h3>
+            </div>
+            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+              {loading ? "..." : stats.delivered} 
+              <span className="text-xs font-normal ml-1">Commandes</span>
+            </p>
           </div>
         </div>
 
