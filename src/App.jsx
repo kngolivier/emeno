@@ -6,14 +6,17 @@ import { NotificationProvider } from "./context/Notifications/NotificationProvid
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "./context/Theme/ThemeProvider";
 import PwaInstallButton from "./components/pwa/PwaInstallButton";
+import { SettingsProvider } from "./context/Settings/SettingsProvider";
 
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <NotificationProvider>
-          <AppRoutes />
+          <SettingsProvider>
+            <AppRoutes />
 
+          </SettingsProvider>
           {/* GLOBAL TOASTER (notifications) */}
           <Toaster position="bottom-right" />
           <PwaInstallButton />

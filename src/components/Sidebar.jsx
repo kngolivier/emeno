@@ -107,6 +107,7 @@ export default function Sidebar({ isOpen, onClose }) {
       { to: "/admin/partners", label: "Partenaires", icon: <Store size={20} /> },
       { to: "/admin/promotions", label: "Promotions", icon: <Gift size={20} /> },
       { to: "/admin/services", label: "Services", icon: <Layers2 size={20} /> },
+      { to: "/admin/settings", label: "Paramètres", icon: <Settings size={20} /> },
     ];
     if (role === "PARTNER_MANAGER") return [
       { to: "/partner", label: "Accueil", icon: <HomeIcon size={20} /> },

@@ -106,6 +106,11 @@ export const ENDPOINTS = {
   AUDIT: "/api/audit",
 
   // ======================
+  // COMPANY SETTINGS
+  // ======================
+  COMPANY_SETTINGS: "/api/company-settings",
+  
+  // ======================
   // PROMOTIONS
   // ======================
   PROMOTIONS: "/api/promotions",

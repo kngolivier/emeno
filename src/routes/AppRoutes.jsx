@@ -69,6 +69,7 @@ import PrivacyPage from "../pages/PrivacyPage";
 import SupportPage from "../pages/SupportPage";
 import TrackingPage from "../pages/TrackingPage";
 import FAQPage from "../pages/FAQPage";
+import SettingsPage from "../pages/companySettings/SettingsPage";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -131,6 +132,7 @@ export default function AppRoutes() {
           <Route path="promotions/:id" element={<PromotionDetails />} />
           <Route path="services" element={<ServicesList />} />
           <Route path="services/:id" element={<ServiceDetails />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
         {/* ===================== */}
