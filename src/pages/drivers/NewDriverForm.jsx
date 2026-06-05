@@ -35,7 +35,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
   };
 
   // Classes unifiées pour une cohérence visuelle parfaite en light et dark
-  const inputClass = "w-full bg-primary-light border-2 border-border rounded-xl p-3 text-xs font-bold text-slate-800 dark:text-white outline-none transition-all focus:border-secondary";
+  const inputClass = "w-full bg-primary-light border-2 border-border rounded-xl p-3 text-xs font-bold text-slate-800 text-white outline-none transition-all focus:border-secondary";
   const labelClass = "text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5 block ml-1";
   const sectionTitleClass = "text-[10px] font-black uppercase text-secondary border-b border-border pb-1";
 
@@ -44,7 +44,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
       
       {/* HEADER */}
       <div className="p-5 border-b border-border bg-primary-light/30 flex justify-between items-center shrink-0">
-        <h2 className="text-xl font-black text-slate-900 dark:text-white italic uppercase">
+        <h2 className="text-xl font-black text-slate-900 text-white italic uppercase">
           {driver ? "Modifier le livreur" : "Nouveau Livreur"}
         </h2>
         <button type="button" onClick={onCancel} className="text-slate-400 hover:text-secondary transition-colors">
@@ -61,17 +61,17 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Nom</label>
-              <input value={formData.nom} onChange={(e) => setFormData({...formData, nom: e.target.value})} className={inputClass} required />
+              <input value={formData.nom} onChange={(e) => setFormData({...formData, nom: e.target.value})} className={inputClass} placeholder="Nom" required />
             </div>
             <div>
               <label className={labelClass}>Prénom</label>
-              <input value={formData.prenom} onChange={(e) => setFormData({...formData, prenom: e.target.value})} className={inputClass} required />
+              <input value={formData.prenom} onChange={(e) => setFormData({...formData, prenom: e.target.value})} className={inputClass} placeholder="Prénom" required />
             </div>
           </div>
           <div>
              <label className={labelClass}>Email</label>
              <div className="relative">
-                <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className={`${inputClass} pl-10`} />
+                <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className={`${inputClass} placeholder:text-slate-400 pl-10`} placeholder="Email" />
                 <Mail size={14} className="absolute left-3 top-3.5 text-slate-400" />
              </div>
           </div>
@@ -113,7 +113,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           <div>
             <label className={labelClass}>Adresse</label>
             <div className="relative">
-              <input value={formData.adresse} onChange={(e) => setFormData({...formData, adresse: e.target.value})} className={`${inputClass} pl-10`} />
+              <input value={formData.adresse} onChange={(e) => setFormData({...formData, adresse: e.target.value})} className={`${inputClass} placeholder:text-slate-400 pl-10`} placeholder="Adresse" />
               <MapPin size={14} className="absolute left-3 top-3.5 text-slate-400" />
             </div>
           </div>

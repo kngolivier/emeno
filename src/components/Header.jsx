@@ -583,7 +583,7 @@ export default function Header({
             font-black
             shadow-lg
           ">
-            <Link to="profile">
+            <Link to={role === "CLIENT" ? "profile" : "settings"}>
               {user?.nom?.charAt(0)}
             </Link>
           </div>
