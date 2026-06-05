@@ -2,6 +2,7 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LoaderPage from "../components/ui/PageLoader";
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, loading, user } = useAuth();
@@ -9,7 +10,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        Chargement...
+        <LoaderPage />
       </div>
     );
   }

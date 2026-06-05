@@ -1,7 +1,7 @@
 // FILE: src/pages/drivers/NewDriverForm.jsx
 
 import { useState } from "react";
-import { X, Loader2, Truck, Mail, MapPin } from "lucide-react";
+import { X, Loader2, Mail, MapPin } from "lucide-react";
 import PhoneInput from "../../components/forms/PhoneInput";
 
 export default function NewDriverForm({ onSave, onCancel, driver }) {
@@ -34,26 +34,30 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
     }
   };
 
-  const inputClass = "w-full bg-[var(--color-primary-light)] border-2 rounded-xl p-3 text-xs font-bold text-[var(--text-h)] outline-none transition-all border-[var(--color-border-glass)] focus:border-[var(--color-secondary)]";
-  const labelClass = "text-[9px] font-black uppercase tracking-widest text-[var(--text)] opacity-60 mb-1.5 block ml-1";
+  // Classes unifiées pour une cohérence visuelle parfaite en light et dark
+  const inputClass = "w-full bg-primary-light border-2 border-border rounded-xl p-3 text-xs font-bold text-slate-800 dark:text-white outline-none transition-all focus:border-secondary";
+  const labelClass = "text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5 block ml-1";
+  const sectionTitleClass = "text-[10px] font-black uppercase text-secondary border-b border-border pb-1";
 
   return (
-    <div className="bg-[var(--color-primary)] w-full max-w-lg shadow-2xl border border-[var(--color-border-glass)] flex flex-col max-h-[90vh] rounded-xl overflow-hidden">
+    <div className="bg-primary w-full max-w-lg shadow-2xl border border-border flex flex-col max-h-[80vh] rounded-3xl overflow-hidden">
       
-      <div className="p-5 border-b border-[var(--color-border-glass)] bg-[var(--color-primary-light)]/30 flex justify-between items-center shrink-0">
-        <h2 className="text-xl font-black text-[var(--text-h)] italic uppercase">
+      {/* HEADER */}
+      <div className="p-5 border-b border-border bg-primary-light/30 flex justify-between items-center shrink-0">
+        <h2 className="text-xl font-black text-slate-900 dark:text-white italic uppercase">
           {driver ? "Modifier le livreur" : "Nouveau Livreur"}
         </h2>
-        <button type="button" onClick={onCancel} className="text-[var(--text)] hover:rotate-90 transition-transform">
+        <button type="button" onClick={onCancel} className="text-slate-400 hover:text-secondary transition-colors">
           <X size={20}/>
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+      {/* FORMULAIRE */}
+      <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
         
         {/* IDENTITÉ */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black uppercase text-[var(--color-secondary)] border-b border-[var(--color-border-glass)] pb-1">Informations personnelles</p>
+          <p className={sectionTitleClass}>Informations personnelles</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Nom</label>
@@ -67,8 +71,8 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           <div>
              <label className={labelClass}>Email</label>
              <div className="relative">
-                <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className={inputClass + " pl-10"} />
-                <Mail size={14} className="absolute left-3 top-3.5 opacity-40" />
+                <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className={`${inputClass} pl-10`} />
+                <Mail size={14} className="absolute left-3 top-3.5 text-slate-400" />
              </div>
           </div>
           <PhoneInput value={formData.telephone} onChange={(val) => setFormData({...formData, telephone: val})} />
@@ -76,7 +80,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
 
         {/* LOGISTIQUE */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black uppercase text-[var(--color-secondary)] border-b border-[var(--color-border-glass)] pb-1">Paramètres logistiques</p>
+          <p className={sectionTitleClass}>Paramètres logistiques</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Capacité (Standard)</label>
@@ -89,9 +93,9 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           </div>
         </div>
 
-        {/* PRÉFÉRENCES & STATUT */}
+        {/* GESTION */}
         <div className="space-y-4">
-          <p className="text-[10px] font-black uppercase text-[var(--color-secondary)] border-b border-[var(--color-border-glass)] pb-1">Gestion</p>
+          <p className={sectionTitleClass}>Gestion</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Heure de pause</label>
@@ -109,16 +113,16 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
           <div>
             <label className={labelClass}>Adresse</label>
             <div className="relative">
-              <input value={formData.adresse} onChange={(e) => setFormData({...formData, adresse: e.target.value})} className={inputClass + " pl-10"} />
-              <MapPin size={14} className="absolute left-3 top-3.5 opacity-40" />
+              <input value={formData.adresse} onChange={(e) => setFormData({...formData, adresse: e.target.value})} className={`${inputClass} pl-10`} />
+              <MapPin size={14} className="absolute left-3 top-3.5 text-slate-400" />
             </div>
           </div>
         </div>
-
       </form>
 
-      <div className="p-6 border-t border-[var(--color-border-glass)] bg-[var(--color-primary)] shrink-0">
-        <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-[var(--color-secondary)] text-[var(--color-primary-dark)] py-4 rounded-xl font-black uppercase text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2">
+      {/* FOOTER */}
+      <div className="p-6 border-t border-border bg-primary-light/10 shrink-0">
+        <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-secondary text-primary-dark py-4 rounded-xl font-black uppercase text-xs shadow-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
           {loading ? <Loader2 className="animate-spin" size={16} /> : "Enregistrer les modifications"}
         </button>
       </div>
