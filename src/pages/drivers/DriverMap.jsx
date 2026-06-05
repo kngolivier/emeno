@@ -212,7 +212,7 @@ export default function DriverMap() {
         </div>
 
         {/* LÉGENDE DU COCKPIT MUTLI-STATUTS (Bas Gauche) */}
-        <div className="absolute bottom-6 left-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 rounded-[2rem] z-[1000] shadow-xl border border-slate-100 dark:border-slate-800/60 space-y-2 min-w-[190px]">
+        <div className="absolute bottom-6 left-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 rounded-[2rem] z-[1000] shadow-xl border border-slate-100 dark:border-slate-800/60 space-y-2 min-w-[130px]">
           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 border-b dark:border-white/5 pb-2 flex items-center gap-1.5">
             <ShieldCheck size={12} className="text-amber-500" /> État des livreurs
           </p>

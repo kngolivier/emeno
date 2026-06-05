@@ -114,7 +114,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
     }
   };
 
-  const inputClass = "w-full bg-slate-50/50 dark:bg-white/5 border-2 border-slate-50 dark:border-white/5 rounded-xl p-3 md:p-4 text-sm font-bold text-primary dark:text-white outline-none focus:border-secondary/20 dark:focus:border-secondary/40 focus:bg-white dark:focus:bg-white/10 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600";
+  const inputClass = "w-full bg-slate-50/50 dark:bg-white/5 border-2 border-slate-50 dark:border-white/5 rounded-xl p-3 md:p-4 text-sm font-bold text-primary dark:text-primary outline-none focus:border-secondary/20 dark:focus:border-secondary/40 focus:bg-white dark:focus:bg-white/10 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600";
   const labelClass = "text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5 block ml-1";
 
   return (
@@ -136,7 +136,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
       </div>
 
       {/* ================= SERVICE SELECT ================= */}
-            <div className="bg-white dark:bg-slate-900 p-5 dark:bg-primary dark:text-white">
+            <div className="bg-white dark:bg-slate-900 p-5 text-primary dark:bg-primary dark:text-white">
               <label className={labelClass}>Service</label>
                 <select
                   className={inputClass}
