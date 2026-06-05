@@ -199,7 +199,7 @@ export default function DriverMap() {
       </div>
 
       {/* --- CONTAINER DE LA CARTE --- */}
-      <div className="relative h-[650px] w-full rounded-[3rem] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 z-10">
+      <div className="relative h-[60vh] w-full rounded-[3rem] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 z-10">
         
         {/* COMPTEUR DE FLOTTE GLOBAL (Haut Gauche) */}
         <div className="absolute top-6 left-6 bg-white/90 dark:bg-slate-900/95 backdrop-blur-md px-4 py-3 rounded-2xl z-[1000] shadow-xl border border-slate-100 dark:border-slate-800/60 hidden md:flex items-center gap-4">
