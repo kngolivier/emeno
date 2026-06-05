@@ -244,7 +244,7 @@ export default function ClientCreateOrder() {
         </div>
       </div>
       {/* ================= SERVICE SELECT ================= */}
-            <div className="bg-white dark:bg-slate-900 p-5 dark:bg-primary dark:text-white">
+            <div className="bg-white dark:bg-slate-900 text-primary p-5 dark:bg-primary dark:text-white">
               <label className={labelClass}>Service</label>
 
               {selectedServiceFromNav ? (

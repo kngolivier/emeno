@@ -60,9 +60,9 @@ export default function CommuneSelect({ value, onChange, label, error, placehold
           value={value}
           onChange={handleChange}
           disabled={loading}
-          className="w-full bg-transparent px-4 py-4 text-[13px] font-black text-primary outline-none italic appearance-none cursor-pointer disabled:cursor-wait"
+          className="w-full bg-transparent px-4 py-4 text-[13px] font-black text-primary dar:text-white outline-none italic appearance-none cursor-pointer disabled:cursor-wait"
         >
-          <option value="" className="dark:bg-slate-900">{loading ? "Synchronisation..." : placeholder}</option>
+          <option value="" className="dark:bg-slate-900 dark:text-white">{loading ? "Synchronisation..." : placeholder}</option>
           {communes.map((commune) => (
             <option key={commune._id} value={commune._id} className="dark:bg-slate-900 font-bold">
               {commune.name.toUpperCase()}

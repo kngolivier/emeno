@@ -49,9 +49,8 @@ export default function ServicesCarousel() {
     if (mode === "WHATSAPP_ONLY") {
       try {
         const res = await getWhatsappLink(service._id);
-
         const link =
-          res?.data?.link || res?.data?.data?.link;
+          res?.data?.link || res?.data?.data?.link || res?.data || res;
         if (link) {
           window.open(link, "_blank");
         } else {

@@ -241,7 +241,7 @@ export default function PartnerCreateOrder() {
             </button>
           </div>
 
-          <section className="bg-white dark:bg-slate-900 border rounded-2xl p-4">
+          <section className="bg-white dark:bg-slate-900">
             <label className="text-[10px] font-black uppercase text-slate-400">
               Service (obligatoire)
             </label>
