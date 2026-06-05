@@ -11,6 +11,7 @@ import { calculatePrice } from "../../api/pricing.api";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader"; // Utilisation de ton loader immersif standardisé
 import { getAll as getServices } from "../../api/service.api";
+import CompactPhoneInput from "../../components/forms/CompactPhoneInput";
 
 const INITIAL_RECIPIENT = {
   name: "",
@@ -301,13 +302,9 @@ export default function PartnerCreateOrder() {
                       onChange={(e) => handleFieldChange(recipient.id, "name", e.target.value)}
                       className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 rounded-xl px-3 py-3 text-xs font-bold focus:outline-none focus:border-secondary transition-colors text-primary dark:text-white w-full"
                     />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Téléphone"
-                      value={recipient.phone}
-                      onChange={(e) => handleFieldChange(recipient.id, "phone", e.target.value)}
-                      className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 rounded-xl px-3 py-3 text-xs font-bold focus:outline-none focus:border-secondary transition-colors text-primary dark:text-white font-mono w-full"
+                    <CompactPhoneInput 
+                      value={recipient.phone} 
+                      onChange={(val) => handleFieldChange(recipient.id, "phone", val)} 
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
