@@ -122,18 +122,16 @@ export default function Header({
     ">
 
       {/* LEFT */}
-
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex items-center gap-3 flex-1">
 
         {/* MOBILE MENU */}
-
         <button
           type="button"
           onClick={toggleSidebar}
           className="
             lg:hidden
-            w-12 h-12
-            rounded-2xl
+            w-10 h-10 // Réduit légèrement pour laisser plus de place
+            rounded-xl
             flex items-center justify-center
             bg-slate-100 dark:bg-white/[0.05]
             text-primary dark:text-white
@@ -142,18 +140,16 @@ export default function Header({
             active:scale-95
           "
         >
-          <Menu
-            size={22}
-            strokeWidth={2.5}
-          />
+          <Menu size={20} strokeWidth={2.5} />
         </button>
 
-        {/* LOGO (Remplace la recherche) */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* LOGO - Modifié pour être visible partout */}
+        <div className="flex items-center">
           <img 
             src={isDarkMode ? "/logo.png" : "/logo-dark.png"} 
             alt="EMENO" 
-            className="h-10 w-auto object-contain" 
+            // h-8 sur mobile, h-10 sur desktop pour ne pas briser la mise en page
+            className="h-8 md:h-10 w-auto object-contain" 
           />
         </div>
 

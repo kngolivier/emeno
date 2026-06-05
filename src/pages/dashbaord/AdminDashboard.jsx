@@ -221,7 +221,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white">
-            Dashboard <span className="text-secondary">{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
+            Tablea de bord <span className="text-secondary">{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
             {user?.role === 'SUPER_ADMIN' ? 'Pilotage Stratégique EMENO' : 'Gestion des flux opérationnels'}
