@@ -148,43 +148,12 @@ export default function Header({
           />
         </button>
 
-        {/* SEARCH */}
-
-        <div className="
-          relative
-          hidden md:block
-          w-full max-w-[300px]
-          group
-        ">
-          <Search
-            size={16}
-            className="
-              absolute left-4 top-1/2 -translate-y-1/2
-              text-slate-400
-              group-focus-within:text-secondary
-              transition-colors
-            "
-          />
-
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            className="
-              w-full
-              rounded-2xl
-              border
-              border-slate-200 dark:border-white/[0.06]
-              bg-white dark:bg-white/[0.04]
-              py-3 pl-11 pr-4
-              text-xs font-bold
-              text-primary dark:text-white
-              placeholder:text-slate-400
-              outline-none
-              focus:border-secondary/30
-              focus:ring-4
-              focus:ring-secondary/10
-              transition-all
-            "
+        {/* LOGO (Remplace la recherche) */}
+        <div className="hidden md:flex items-center gap-2">
+          <img 
+            src={isDarkMode ? "/logo.png" : "/logo-dark.png"} 
+            alt="EMENO" 
+            className="h-10 w-auto object-contain" 
           />
         </div>
 

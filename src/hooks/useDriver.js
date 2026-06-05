@@ -89,6 +89,10 @@ export const useDriver = () => {
       toast.error(`Déconnexion impossible. Vous avez encore ${activeOrders.length} livraison(s) en cours à terminer.`);
       return;
     }
+    if (isPaused) {
+        toast.error("Veuillez reprendre votre service avant de vous déconnecter.");
+        return;
+      }
 
     setUpdatingState(true);
     try {
