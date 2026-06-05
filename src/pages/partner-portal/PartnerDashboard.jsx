@@ -7,6 +7,7 @@ import { fetchClientDeliveries } from "../../api/deliveries.api";
 import { updatePartner } from "../../api/partners.api"; 
 import PartnerOrderDetailModal from "./PartnerOrderDetailModal"; 
 import PageLoader from "../../components/ui/PageLoader";
+import { STATUS_LABELS } from "../../constants/constants";
 
 export default function PartnerDashboard() {
   const { currentPartner } = useOutletContext();
@@ -169,7 +170,7 @@ export default function PartnerDashboard() {
                     <span className="text-xs font-black text-primary dark:text-white">ID #{delivery.orderNumber}</span>
                     <span className={`text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                       ["PENDING", "ASSIGNED"].includes(delivery.status) ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"
-                    }`}>{delivery.status}</span>
+                    }`}>{STATUS_LABELS[delivery.status]}</span>
                   </div>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-relaxed">
                     Destinataire : <strong className="text-slate-700 dark:text-slate-200">{delivery.dropoffContact?.name}</strong> • {delivery.dropoffLocation}

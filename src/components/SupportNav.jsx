@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 // FILE: src/components/SupportNav.jsx
 export function SupportNav() {
   const links = [
