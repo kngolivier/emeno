@@ -28,12 +28,27 @@ export default function Sidebar({ isOpen, onClose }) {
   
   const [pushStatus, setPushStatus] = useState("default");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { isInstallable, install } = usePwaInstall();
 
+  // Remplacez votre useEffect actuel par celui-ci
   useEffect(() => {
-    if ("Notification" in window) {
-      setPushStatus(Notification.permission);
-    }
+    const checkPushStatus = async () => {
+      if ("Notification" in window && "serviceWorker" in navigator) {
+        // 1. Mise à jour initiale du statut de permission
+        setPushStatus(Notification.permission);
+        
+        // 2. Vérification si une souscription existe déjà
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const sub = await registration.pushManager.getSubscription();
+          if (sub && Notification.permission === "granted") {
+            setPushStatus("granted");
+          }
+        } catch (err) {
+          console.error("Erreur vérification push:", err);
+        }
+      }
+    };
+    checkPushStatus();
   }, []);
 
   const handleLogoutClick = async () => {
@@ -60,28 +75,38 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const handlePushSubscription = async () => {
     if (!("Notification" in window) || !("serviceWorker" in navigator)) {
-      notifyError("Notifications non supportées.");
+      notifyError("Notifications non supportées par votre navigateur.");
       return;
     }
+    
     try {
       setIsSubmitting(true);
+      // Demander la permission si ce n'est pas déjà fait
       const permission = await Notification.requestPermission();
       setPushStatus(permission);
+      
       if (permission !== "granted") {
-        notifyError("Permission refusée.");
-        setIsSubmitting(false);
+        notifyError("Veuillez autoriser les notifications dans vos paramètres.");
         return;
       }
+
       const registration = await navigator.serviceWorker.ready;
+      
+      // Nettoyer toute ancienne souscription invalide avant d'en créer une nouvelle
+      const existingSub = await registration.pushManager.getSubscription();
+      if (existingSub) await existingSub.unsubscribe();
+
       const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!VAPID_PUBLIC_KEY) return;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
+
+      // Envoi au backend
       await savePushSubscription({ subscription, userId: user?.id, role: user?.role });
-      notifySuccess("Notifications activées !");
+      notifySuccess("Alertes activées avec succès !");
     } catch (error) {
+      console.error("Push Error:", error);
       notifyError("Impossible d'activer les notifications.");
     } finally {
       setIsSubmitting(false);
