@@ -67,14 +67,24 @@ export default function NotificationsPage() {
     return Array.from(uniqueMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }, [liveNotifications, dbNotifications]);
 
+  // Remplacez votre useMemo actuel par celui-ci
   const filteredNotifications = useMemo(() => {
     return allNotifications.filter((n) => {
+      // 1. VÉRIFICATION DE SÉCURITÉ (Qui a le droit de voir ça ?)
+      const isOwner = n.recipient && n.recipient.toString() === user?._id.toString();
+      const isTargetedRole = n.targetRoles?.includes(user?.role);
+      
+      // Si la notif n'est ni pour moi, ni pour mon rôle, on la masque totalement
+      if (!isOwner && !isTargetedRole) return false;
+
+      // 2. FILTRAGE D'ÉTAT (Lu / Non lu)
       const isRead = n.readBy?.includes(user?._id);
       if (filter === "unread") return !isRead;
       if (filter === "read") return isRead;
+      
       return true;
     });
-  }, [allNotifications, filter, user?._id]);
+  }, [allNotifications, filter, user]);
 
   /* ==========================================================================
      ACTIONS
