@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import axios from "../../api/apiClient"; 
-import { ENDPOINTS } from "../../api/endpoints"; 
+import driverApi from "../../api/driver.api"
 import { Loader2, RefreshCw, Navigation, Phone, Clock, ShieldCheck, Users, SignalLow } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -106,12 +105,11 @@ export default function DriverMap() {
   console.log("Livreurs disponibles : ", idleCount)
   console.log("Livreurs en course : ", busyCount)
   console.log("Livreurs en pause : ", pauseCount)
-  console.log("Livreurs déconnectés : ", offlineCount)
 
   const fetchDriversLocations = async (showPulse = false) => {
     if (showPulse) setIsRefreshing(true);
     try {
-      const res = await axios.get(ENDPOINTS.DRIVER_MAP_ACTIVE);
+      const res = await driverApi.fetchDriversForMap();
       if (res?.success) {
         setDrivers(res.data || []);
       }
