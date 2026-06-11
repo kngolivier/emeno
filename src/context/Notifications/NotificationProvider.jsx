@@ -15,23 +15,24 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
     
-    // Si le socket est déjà connecté avant que le user ne soit chargé,
-    // il faut forcer l'envoi de la room admin maintenant
-    if (socket.connected) {
+    // Fonction de setup stable
+    const setupSocket = () => {
+      if (!socket.connected) {
+        socket.connect();
+      }
+
+      // Envoi des événements d'inscription
       if (["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
         socket.emit("join_admin", user.role);
       }
       socket.emit("join_user", user._id);
-    } else {
-      socket.connect();
-    }
+    };
 
-    socket.on("connect", () => {
-      if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
-        socket.emit("join_admin", user.role); 
-      }
-      socket.emit("join_user", user._id);
-    });
+    // Gestionnaire unique
+    const onConnect = () => setupSocket();
+    
+    socket.on("connect", onConnect);
+    setupSocket(); // Tentative immédiate
 
     const handleNewNotification = (notif) => {
 
@@ -106,8 +107,7 @@ export const NotificationProvider = ({ children }) => {
 
     return () => {
       socket.off("notification:new");
-      socket.off("delivery:unassigned");
-      socket.disconnect();
+      socket.off("connect", onConnect);
     };
   }, [user]);
 
