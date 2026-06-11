@@ -35,9 +35,6 @@ export const NotificationProvider = ({ children }) => {
 
     const handleNewNotification = (notif) => {
 
-      console.log("🔍 [Frontend] Notification reçue:", notif);
-      console.log("🔍 [Frontend] Mon rôle:", user.role);
-
       // 1. DÉFINITION DU FILTRE DE SEGMENTATION
       const isForMe = notif.recipient && notif.recipient.toString() === user._id.toString();
       const targets = Array.isArray(notif.targetRoles) ? notif.targetRoles : [];
@@ -46,10 +43,7 @@ export const NotificationProvider = ({ children }) => {
       // Correction rôle admin
       if (user.role === "SUPER_ADMIN" && targets.includes("ADMIN")) isForMyRole = true;
 
-      console.log("🔍 [Frontend] Filtres:", { isForMe, isForMyRole, targets });
-
       if (!isForMe && !isForMyRole) {
-        console.warn("🚫 Notif rejetée par filtre de segmentation");
         return;
       }
 
@@ -75,14 +69,14 @@ export const NotificationProvider = ({ children }) => {
         return;
       }
 
-      // On autorise la notif si :
-      // 1. Elle est pour moi OU mon rôle
-      // 2. ET (Si je suis admin, elle n'est pas une notif purement Client/Partenaire)
-      const isTargetExclusive = (notif.targetRoles?.includes("CLIENT") || notif.targetRoles?.includes("PARTNER_MANAGER")) && 
-                                !notif.targetRoles?.includes("ADMIN") && 
-                                !notif.targetRoles?.includes("SUPER_ADMIN");
+      // // On autorise la notif si :
+      // // 1. Elle est pour moi OU mon rôle
+      // // 2. ET (Si je suis admin, elle n'est pas une notif purement Client/Partenaire)
+      // const isTargetExclusive = (notif.targetRoles?.includes("CLIENT") || notif.targetRoles?.includes("PARTNER_MANAGER")) && 
+      //                           !notif.targetRoles?.includes("ADMIN") && 
+      //                           !notif.targetRoles?.includes("SUPER_ADMIN");
       
-      if (hasAdminPrivileges && isTargetExclusive) return;
+      // if (hasAdminPrivileges && isTargetExclusive) return;
       
       processedIds.current.add(safeId);
 
