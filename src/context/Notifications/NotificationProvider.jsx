@@ -14,7 +14,17 @@ export const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user) return;
-    socket.connect();
+    
+    // Si le socket est déjà connecté avant que le user ne soit chargé,
+    // il faut forcer l'envoi de la room admin maintenant
+    if (socket.connected) {
+      if (["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+        socket.emit("join_admin", user.role);
+      }
+      socket.emit("join_user", user._id);
+    } else {
+      socket.connect();
+    }
 
     socket.on("connect", () => {
       if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
@@ -25,21 +35,21 @@ export const NotificationProvider = ({ children }) => {
 
     const handleNewNotification = (notif) => {
 
+      console.log("🔍 [Frontend] Notification reçue:", notif);
+      console.log("🔍 [Frontend] Mon rôle:", user.role);
+
       // 1. DÉFINITION DU FILTRE DE SEGMENTATION
-      // Vérifie si la notif est explicitement pour moi (recipient) 
-      // OU si elle est destinée à mon rôle spécifique
-      const isForMe     = notif.recipient && notif.recipient.toString() === user._id.toString();
-      // Correction : Vérification robuste des rôles
+      const isForMe = notif.recipient && notif.recipient.toString() === user._id.toString();
       const targets = Array.isArray(notif.targetRoles) ? notif.targetRoles : [];
-      // Si l'utilisateur est SUPER_ADMIN, il doit recevoir les notifs destinées aux ADMIN
       let isForMyRole = targets.includes(user.role);
-      if (user.role === "SUPER_ADMIN" && targets.includes("ADMIN")) {
-        isForMyRole = true;
-      }
-      // 2. REJET SILENCIEUX SI CE N'EST PAS POUR MOI
+      
+      // Correction rôle admin
+      if (user.role === "SUPER_ADMIN" && targets.includes("ADMIN")) isForMyRole = true;
+
+      console.log("🔍 [Frontend] Filtres:", { isForMe, isForMyRole, targets });
+
       if (!isForMe && !isForMyRole) {
-        // Si c'est une notif admin mais que je ne suis pas admin, on bloque
-        // Si c'est une notif pour un autre client, on bloque
+        console.warn("🚫 Notif rejetée par filtre de segmentation");
         return;
       }
 
