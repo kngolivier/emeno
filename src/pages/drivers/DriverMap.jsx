@@ -102,6 +102,12 @@ export default function DriverMap() {
   const pauseCount = drivers.filter(d => d.driver?.driverState === "PAUSE").length;
   const offlineCount = drivers.filter(d => d.driver?.driverState === "OFFLINE" || !d.driver?.driverState).length;
 
+  console.log("Total des livreurs : ", totalDrivers)
+  console.log("Livreurs disponibles : ", idleCount)
+  console.log("Livreurs en course : ", busyCount)
+  console.log("Livreurs en pause : ", pauseCount)
+  console.log("Livreurs déconnectés : ", offlineCount)
+
   const fetchDriversLocations = async (showPulse = false) => {
     if (showPulse) setIsRefreshing(true);
     try {
