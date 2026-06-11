@@ -1,6 +1,6 @@
 // src/pages/LandingPage.jsx
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/landing/Navbar";
 import Hero from "../components/landing/Hero";
 import FeatureCard from "../components/landing/Feature";
@@ -10,6 +10,7 @@ import ServicesCarousel from "../components/services/ServicesCarousel";
 import PartnersCarousel from "../components/landing/PartnersCarousel";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
   // Animation de groupe pour les éléments
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -78,6 +79,14 @@ export default function LandingPage() {
         </section>
 
         <PartnersCarousel />
+        <div className="mt-8 flex justify-center">
+            <button 
+              onClick={() => navigate("/partenaires")}
+              className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#071120] border border-slate-200 dark:border-white/10 rounded-full text-sm font-bold text-slate-600 dark:text-white hover:border-secondary hover:text-secondary transition-all"
+            >
+              Voir tous les partenaires <ArrowRight size={16} />
+            </button>
+          </div>
 
         {/* SECTION PRICING TEASER */}
         <section className="max-w-7xl mx-auto py-12 px-6">
