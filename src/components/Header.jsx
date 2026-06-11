@@ -49,27 +49,17 @@ export default function Header({
 
   /* ==========================================================================
      NOTIFICATIONS
-     ========================================================================== */
-
+     ========================================================================== 
+  */
   const validNotifications = useMemo(() => {
+    // Le filtrage par rôle est déjà géré dans le Provider, 
+    // on ne garde ici qu'une sécurité pour éviter les doublons UI
     const seen = new Set();
-
-    // On récupère l'index (idx) pour générer un ID de repli stable et pur
-    return notifications.filter((n, idx) => {
-      // FIX : Utilisation de l'index à la place de Date.now()
-      const id = n._id || n.id || n.data?.deliveryId || `temp-${idx}`;
-
+    return notifications.filter((n) => {
+      const id = n._id || n.id;
       if (seen.has(id)) return false;
       seen.add(id);
-
-      // Validation résiliente
-      const hasDeliveryId = 
-        n.deliveryId || 
-        n.data?.deliveryId || 
-        String(id).includes('unassigned') || 
-        String(id).includes('sk-');
-      
-      return n.message && hasDeliveryId;
+      return true;
     });
   }, [notifications]);
 

@@ -24,6 +24,20 @@ export const NotificationProvider = ({ children }) => {
     });
 
     const handleNewNotification = (notif) => {
+
+      // 1. DÉFINITION DU FILTRE DE SEGMENTATION
+      // Vérifie si la notif est explicitement pour moi (recipient) 
+      // OU si elle est destinée à mon rôle spécifique
+      const isForMe = notif.recipient && notif.recipient.toString() === user._id.toString();
+      const isForMyRole = notif.targetRoles && notif.targetRoles.includes(user.role);
+      
+      // 2. REJET SILENCIEUX SI CE N'EST PAS POUR MOI
+      if (!isForMe && !isForMyRole) {
+        // Si c'est une notif admin mais que je ne suis pas admin, on bloque
+        // Si c'est une notif pour un autre client, on bloque
+        return;
+      }
+
       const rawId = notif._id || notif.id;
       const safeId = rawId ? `sk-${rawId}` : `live-${Date.now()}`;
       
