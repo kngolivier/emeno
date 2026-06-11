@@ -28,9 +28,14 @@ export const NotificationProvider = ({ children }) => {
       // 1. DÉFINITION DU FILTRE DE SEGMENTATION
       // Vérifie si la notif est explicitement pour moi (recipient) 
       // OU si elle est destinée à mon rôle spécifique
-      const isForMe = notif.recipient && notif.recipient.toString() === user._id.toString();
-      const isForMyRole = notif.targetRoles && notif.targetRoles.includes(user.role);
-      
+      const isForMe     = notif.recipient && notif.recipient.toString() === user._id.toString();
+      // Correction : Vérification robuste des rôles
+      const targets = Array.isArray(notif.targetRoles) ? notif.targetRoles : [];
+      // Si l'utilisateur est SUPER_ADMIN, il doit recevoir les notifs destinées aux ADMIN
+      let isForMyRole = targets.includes(user.role);
+      if (user.role === "SUPER_ADMIN" && targets.includes("ADMIN")) {
+        isForMyRole = true;
+      }
       // 2. REJET SILENCIEUX SI CE N'EST PAS POUR MOI
       if (!isForMe && !isForMyRole) {
         // Si c'est une notif admin mais que je ne suis pas admin, on bloque
@@ -60,7 +65,9 @@ export const NotificationProvider = ({ children }) => {
         return;
       }
 
-      // Filtrage : Éviter que les admins soient spammés par les flux exclusifs des clients/partenaires
+      // On autorise la notif si :
+      // 1. Elle est pour moi OU mon rôle
+      // 2. ET (Si je suis admin, elle n'est pas une notif purement Client/Partenaire)
       const isTargetExclusive = (notif.targetRoles?.includes("CLIENT") || notif.targetRoles?.includes("PARTNER_MANAGER")) && 
                                 !notif.targetRoles?.includes("ADMIN") && 
                                 !notif.targetRoles?.includes("SUPER_ADMIN");
