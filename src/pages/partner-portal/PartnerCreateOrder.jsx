@@ -110,11 +110,12 @@ export default function PartnerCreateOrder() {
         const res = await calculatePrice(fromCommune, toCommune);
         let priceCalculated = res?.data?.price || res?.data?.amount || res?.price || 0;
 
-        // --- NOUVEAU : Appliquer la majoration du service sélectionné ---
-        if (selectedService?.pricingIncreasePercent > 0) {
-          const increase = (priceCalculated * selectedService.pricingIncreasePercent) / 100;
+        // --- CORRECTION : Utilisation de pricingIncreaseAmount (montant fixe) ---
+        if (selectedService && selectedService.pricingIncreaseAmount > 0) {
+          const increase = Number(selectedService.pricingIncreaseAmount);
           priceCalculated = Math.round(priceCalculated + increase);
         }
+        
         setRecipients(prev => prev.map(r => 
           r.id === id ? { ...r, estimatedPrice: priceCalculated } : r
         ));

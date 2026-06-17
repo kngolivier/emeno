@@ -167,11 +167,11 @@ export default function ClientCreateOrder() {
       }
 
       // --- NOUVEAU : Appliquer le pourcentage d'augmentation du service ---
-      if (selectedService && selectedService.pricingIncreasePercent > 0) {
-        const increase = (data.price * selectedService.pricingIncreasePercent) / 100;
+      if (selectedService && selectedService.pricingIncreaseAmount > 0) {
+        const increase = Number(selectedService.pricingIncreaseAmount);
         data = {
           ...data,
-          price: Math.round(data.price + increase) // On arrondit pour éviter les décimales
+          price: Math.round(data.price + increase) // On ajoute le montant fixe
         };
       }
 
