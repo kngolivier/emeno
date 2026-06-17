@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
-import { getMe } from "../api/auth.api";
+import { getMe, logoutUser } from "../api/auth.api";
+import { savePushSubscription } from "../api/notifications.api"
 import API from "../api/apiClient";
 import { ENDPOINTS } from "../api/endpoints";
 
@@ -35,11 +36,11 @@ export default function AuthProvider({ children }) {
         applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY)
       });
 
-      await API.post(ENDPOINTS.NOTIFICATIONS_SUBSCRIBE, { 
-        subscription, 
+      await savePushSubscription({
+         subscription, 
         userId: currentUser._id, 
         role: currentUser.role 
-      });
+      })
     } catch (err) {
       console.error("Erreur d'abonnement Push:", err);
     }
@@ -58,7 +59,7 @@ export default function AuthProvider({ children }) {
       }
 
       // Révocation de la session côté serveur (le cookie est détruit)
-      await API.delete(ENDPOINTS.LOGOUT);
+      await logoutUser();
     } catch (err) {
       console.error("Erreur lors de la déconnexion complète:", err);
     } finally {
