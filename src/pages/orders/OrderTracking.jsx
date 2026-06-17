@@ -159,7 +159,10 @@ export default function OrderTracking() {
     try {
       const res = await fetchAvailableDrivers();
       const list = Array.isArray(res) ? res : res?.data?.data || res?.data || [];
-      setDrivers(list);
+      // Sécurité : on s'assure qu'ils sont bien IDLE (au cas où le filtre backend serait désactivé)
+      const idleDrivers = list.filter(d => d.driverState === "IDLE");
+      
+      setDrivers(idleDrivers);
     } catch (err) {
       console.error("Erreur drivers:", err.message);
     }
