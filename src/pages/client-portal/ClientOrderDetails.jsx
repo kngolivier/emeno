@@ -105,7 +105,7 @@ export default function ClientOrderDetails() {
             <ChevronLeft size={20} />
           </button>
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase">
+            <h1 className="text-2xl lg:text-4xl font-black text-primary dark:text-white font-display italic tracking-tighter uppercase">
               Commande <span className="text-secondary">#{delivery.orderNumber}</span>
             </h1>
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-1">
@@ -197,7 +197,9 @@ export default function ClientOrderDetails() {
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-primary/40 backdrop-blur-md">
           <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
             <h3 className="text-xl font-black italic text-center uppercase mb-2">Confirmer ?</h3>
-            <p className="text-slate-500 text-center text-xs mb-8">Action irréversible.</p>
+            <p className="text-slate-500 text-center text-sm mt-4 font-sans leading-relaxed">
+              Confirmez-vous l'annulation de la commande <span className="font-bold text-primary dark:text-white">#{delivery.orderNumber}</span> ?
+            </p>
             <div className="flex gap-4">
               <button onClick={() => setShowCancelModal(false)} className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-xs font-black uppercase">Retour</button>
               <button onClick={handleCancelOrder} disabled={isCancelling} className="flex-1 py-4 rounded-2xl bg-red-500 text-white text-xs font-black uppercase shadow-lg">
