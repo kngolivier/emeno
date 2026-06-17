@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchDeliveryById, cancelDelivery } from "../../api/deliveries.api";
-import { fetchFeedbacksByDelivery } from "../../api/feedback.api"; // Ajoutez cet import
+import { fetchFeedbacksByDelivery } from "../../api/feedback.api";
 import { 
-  Truck, MapPin, Package, Clock, ShieldCheck, 
-  ChevronLeft, XCircle, AlertTriangle, Loader2, Star, Copy, CheckCircle2
+  ChevronLeft, XCircle, Star, Copy, CheckCircle2, 
+  MapPin, Package, Clock, Loader2, AlertTriangle 
 } from "lucide-react";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
@@ -19,6 +19,7 @@ export default function ClientOrderDetails() {
   const { id } = useParams();
   
   const [delivery, setDelivery] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -26,32 +27,25 @@ export default function ClientOrderDetails() {
 
   const loadDelivery = async () => {
     try {
+      setLoading(true);
       const res = await fetchDeliveryById(id);
       const deliveryData = res?.data;
       setDelivery(deliveryData);
 
-      // 2. Vérification si la livraison est terminée
       if (deliveryData?.status === "DELIVERED") {
         try {
-          // On récupère les feedbacks de cette livraison
           const feedbackRes = await fetchFeedbacksByDelivery(id);
           const feedbacks = feedbackRes?.data || [];
-          
-          // On vérifie si l'utilisateur actuel (le client) a déjà laissé un avis
-          // Note : Vous aurez besoin de l'ID de l'utilisateur connecté 
-          // (si vous l'avez dans un store ou contexte Auth)
-          const hasAlreadyRated = feedbacks.some(f => f.authorId === user._id);
-
-          if (!hasAlreadyRated) {
-            setShowFeedbackModal(true);
-          }
+          const hasAlreadyRated = feedbacks.some(f => f.authorId === user?._id);
+          if (!hasAlreadyRated) setShowFeedbackModal(true);
         } catch (err) {
-          // Si l'API retourne une erreur ou si aucun feedback n'existe, on ignore simplement
-          console.log("Aucun feedback trouvé ou erreur de vérification");
+          console.log("Feedback check skipped");
         }
       }
     } catch (err) {
       notifyError("Erreur lors du chargement de la commande");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,14 +53,13 @@ export default function ClientOrderDetails() {
     loadDelivery();
   }, [id]);
 
-  // Fonction restaurée
   const handleCancelOrder = async () => {
     try {
       setIsCancelling(true);
       await cancelDelivery(id);
       notifySuccess("Commande annulée avec succès");
       setShowCancelModal(false);
-      loadDelivery(); // Recharge les données pour mettre à jour le statut
+      loadDelivery();
     } catch (err) {
       notifyError(err?.response?.data?.message || "Erreur lors de l'annulation");
     } finally {
@@ -81,8 +74,9 @@ export default function ClientOrderDetails() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!delivery) return <PageLoader />;
-  
+  if (loading) return <PageLoader />;
+  if (!delivery) return <div className="p-10 text-center">Commande introuvable.</div>;
+
   const steps = [
     { label: "Créée", time: delivery.createdAt },
     { label: "Assignée", time: delivery.timestampsLog?.assignedAt },
