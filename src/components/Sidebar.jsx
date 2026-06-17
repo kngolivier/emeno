@@ -147,6 +147,7 @@ export default function Sidebar({ isOpen, onClose }) {
           { to: "/admin/pricing", label: "Tarifs", icon: <DollarSign size={18} /> },
           { to: "/admin/communes", label: "Zones", icon: <MapPin size={18} /> },
           { to: "/admin/promotions", label: "Promotions", icon: <Gift size={18} /> },
+          { to: "/admin/services", label: "Services", icon: <Layers2 size={18} /> },
           { to: "/admin/feedbacks", label: "Avis", icon: <MessageSquareHeart size={18} /> },
         ]}
       );
