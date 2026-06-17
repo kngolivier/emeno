@@ -1,94 +1,86 @@
-import { useState, useEffect } from "react";
-import { Filter, Star, ShieldCheck, Search } from "lucide-react";
+// FILE: src/pages/feedbacks/FeedbackManagement.jsx
+
+import { Filter, Star, ShieldCheck, MessageSquare, AlertTriangle } from "lucide-react";
 import { fetchAllFeedbacks } from "../../api/feedback.api";
+import { updateFeedbackStatus } from "../../api/feedback.api"; // Assurez-vous d'avoir cette fonction
+import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
-import FeedbackTable from "../../components/feedback/FeedbackTable";
+import { Pagination } from "../../components/Pagination";
 
 export default function FeedbackManagement() {
-  const [feedbacks, setFeedbacks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ status: "ALL", minRating: 0 });
+  const { data: feedbacks = [], meta, loading, setPage, refresh, status, setStatus } = usePaginatedFetch(fetchAllFeedbacks, 10);
 
-  const loadFeedbacks = async () => {
+  const handleStatusChange = async (id, newStatus) => {
     try {
-      setLoading(true);
-      const res = await fetchAllFeedbacks();
-      setFeedbacks(res.data || []);
+      await updateFeedbackStatus(id, { status: newStatus });
+      notifySuccess("Statut mis à jour");
+      refresh();
     } catch (err) {
-      notifyError("Erreur lors du chargement des avis");
-    } finally {
-      setLoading(false);
+      notifyError("Échec de la mise à jour");
     }
   };
-
-  useEffect(() => {
-    loadFeedbacks();
-  }, []);
-
-  // Logique de filtrage local pour l'interface
-  const filteredFeedbacks = feedbacks.filter(fb => {
-    const matchesRating = filter.minRating === 0 || fb.rating >= filter.minRating;
-    const matchesStatus = filter.status === "ALL" || fb.status === filter.status;
-    return matchesRating && matchesStatus;
-  });
 
   if (loading) return <PageLoader />;
 
   return (
     <div className="space-y-8 pb-10">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-black text-primary dark:text-white italic tracking-tighter uppercase">
-            Gestion des avis
-          </h1>
-          <p className="text-slate-400 text-[10px] font-bold mt-2 uppercase tracking-[0.2em]">
-            Modération et suivi de la qualité de service
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white italic tracking-tighter uppercase">Gestion des avis</h1>
+        <p className="text-slate-400 text-[10px] font-bold mt-2 uppercase tracking-[0.2em]">Modération et suivi de la qualité</p>
       </div>
 
-      {/* Barre de Filtres */}
-      <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-50 dark:border-slate-800 shadow-soft">
-        <Filter className="text-slate-400 ml-2" size={16} />
-        
-        <select 
-          onChange={(e) => setFilter({...filter, status: e.target.value})}
-          className="bg-transparent text-[10px] font-black uppercase tracking-widest outline-none text-slate-600 dark:text-slate-300 px-4 py-2"
-        >
-          <option value="ALL">Tous les statuts</option>
-          <option value="PENDING">En attente</option>
-          <option value="RESOLVED">Résolus</option>
-        </select>
-
-        <div className="h-6 w-[1px] bg-slate-100 dark:bg-slate-800" />
-
-        <button 
-          onClick={() => setFilter({...filter, minRating: filter.minRating === 3 ? 0 : 3})}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter.minRating === 3 ? 'bg-amber-500 text-white' : 'text-slate-400 hover:bg-slate-50'}`}
-        >
-          <Star size={14} /> Avis &gt; 3
-        </button>
+      {/* Filtres */}
+      <div className="flex gap-2 overflow-x-auto pb-4">
+        {["ALL", "PENDING", "RESOLVED", "HIDDEN"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatus(s)}
+            className={`px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+              status === s 
+                ? "bg-primary dark:bg-secondary text-white border-primary" 
+                : "bg-white dark:bg-white/5 text-slate-400 border-slate-200 dark:border-white/5"
+            }`}
+          >
+            {s}
+          </button>
+        ))}
       </div>
 
-      {/* Tableau des avis */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-50 dark:border-slate-800 rounded-[2.5rem] shadow-soft overflow-hidden">
-        {filteredFeedbacks.length > 0 ? (
-          <FeedbackTable 
-            feedbacks={filteredFeedbacks} 
-            onStatusChange={(id, status) => {
-              // Ici, appel à votre API de mise à jour de statut (PATCH)
-              notifySuccess("Statut mis à jour");
-              loadFeedbacks();
-            }} 
-          />
-        ) : (
-          <div className="p-20 text-center text-slate-400 text-xs font-black uppercase tracking-widest">
-            Aucun avis trouvé avec ces filtres
-          </div>
-        )}
+      {/* Tableau (Desktop) */}
+      <div className="hidden lg:block bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-slate-50/50 dark:bg-white/5">
+            <tr>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Auteur</th>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Commentaire</th>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Note</th>
+              <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+            {feedbacks.map((fb) => (
+              <tr key={fb._id} className="hover:bg-slate-50/30 transition-colors">
+                <td className="p-6">
+                  <p className="font-bold text-sm">{fb.authorId?.prenom} {fb.authorId?.nom}</p>
+                  <span className="text-[9px] font-black text-slate-400 uppercase">{fb.authorRole}</span>
+                </td>
+                <td className="p-6 text-xs text-slate-600 dark:text-slate-400 italic max-w-sm truncate">{fb.comment}</td>
+                <td className="p-6 text-center font-black">{fb.rating}.0</td>
+                <td className="p-6 text-right">
+                  {fb.status === 'PENDING' && (
+                    <button onClick={() => handleStatusChange(fb._id, 'RESOLVED')} className="p-2 hover:text-emerald-500 transition-colors">
+                      <ShieldCheck size={20} />
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      <Pagination meta={meta} setPage={setPage} />
     </div>
   );
 }
