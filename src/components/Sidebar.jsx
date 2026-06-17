@@ -10,7 +10,8 @@ import {
   Package,
   Clock,
   Gift,
-  Layers2
+  Layers2,
+  MessageSquareHeart
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/Theme/ThemeContext";
@@ -18,7 +19,7 @@ import { ROLE_LABELS } from "../constants/constants";
 import { savePushSubscription } from "../api/notifications.api";
 import { logoutUser } from "../api/auth.api";
 import { notifySuccess, notifyError } from "../utils/notify";
-import { usePwaInstall } from "../hooks/usePwaInstall";
+// import { usePwaInstall } from "../hooks/usePwaInstall";
 
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -126,48 +127,83 @@ export default function Sidebar({ isOpen, onClose }) {
         : "text-slate-500 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary dark:hover:text-white"
     }`;
 
-  const getNavItems = () => {
+  const getNavGroups = () => {
     const role = user?.role;
-    const adminBase = [
-      { to: "/admin", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
-      { to: "/admin/deliveries", label: "Livraisons", icon: <ShoppingCart size={20} /> },
-      { to: "/admin/drivers", label: "Livreurs", icon: <Truck size={20} /> },
-      { to: "/admin/clients", label: "Clients", icon: <Users size={20} /> },
-      { to: "/admin/pricing", label: "Tarifs", icon: <DollarSign size={20} /> },
-      { to: "/admin/communes", label: "Zones", icon: <MapPin size={20} /> },
-      { to: "/admin/partners", label: "Partenaires", icon: <Store size={20} /> },
-      { to: "/admin/promotions", label: "Promotions", icon: <Gift size={20} /> },
-      { to: "/admin/services", label: "Services", icon: <Layers2 size={20} /> },
-      { to: "/admin/settings", label: "Paramètres", icon: <Settings size={20} /> },
-    ];
-    if (role === "PARTNER_MANAGER") return [
-      { to: "/partner", label: "Accueil", icon: <HomeIcon size={20} /> },
-      { to: "/partner/dashboard", label: "Vue d'ensemble", icon: <LayoutDashboard size={20} /> },
-      { to: "/partner/orders", label: "Expéditions", icon: <Layers size={20} /> },
-      { to: "/partner/catalog", label: "Catalogue", icon: <Package size={20} /> },
-      { to: "/partner/settings", label: "Mon Établissement", icon: <Settings size={20} /> },
-    ];
-    if (role === "SUPER_ADMIN") return [
-      ...adminBase, { to: "/admin/admins", 
-      label: "Équipe", icon: <Shield size={20} /> },
-      { to: "/admin/audit-logs", label: "Journal d'activité", icon: <Clock size={20} /> },
-    ];
-    if (role === "ADMIN") return adminBase;
-    if (role === "DRIVER") return [
-      { to: "/driver", label: "Tableau de bord", icon: <LayoutDashboard size={20} /> },
-      { to: "/driver/deliveries", label: "Mes courses", icon: <Truck size={20} /> },
-      { to: "/driver/profile", label: "Profil", icon: <User size={20} /> },
-    ];
-    if (role === "CLIENT") return [
-      { to: "/client", label: "Accueil", icon: <HomeIcon size={20} /> },
-      { to: "/client/new-order", label: "Commande", icon: <PlusCircle size={20} /> },
-      { to: "/client/orders", label: "Historique", icon: <ShoppingCart size={20} /> },
-      { to: "/client/profile", label: "Mon Profil", icon: <User size={20} /> },
-    ];
-    return [];
+    const groups = [];
+
+    // --- ADMINISTRATION (ADMIN / SUPER_ADMIN) ---
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      groups.push(
+        { title: "Principal", items: [
+          { to: "/admin", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
+          { to: "/admin/deliveries", label: "Livraisons", icon: <ShoppingCart size={18} /> },
+        ]},
+        { title: "Opérations", items: [
+          { to: "/admin/drivers", label: "Livreurs", icon: <Truck size={18} /> },
+          { to: "/admin/clients", label: "Clients", icon: <Users size={18} /> },
+          { to: "/admin/partners", label: "Partenaires", icon: <Store size={18} /> },
+        ]},
+        { title: "Configuration", items: [
+          { to: "/admin/pricing", label: "Tarifs", icon: <DollarSign size={18} /> },
+          { to: "/admin/communes", label: "Zones", icon: <MapPin size={18} /> },
+          { to: "/admin/promotions", label: "Promotions", icon: <Gift size={18} /> },
+          { to: "/admin/feedbacks", label: "Avis", icon: <MessageSquareHeart size={18} /> },
+        ]}
+      );
+      if (role === "SUPER_ADMIN") {
+        groups.push({ title: "Système", items: [
+          { to: "/admin/admins", label: "Équipe", icon: <Shield size={18} /> },
+          { to: "/admin/audit-logs", label: "Logs", icon: <Clock size={18} /> },
+          { to: "/admin/settings", label: "Paramètres", icon: <Settings size={18} /> },
+        ]});
+      }
+    }
+
+    // --- CLIENT ---
+    if (role === "CLIENT") {
+      groups.push(
+        { title: "Navigation", items: [
+          { to: "/client", label: "Accueil", icon: <HomeIcon size={18} /> },
+          { to: "/client/new-order", label: "Nouvelle course", icon: <PlusCircle size={18} /> },
+        ]},
+        { title: "Suivi", items: [
+          { to: "/client/orders", label: "Mes commandes", icon: <ShoppingCart size={18} /> },
+          { to: "/client/profile", label: "Mon Profil", icon: <User size={18} /> },
+        ]}
+      );
+    }
+
+    // --- DRIVER ---
+    if (role === "DRIVER") {
+      groups.push(
+        { title: "Activité", items: [
+          { to: "/driver", label: "Tableau de bord", icon: <LayoutDashboard size={18} /> },
+          { to: "/driver/deliveries", label: "Mes courses", icon: <Truck size={18} /> },
+        ]},
+        { title: "Compte", items: [
+          { to: "/driver/profile", label: "Mon Profil", icon: <User size={18} /> },
+        ]}
+      );
+    }
+
+    // --- PARTNER ---
+    if (role === "PARTNER_MANAGER") {
+      groups.push(
+        { title: "Gestion", items: [
+          { to: "/partner/dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
+          { to: "/partner/orders", label: "Expéditions", icon: <Layers size={18} /> },
+        ]},
+        { title: "Catalogue", items: [
+          { to: "/partner/catalog", label: "Produits", icon: <Package size={18} /> },
+          { to: "/partner/settings", label: "Paramètres", icon: <Settings size={18} /> },
+        ]}
+      );
+    }
+
+    return groups;
   };
 
-  const navItems = getNavItems();
+  // const navItems = getNavItems();
 
   return (
     <>
@@ -189,18 +225,28 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* 3. flex-1 permet de prendre tout l'espace disponible, overflow-y-auto active le scroll si besoin */}
-        <nav className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0">
-          <div className="mb-6 px-4">
-            <p className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.3em] italic">
-              Espace {ROLE_LABELS[user?.role] || user?.role?.toLowerCase()}
-            </p>
-          </div>
-          
-          {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} end className={linkClass} onClick={() => window.innerWidth < 1024 && onClose()}>
-              <span className="opacity-80 group-hover:opacity-100 transition-opacity">{item.icon}</span>
-              <span>{item.label}</span>
-            </NavLink>
+        <nav className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0 space-y-8 pb-8">
+          {getNavGroups().map((group, idx) => (
+            <div key={idx}>
+              {/* Titre de catégorie */}
+              <p className="px-5 mb-3 text-[9px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] italic">
+                {group.title}
+              </p>
+              
+              {/* Liens de la catégorie */}
+              {group.items.map((item) => (
+                <NavLink 
+                  key={item.to} 
+                  to={item.to} 
+                  end 
+                  className={linkClass} 
+                  onClick={() => window.innerWidth < 1024 && onClose()}
+                >
+                  <span className="opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
 
