@@ -64,7 +64,6 @@ export default function AuthProvider({ children }) {
     } finally {
       // Nettoyage de l'état même si une requête réseau échoue
       setUser(null);
-      window.location.href = "/login";
     }
   }, []); // 💡 Dépendance vide car l'identité est gérée par le cookie côté serveur maintenant !
 
