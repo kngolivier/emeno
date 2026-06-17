@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   X, Calendar, DollarSign, Tag, Users, Layers, CheckCircle,
-  XCircle, Edit3, Trash2, Save, ArrowLeft, Plus, List
+  XCircle, Edit3, Trash2, Save, List, Smartphone, FileText, Plus
 } from "lucide-react";
 
 import { useTheme } from "../../context/Theme/ThemeContext";
@@ -21,6 +21,8 @@ export default function ServiceDetails() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [newBenefit, setNewBenefit] = useState("");
+
   const [actionLoading, setActionLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
@@ -44,19 +46,13 @@ export default function ServiceDetails() {
   useEffect(() => { fetchService(); }, [id]);
 
   const imageUrl = typeof service?.image === "string" ? service.image : service?.image?.url || fallbackImage;
-  const isActive = service?.isActive ?? true;
-
-  const statusUI = useMemo(() => ({
-    label: isActive ? "ACTIVE" : "INACTIVE",
-    icon: isActive ? <CheckCircle size={12} /> : <XCircle size={12} />,
-    className: isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
-  }), [isActive]);
 
   const handleUpdate = async () => {
     try {
       setActionLoading(true);
-      await update(id, formData);
-      setService(formData);
+      const payload = { ...formData, pricingIncreaseAmount: Number(formData.pricingIncreaseAmount), displayOrder: Number(formData.displayOrder) };
+      await update(id, payload);
+      await fetchService();
       setIsEditing(false);
       notifySuccess("Service mis à jour");
     } catch (err) {
@@ -80,76 +76,82 @@ export default function ServiceDetails() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center text-gray-500">Chargement du service...</div>;
+  if (loading) return <div className="p-10 text-center text-gray-500">Chargement...</div>;
   if (!service) return <div className="p-10 text-center text-red-500">Service introuvable</div>;
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden w-full max-w-2xl mx-auto relative">
-      <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.03] flex items-center justify-center pointer-events-none">
-        <img src={imageUrl} className="w-[600px] h-[600px] object-cover blur-[2px] rounded-full" alt="" />
+      <div className="relative h-44 bg-gradient-to-r from-primary via-slate-900 to-black p-6 flex items-end justify-between overflow-hidden">
+        <button onClick={() => navigate(-1)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md">
+          <X size={18} />
+        </button>
+        <img src={imageUrl} onClick={() => setZoomOpen(true)} className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow-2xl cursor-zoom-in" alt={service.title} />
       </div>
 
-      <div className="relative z-10 max-h-[85vh] overflow-y-auto">
-        <div className="relative h-44 bg-gradient-to-r from-primary via-slate-900 to-black p-6 flex items-end justify-between">
-          <button onClick={() => navigate(-1)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md">
-            <X size={18} />
-          </button>
-          <img src={imageUrl} onClick={() => setZoomOpen(true)} className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow-2xl cursor-zoom-in" alt={service.title} />
-        </div>
-
-        <div className="p-6 md:p-8 pt-14 space-y-6">
-          {isEditing ? (
-            <div className="space-y-4">
-              <input className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-bold" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Titre" />
-              <textarea className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Description" />
-              <button onClick={handleUpdate} disabled={actionLoading} className="w-full p-4 bg-primary text-white rounded-2xl font-black uppercase">Enregistrer</button>
-              <button onClick={() => setIsEditing(false)} className="w-full text-slate-400 font-bold uppercase text-xs">Annuler</button>
+      <div className="p-8 space-y-6">
+        {isEditing ? (
+          <div className="space-y-4">
+            <input className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-bold" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Titre" />
+            <textarea className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+            <input className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" value={formData.whatsappNumber} onChange={e => setFormData({...formData, whatsappNumber: e.target.value})} placeholder="Numéro WhatsApp" />
+            <textarea className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" rows={2} value={formData.whatsappTemplate} onChange={e => setFormData({...formData, whatsappTemplate: e.target.value})} placeholder="Template WhatsApp" />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <input type="number" className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" value={formData.pricingIncreaseAmount} onChange={e => setFormData({...formData, pricingIncreaseAmount: e.target.value})} placeholder="Majoration" />
+              <input type="number" className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" value={formData.displayOrder} onChange={e => setFormData({...formData, displayOrder: e.target.value})} placeholder="Ordre" />
             </div>
-          ) : (
-            <>
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className={`inline-flex items-center gap-2 text-[9px] font-black uppercase px-3 py-1 rounded-full ${statusUI.className}`}>
-                    {statusUI.icon} {statusUI.label}
-                  </span>
-                  <h2 className="text-3xl font-black text-primary dark:text-white uppercase italic mt-3">{service.title}</h2>
-                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">{service.type}</p>
+
+            <div>
+                <label className="text-[10px] font-black uppercase text-slate-400">Avantages</label>
+                <div className="flex gap-2 mt-2">
+                    <input className="flex-1 p-4 bg-slate-50 rounded-2xl" value={newBenefit} onChange={e => setNewBenefit(e.target.value)} />
+                    <button type="button" onClick={() => { setFormData({...formData, benefits: [...formData.benefits, newBenefit]}); setNewBenefit("") }} className="p-4 bg-primary text-white rounded-2xl"><Plus/></button>
                 </div>
-                <button onClick={() => setIsEditing(true)} className="p-2 text-slate-400 hover:text-primary"><Edit3 size={20} /></button>
-              </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <InfoCard icon={<DollarSign size={14} />} label="Tarification" value={service.pricingMode} />
-                <InfoCard icon={<DollarSign size={14} />} label="Majoration" value={`${service.pricingIncreaseAmount || 0} FCFA`} />
-                <InfoCard icon={<Users size={14} />} label="WhatsApp" value={service.whatsappNumber || "N/A"} />
-                <InfoCard icon={<Layers size={14} />} label="Ordre" value={service.displayOrder} />
-                <InfoCard icon={<Calendar size={14} />} label="Créé le" value={new Date(service.createdAt).toLocaleDateString()} />
+            <button onClick={handleUpdate} disabled={actionLoading} className="w-full p-4 bg-primary text-white rounded-2xl font-black uppercase">Enregistrer</button>
+            <button onClick={() => setIsEditing(false)} className="w-full text-slate-400 font-bold uppercase text-xs">Annuler</button>
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-between items-start">
+              <div>
+                <span className={`inline-flex items-center gap-2 text-[9px] font-black uppercase px-3 py-1 rounded-full ${service.isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"}`}>
+                  {service.isActive ? <CheckCircle size={12}/> : <XCircle size={12}/>} {service.isActive ? "ACTIVE" : "INACTIVE"}
+                </span>
+                <h2 className="text-3xl font-black text-primary dark:text-white uppercase italic mt-3">{service.title}</h2>
               </div>
+              <button onClick={() => setIsEditing(true)} className="p-2 text-slate-400 hover:text-primary"><Edit3 size={20} /></button>
+            </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <InfoCard icon={<DollarSign size={14} />} label="Tarification" value={service.pricingMode} />
+              <InfoCard icon={<Tag size={14} />} label="Type" value={service.type} />
+              <InfoCard icon={<Smartphone size={14} />} label="WhatsApp" value={service.whatsappNumber} />
+              <InfoCard icon={<Layers size={14} />} label="Ordre" value={service.displayOrder} />
+            </div>
+
+            <div className="p-5 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800">
+              <h4 className="text-[10px] font-black uppercase text-slate-400 mb-2 flex items-center gap-2"><FileText size={12}/> Description</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{service.description}</p>
+            </div>
+
+            {service.benefits?.length > 0 && (
               <div className="p-5 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <h4 className="text-[10px] font-black uppercase text-slate-400 mb-2">Description</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{service.description}</p>
-              </div>
-
-              {service.benefits?.length > 0 && (
-                <div className="p-5 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 flex items-center gap-2"><List size={12} /> Avantages</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {service.benefits.map((b, i) => (
-                      <span key={i} className="px-3 py-1 bg-white dark:bg-slate-700 rounded-full text-[11px] font-bold shadow-sm">{b}</span>
-                    ))}
-                  </div>
+                <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 flex items-center gap-2"><List size={12} /> Avantages</h4>
+                <div className="flex flex-wrap gap-2">
+                  {service.benefits.map((b, i) => <span key={i} className="px-3 py-1 bg-white dark:bg-slate-700 rounded-full text-[11px] font-bold shadow-sm">{b}</span>)}
                 </div>
-              )}
-
-              <div className="grid grid-cols-3 gap-3">
-                <button onClick={() => setShowDeleteModal(true)} className="flex flex-col items-center p-4 bg-rose-500/10 text-rose-500 rounded-2xl font-black uppercase text-[9px]"><Trash2 size={16} /> Supprimer</button>
-                <button onClick={() => update(id, { isActive: !isActive }).then(fetchService)} className="flex flex-col items-center p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px]"><CheckCircle size={16} /> Basculer</button>
-                <button onClick={() => getWhatsappLink(id).then(r => window.open(r.data.link, "_blank"))} className="flex flex-col items-center p-4 bg-green-500 text-white rounded-2xl font-black uppercase text-[9px]">WhatsApp</button>
               </div>
-            </>
-          )}
-        </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-3">
+              <button onClick={() => setShowDeleteModal(true)} className="flex flex-col items-center p-4 bg-rose-500/10 text-rose-500 rounded-2xl font-black uppercase text-[9px]"><Trash2 size={16} /> Supprimer</button>
+              <button onClick={() => update(id, { isActive: !service.isActive }).then(fetchService)} className="flex flex-col items-center p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px]"><CheckCircle size={16} /> Statut</button>
+              <button onClick={() => getWhatsappLink(id).then(r => window.open(r.data.link, "_blank"))} className="flex flex-col items-center p-4 bg-green-500 text-white rounded-2xl font-black uppercase text-[9px]">WhatsApp</button>
+            </div>
+          </>
+        )}
       </div>
 
       {showDeleteModal && (
@@ -163,16 +165,6 @@ export default function ServiceDetails() {
           </div>
         </div>
       )}
-      <ImageModal open={zoomOpen} src={imageUrl} onClose={() => setZoomOpen(false)} />
-    </div>
-  );
-}
-
-function ImageModal({ open, src, onClose }) {
-  if (!open) return null;
-  return (
-    <div onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-6">
-      <img src={src} className="max-w-full max-h-full rounded-2xl shadow-2xl" alt="preview" />
     </div>
   );
 }
