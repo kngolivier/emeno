@@ -3,7 +3,7 @@ import { Filter, Star, ShieldCheck, Search } from "lucide-react";
 import { fetchAllFeedbacks } from "../../api/feedback.api";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
-import FeedbackTable from "../../components/feedbacks/FeedbackTable";
+import FeedbackTable from "../../components/feedback/FeedbackTable";
 
 export default function FeedbackManagement() {
   const [feedbacks, setFeedbacks] = useState([]);
