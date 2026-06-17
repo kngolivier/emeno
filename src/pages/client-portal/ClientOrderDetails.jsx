@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchDeliveryById, cancelDelivery } from "../../api/deliveries.api";
+import { fetchFeedbacksByDelivery } from "../../api/feedback.api"; // Ajoutez cet import
 import { 
   Truck, MapPin, Package, Clock, ShieldCheck, 
   ChevronLeft, XCircle, AlertTriangle, Loader2, Star, Copy, CheckCircle2
@@ -10,8 +11,10 @@ import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
 import FeedbackModal from "../../components/feedback/FeedbackModal";
 import { STATUS_COLORS, STATUS_LABELS, CATEGORY_LABELS } from "../../constants/constants";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ClientOrderDetails() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
   
@@ -24,9 +27,28 @@ export default function ClientOrderDetails() {
   const loadDelivery = async () => {
     try {
       const res = await fetchDeliveryById(id);
-      setDelivery(res?.data);
-      if (res?.data?.status === "DELIVERED" && !res?.data?.hasFeedback) {
-        setShowFeedbackModal(true);
+      const deliveryData = res?.data;
+      setDelivery(deliveryData);
+
+      // 2. Vérification si la livraison est terminée
+      if (deliveryData?.status === "DELIVERED") {
+        try {
+          // On récupère les feedbacks de cette livraison
+          const feedbackRes = await fetchFeedbacksByDelivery(id);
+          const feedbacks = feedbackRes?.data || [];
+          
+          // On vérifie si l'utilisateur actuel (le client) a déjà laissé un avis
+          // Note : Vous aurez besoin de l'ID de l'utilisateur connecté 
+          // (si vous l'avez dans un store ou contexte Auth)
+          const hasAlreadyRated = feedbacks.some(f => f.authorId === user._id);
+
+          if (!hasAlreadyRated) {
+            setShowFeedbackModal(true);
+          }
+        } catch (err) {
+          // Si l'API retourne une erreur ou si aucun feedback n'existe, on ignore simplement
+          console.log("Aucun feedback trouvé ou erreur de vérification");
+        }
       }
     } catch (err) {
       notifyError("Erreur lors du chargement de la commande");

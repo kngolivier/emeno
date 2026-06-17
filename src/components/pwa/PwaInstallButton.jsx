@@ -19,7 +19,7 @@ export default function PwaInstallButton() {
       {/* Bouton Flottant */}
       <button
         onClick={() => setShowModal(true)}
-        className="fixed bottom-6 right-6 z-[999] bg-primary text-white p-4 rounded-full shadow-2xl shadow-primary/30 flex items-center gap-2 hover:scale-105 transition-all"
+        className="fixed bottom-6 right-6 z-[999] bg-secondary text-primary p-4 rounded-full shadow-2xl shadow-secondary/30 flex items-center gap-2 hover:scale-105 transition-all"
       >
         <Download size={20} />
       </button>
