@@ -49,10 +49,15 @@ export default function RegisterPage() {
     try {
       const response = await registerClient(formData);
       if (response.data?.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        // SUPPRIMÉ : localStorage.setItem("user", ...);
+        // On redirige directement. Le prochain appel API (getMe) récupérera la session via le cookie.
         window.location.href = "/client"; 
       }
-    } catch (err) { setError(err.message || "Erreur lors de l'inscription"); } finally { setLoading(false); }
+    } catch (err) { 
+      setError(err.message || "Erreur lors de l'inscription"); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (

@@ -20,8 +20,11 @@ export default function Login() {
     setLoading(true);
     try {
       const { data } = await loginApi(form);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      login({ user: data.user });
+      
+      // SUPPRIMÉ : localStorage.setItem("user", JSON.stringify(data.user)); 
+      // Le backend gère le cookie de session, l'auth est automatique.
+      
+      login(data.user); // On passe juste le user au contexte
       
       if (data.user.status === "PENDING") return navigate("/verify-otp", { replace: true });
       if (data.mustChangePassword) return navigate("/change-password", { replace: true });
@@ -29,7 +32,6 @@ export default function Login() {
       const routes = { SUPER_ADMIN: "/admin", ADMIN: "/admin", DRIVER: "/driver", CLIENT: "/client", PARTNER_MANAGER: "/partner" };
       navigate(routes[data.user.role] || "/unauthorized", { replace: true });
     } catch (err) { 
-      // Utilisation de la notification toast au lieu d'un texte statique
       notifyError(err.response?.data?.message || "Identifiants invalides");
     } finally { 
       setLoading(false); 

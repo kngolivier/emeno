@@ -8,25 +8,28 @@ import { ThemeContext } from "./ThemeContext";
 const fullConfig = resolveConfig(tailwindConfig);
 
 export const ThemeProvider = ({ children }) => {
-  // Initialisation de l'état depuis le localStorage ou les préférences système
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) return savedTheme === "dark";
+    // Lecture sécurisée du localStorage
+    try {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme) return savedTheme === "dark";
+    } catch (e) {
+      console.warn("localStorage inaccessible");
+    }
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
-  // Effet pour appliquer la classe 'dark' au document et sauvegarder le choix
   useEffect(() => {
     const root = window.document.documentElement;
+    const theme = isDarkMode ? "dark" : "light";
     
-    if (isDarkMode) {
-      root.classList.add("dark");
-      root.classList.remove("light");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.add("light");
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
+    root.classList.toggle("dark", isDarkMode);
+    root.classList.toggle("light", !isDarkMode);
+    
+    try {
+      localStorage.setItem("theme", theme);
+    } catch (e) {
+      console.error("Impossible de sauvegarder le thème");
     }
   }, [isDarkMode]);
 

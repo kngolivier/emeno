@@ -2,15 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
-import { getMe } from "../api/auth.api"; // Importez la nouvelle fonction
+import { getMe } from "../api/auth.api";
+import API from "../api/apiClient";
+import { ENDPOINTS } from "../api/endpoints";
 
 export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
-  
-  const [loading, setLoading] = useState(true); // Initialisez à true
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const urlBase64ToUint8Array = (base64String) => {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -23,80 +21,85 @@ export default function AuthProvider({ children }) {
     return outputArray;
   };
 
-  // Fonction utilitaire pour souscrire au Push
-  const registerPushSubscription = async (user) => {
-    if (!('serviceWorker' in navigator)) return;
+  // Fonction de souscription sécurisée
+  const registerPushSubscription = async (currentUser) => {
+    if (!('serviceWorker' in navigator) || !currentUser) return;
     
+    // 💡 SÉCURITÉ : Si l'utilisateur a bloqué les notifications, on n'exécute rien
+    if (window.Notification && Notification.permission === 'denied') return;
+
     try {
       const registration = await navigator.serviceWorker.ready;
-      // On s'abonne avec la clé publique VAPID
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY)
       });
 
-      // Envoi au backend
-      await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/subscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription, userId: user._id, role: user.role })
+      await API.post(ENDPOINTS.NOTIFICATIONS_SUBSCRIBE, { 
+        subscription, 
+        userId: currentUser._id, 
+        role: currentUser.role 
       });
     } catch (err) {
       console.error("Erreur d'abonnement Push:", err);
     }
   };
 
-  // Correction de la fonction logout dans AuthProvider.jsx
+  // Déconnexion propre (Session + Push désactivé sur le terminal)
   const logout = useCallback(async () => {
-    if (user) {
-      try {
-        // On attend la suppression côté serveur avant de vider le local
-        await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/unsubscribe`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user._id })
-        });
-      } catch (err) {
-        console.error("Erreur désabonnement:", err);
-      }
-    }
-    localStorage.removeItem("user");
-    setUser(null);
-  }, [user]);
-  // 💡 Effet de synchronisation au chargement
-  useEffect(() => {
-    const syncUser = async () => {
-      const token = localStorage.getItem("user"); // Vérifie si on a une session
-      if (token) {
-        try {
-          const freshData = await getMe();
-          // Mise à jour avec les données réelles du serveur (incluant le driverState/PAUSE)
-          localStorage.setItem("user", JSON.stringify(freshData.data));
-          setUser(freshData.data);
-        } catch (err) {
-          // Si le token est expiré ou invalide
-          logout();
+    try {
+      // 💡 OPTIMISATION : Désabonnement propre côté client (évite les jetons fantômes)
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
         }
       }
-      setLoading(false);
+
+      // Révocation de la session côté serveur (le cookie est détruit)
+      await API.delete(ENDPOINTS.LOGOUT);
+    } catch (err) {
+      console.error("Erreur lors de la déconnexion complète:", err);
+    } finally {
+      // Nettoyage de l'état même si une requête réseau échoue
+      setUser(null);
+      window.location.href = "/login";
+    }
+  }, []); // 💡 Dépendance vide car l'identité est gérée par le cookie côté serveur maintenant !
+
+  // Synchronisation unique au chargement initial
+  useEffect(() => {
+    const syncUser = async () => {
+      try {
+        const freshData = await getMe();
+        setUser(freshData.data);
+        
+        // On ne déclenche la synchronisation push invisible que si la permission est déjà accordée.
+        // Cela évite un pop-up agressif au rafraîchissement si l'user avait ignoré la demande.
+        if (window.Notification && Notification.permission === 'granted') {
+          registerPushSubscription(freshData.data);
+        }
+      } catch (err) {
+        console.warn("Utilisateur non authentifié ou session expirée");
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     syncUser();
-  }, [logout]);
+  }, []);
 
-  const login = ({ user }) => {
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
-    // 💡 AUTOMATISATION : On s'abonne dès le login
-    registerPushSubscription(user);
+  const login = (userData) => {
+    setUser(userData);
+    // Au moment du login explicite, on peut déclencher la demande d'abonnement push
+    registerPushSubscription(userData);
   };
 
   const updateUser = (updatedUser) => {
-    localStorage.setItem("user", JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
-
-  const isAuthenticated = !!user;
 
   return (
     <AuthContext.Provider
@@ -105,7 +108,7 @@ export default function AuthProvider({ children }) {
         login,
         logout,
         updateUser,
-        isAuthenticated,
+        isAuthenticated: !!user,
         loading,
       }}
     >

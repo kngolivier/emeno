@@ -23,6 +23,12 @@ export default function DriverLayout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if ("permissions" in navigator) {
+    navigator.permissions.query({ name: "notifications" }).then((result) => {
+      // Met à jour l'interface si l'utilisateur change la permission dans le cadenas du navigateur
+      result.onchange = () => setPushStatus(result.state);
+    });
+    
     if ("Notification" in window) {
       setPushStatus(Notification.permission);
     }
