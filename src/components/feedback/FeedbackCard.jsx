@@ -1,5 +1,7 @@
 // FILE: src/components/feedback/FeedbackCard.jsx
 
+import { Star } from "lucide-react";
+
 export default function FeedbackCard({ feedback, onResolve }) {
   const isResolved = feedback.status === 'RESOLVED';
   
