@@ -1,6 +1,7 @@
 // FILE: src/components/feedback/FeedbackTable.jsx
 
 import { ShieldCheck, Clock, CheckCircle2, MessageSquare } from "lucide-react";
+import { FEEDBACK_STATUS_LABELS } from "../../constants/constants";
 
 export default function FeedbackTable({ feedbacks, onStatusChange }) {
   return (
@@ -36,7 +37,7 @@ export default function FeedbackTable({ feedbacks, onStatusChange }) {
                 fb.status === 'RESOLVED' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
               }`}>
                 {fb.status === 'RESOLVED' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                {fb.status}
+                {FEEDBACK_STATUS_LABELS[fb.status] || fb.status}
               </span>
             </td>
             <td className="p-6 text-right">

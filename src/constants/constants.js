@@ -48,3 +48,10 @@ export const MODE_LABELS = {
   BASE_PRICING: "Tarification de base",
   WHATSAPP_ONLY: "WhatsApp uniquement"
 };
+
+export const FEEDBACK_STATUS_LABELS = {
+  PENDING: "En attente",
+  RESOLVED: "Résolu",
+  HIDDEN: "Masqué",
+  READ: "Lu"
+};

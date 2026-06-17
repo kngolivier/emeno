@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
-export const usePaginatedFetch = (fetchFn, initialLimit = 10) => {
+export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Number(searchParams.get("page") ?? 1);
@@ -18,8 +18,8 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10) => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // On passe tous les paramètres au backend
-      const res = await fetchFn({ page, limit, status, search });
+      // Fusion des paramètres URL et des filtres complexes
+      const res = await fetchFn({ page, limit, status, search, ...filters });
       setData(res?.data?.data ?? res?.data ?? []);
       setMeta(res?.data?.meta ?? res?.meta ?? null);
     } catch (err) {
@@ -27,15 +27,14 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10) => {
     } finally {
       setLoading(false);
     }
-  }, [fetchFn, page, limit, status, search]);
+  // Dépendance sur JSON.stringify(filters) pour détecter les changements d'objet
+  }, [fetchFn, page, limit, status, search, JSON.stringify(filters)]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Handlers pour modifier l'URL (qui déclenchent le useEffect)
   const setPage = (newPage) => updateParams({ page: newPage });
-  const setSearch = (newSearch) => updateParams({ search: newSearch, page: 1 });
   const setStatus = (newStatus) => updateParams({ status: newStatus, page: 1 });
 
   const updateParams = (newParams) => {
@@ -45,5 +44,5 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10) => {
     });
   };
 
-  return { data, meta, loading, page, limit, search, setPage, setSearch, setStatus, refresh: fetchData };
+  return { data, meta, loading, page, limit, setPage, setStatus, refresh: fetchData };
 };
