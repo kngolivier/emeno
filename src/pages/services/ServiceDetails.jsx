@@ -2,12 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   X, Calendar, DollarSign, Tag, Users, Layers, CheckCircle,
-  XCircle, Edit3, Trash2, Save, RefreshCw
+  XCircle, Edit3, Trash2, Save, ArrowLeft, Plus, List
 } from "lucide-react";
 
 import { useTheme } from "../../context/Theme/ThemeContext";
 import { getById, getWhatsappLink, remove, update } from "../../api/service.api";
-import { MODE_LABELS } from "../../constants/constants";
 import { notifySuccess, notifyError } from "../../utils/notify";
 
 const DEFAULT_SERVICE_IMAGE_LIGHT = "https://res.cloudinary.com/dzzokuvat/image/upload/f_auto,q_auto/service-light.png";
@@ -22,10 +21,7 @@ export default function ServiceDetails() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
-
   const [actionLoading, setActionLoading] = useState(false);
-  const [toggling, setToggling] = useState(false);
-  const [whLoading, setWhLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
 
@@ -39,7 +35,7 @@ export default function ServiceDetails() {
       setService(data);
       setFormData(data);
     } catch (err) {
-      console.error("Erreur fetch service:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -89,12 +85,12 @@ export default function ServiceDetails() {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden w-full max-w-2xl mx-auto relative">
-      <div className="relative inset-0 opacity-[0.04] dark:opacity-[0.03] flex items-center justify-center pointer-events-none absolute">
+      <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.03] flex items-center justify-center pointer-events-none">
         <img src={imageUrl} className="w-[600px] h-[600px] object-cover blur-[2px] rounded-full" alt="" />
       </div>
 
       <div className="relative z-10 max-h-[85vh] overflow-y-auto">
-        <div className="relative h-44 bg-gradient-to-r from-primary via-slate-900 to-black p-6 flex items-end justify-between overflow-hidden">
+        <div className="relative h-44 bg-gradient-to-r from-primary via-slate-900 to-black p-6 flex items-end justify-between">
           <button onClick={() => navigate(-1)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md">
             <X size={18} />
           </button>
@@ -104,11 +100,9 @@ export default function ServiceDetails() {
         <div className="p-6 md:p-8 pt-14 space-y-6">
           {isEditing ? (
             <div className="space-y-4">
-              <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Titre" />
-              <textarea className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Description" />
-              <button onClick={handleUpdate} disabled={actionLoading} className="w-full p-4 bg-primary text-white rounded-2xl font-black uppercase flex justify-center gap-2">
-                <Save size={16} /> Enregistrer
-              </button>
+              <input className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-bold" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Titre" />
+              <textarea className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Description" />
+              <button onClick={handleUpdate} disabled={actionLoading} className="w-full p-4 bg-primary text-white rounded-2xl font-black uppercase">Enregistrer</button>
               <button onClick={() => setIsEditing(false)} className="w-full text-slate-400 font-bold uppercase text-xs">Annuler</button>
             </div>
           ) : (
@@ -119,22 +113,38 @@ export default function ServiceDetails() {
                     {statusUI.icon} {statusUI.label}
                   </span>
                   <h2 className="text-3xl font-black text-primary dark:text-white uppercase italic mt-3">{service.title}</h2>
+                  <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">{service.type}</p>
                 </div>
                 <button onClick={() => setIsEditing(true)} className="p-2 text-slate-400 hover:text-primary"><Edit3 size={20} /></button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InfoCard icon={<DollarSign size={14} />} label="Prix" value={service.pricingMode} />
-                <InfoCard icon={<Users size={14} />} label="WhatsApp" value={service.whatsappNumber} />
+              <div className="grid grid-cols-2 gap-4">
+                <InfoCard icon={<DollarSign size={14} />} label="Tarification" value={service.pricingMode} />
+                <InfoCard icon={<DollarSign size={14} />} label="Majoration" value={`${service.pricingIncreaseAmount || 0} FCFA`} />
+                <InfoCard icon={<Users size={14} />} label="WhatsApp" value={service.whatsappNumber || "N/A"} />
+                <InfoCard icon={<Layers size={14} />} label="Ordre" value={service.displayOrder} />
+                <InfoCard icon={<Calendar size={14} />} label="Créé le" value={new Date(service.createdAt).toLocaleDateString()} />
               </div>
 
               <div className="p-5 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <p className="text-sm text-slate-600 dark:text-slate-300">{service.description}</p>
+                <h4 className="text-[10px] font-black uppercase text-slate-400 mb-2">Description</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{service.description}</p>
               </div>
+
+              {service.benefits?.length > 0 && (
+                <div className="p-5 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 flex items-center gap-2"><List size={12} /> Avantages</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {service.benefits.map((b, i) => (
+                      <span key={i} className="px-3 py-1 bg-white dark:bg-slate-700 rounded-full text-[11px] font-bold shadow-sm">{b}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-3 gap-3">
                 <button onClick={() => setShowDeleteModal(true)} className="flex flex-col items-center p-4 bg-rose-500/10 text-rose-500 rounded-2xl font-black uppercase text-[9px]"><Trash2 size={16} /> Supprimer</button>
-                <button onClick={() => update(id, { isActive: !isActive }).then(fetchService)} className="flex flex-col items-center p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px]"><CheckCircle size={16} /> Statut</button>
+                <button onClick={() => update(id, { isActive: !isActive }).then(fetchService)} className="flex flex-col items-center p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl font-black uppercase text-[9px]"><CheckCircle size={16} /> Basculer</button>
                 <button onClick={() => getWhatsappLink(id).then(r => window.open(r.data.link, "_blank"))} className="flex flex-col items-center p-4 bg-green-500 text-white rounded-2xl font-black uppercase text-[9px]">WhatsApp</button>
               </div>
             </>
@@ -169,9 +179,9 @@ function ImageModal({ open, src, onClose }) {
 
 function InfoCard({ icon, label, value }) {
   return (
-    <div className="p-5 bg-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl">
-      <div className="flex items-center gap-2 text-slate-400 text-[10px] font-black uppercase">{icon} {label}</div>
-      <p className="text-sm font-black text-primary dark:text-white mt-3">{value}</p>
+    <div className="p-4 bg-white dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl">
+      <div className="flex items-center gap-2 text-slate-400 text-[9px] font-black uppercase">{icon} {label}</div>
+      <p className="text-xs font-black text-primary dark:text-white mt-2 truncate">{value}</p>
     </div>
   );
 }
