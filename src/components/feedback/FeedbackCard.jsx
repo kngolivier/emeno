@@ -1,6 +1,7 @@
 // FILE: src/components/feedback/FeedbackCard.jsx
 
 import { Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function FeedbackCard({ feedback, onResolve }) {
   const isResolved = feedback.status === 'RESOLVED';
@@ -20,6 +21,14 @@ export default function FeedbackCard({ feedback, onResolve }) {
           <div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{feedback.authorRole}</p>
             <p className="text-xs font-bold text-slate-900 dark:text-white">{feedback.authorId?.prenom} {feedback.authorId?.nom}</p>
+            {feedback.deliveryId && (
+                <Link 
+                    to={`/admin/deliveries/${feedback.deliveryId._id}`}
+                    className="text-[9px] font-black text-blue-600 hover:underline"
+                >
+                    Voir commande
+                </Link>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1 text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-3 py-1 rounded-full font-black text-[10px]">
