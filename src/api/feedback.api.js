@@ -20,14 +20,14 @@ export const submitFeedback = (payload) => {
  * @param {Object} params - { page, limit, status, minRating, sort }
  */
 export const fetchAllFeedbacks = (params = {}) => {
-  const { page = 1, limit = 10, status, minRating, sort } = params;
+  const { page = 1, limit = 10, status, authorRole, minRating, search } = params;
 
-  // Construction dynamique de la query string
   let url = `${ENDPOINTS.FEEDBACKS}?page=${page}&limit=${limit}`;
 
   if (status && status !== "ALL") url += `&status=${status}`;
+  if (authorRole) url += `&authorRole=${authorRole}`;
   if (minRating > 0) url += `&minRating=${minRating}`;
-  if (sort) url += `&sort=${sort}`;
+  if (search) url += `&search=${search}`;
 
   return API.get(url);
 };

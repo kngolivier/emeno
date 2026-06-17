@@ -10,6 +10,18 @@ import FeedbackTable from "../../components/feedback/FeedbackTable";
 import FeedbackCard from "../../components/feedback/FeedbackCard";
 import { useState } from "react";
 
+const FilterButton = ({ active, onClick, children }) => (
+<button
+    onClick={onClick}
+    className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+    active
+        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg"
+        : "bg-white dark:bg-transparent text-slate-400 border-slate-200 dark:border-white/10 hover:border-slate-300"
+    }`}
+>
+    {children}
+</button>
+);
 export default function FeedbackManagement() {
   const [filters, setFilters] = useState({ status: 'ALL', authorRole: '', minRating: 0 });
   const { data: feedbacks = [], meta, loading, setPage, refresh } = 
@@ -35,38 +47,46 @@ export default function FeedbackManagement() {
       </div>
 
       {/* Filtres */}
-      <div className="flex flex-wrap gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-3xl items-center">
-        {/* Filtre Status */}
-        <select 
-          onChange={(e) => setFilters({...filters, status: e.target.value})}
-          className="bg-white dark:bg-slate-800 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200"
-        >
-          <option value="ALL">Tous les statuts</option>
-          <option value="PENDING">En attente</option>
-          <option value="RESOLVED">Résolu</option>
-        </select>
-
-        {/* Filtre Rôle */}
-        <select 
-          onChange={(e) => setFilters({...filters, authorRole: e.target.value})}
-          className="bg-white dark:bg-slate-800 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200"
-        >
-          <option value="">Tous les rôles</option>
-          <option value="CLIENT">Clients</option>
-          <option value="DRIVER">Livreurs</option>
-        </select>
-
-        {/* Filtre Note Minimale */}
-        <select 
-          onChange={(e) => setFilters({...filters, minRating: e.target.value})}
-          className="bg-white dark:bg-slate-800 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200"
-        >
-          <option value="0">Toutes notes</option>
-          <option value="3">3+ étoiles</option>
-          <option value="4">4+ étoiles</option>
-        </select>
+      {/* Barre de Filtres Améliorée */}
+      <div className="flex flex-col gap-6 bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-soft">
         
-        <button onClick={refresh} className="ml-auto text-[10px] font-black uppercase underline">Réinitialiser</button>
+        {/* Ligne 1 : Statuts */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mr-2">Statut</span>
+          {["ALL", "PENDING", "RESOLVED"].map((s) => (
+            <FilterButton key={s} active={filters.status === s} onClick={() => setFilters({...filters, status: s})}>
+              {s === "ALL" ? "Tous" : s === "PENDING" ? "En attente" : "Résolu"}
+            </FilterButton>
+          ))}
+        </div>
+
+        {/* Ligne 2 : Rôle & Note */}
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mr-2">Rôle</span>
+            <FilterButton active={filters.authorRole === ""} onClick={() => setFilters({...filters, authorRole: ""})}>Tous</FilterButton>
+            <FilterButton active={filters.authorRole === "CLIENT"} onClick={() => setFilters({...filters, authorRole: "CLIENT"})}>Client</FilterButton>
+            <FilterButton active={filters.authorRole === "DRIVER"} onClick={() => setFilters({...filters, authorRole: "DRIVER"})}>Livreur</FilterButton>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
+
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mr-2">Note</span>
+            {[0, 3, 4].map((n) => (
+              <FilterButton key={n} active={Number(filters.minRating) === n} onClick={() => setFilters({...filters, minRating: n})}>
+                {n === 0 ? "Toutes" : n + "+"}
+              </FilterButton>
+            ))}
+          </div>
+
+          <button 
+            onClick={() => setFilters({ status: 'ALL', authorRole: '', minRating: 0 })}
+            className="ml-auto text-[9px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest underline transition-all"
+          >
+            Réinitialiser
+          </button>
+        </div>
       </div>
 
       {/* Contenu */}
