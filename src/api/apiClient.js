@@ -34,11 +34,11 @@ API.interceptors.response.use(
 
     console.error("[API ERROR]", message);
     
-    // Cas session/cookie expiré ou invalide
-    if (error.response?.status === 401) {
-      localStorage.removeItem("user"); // On nettoie l'état miroir de l'user
-      window.location.href = "/login";
-    }
+    // // Cas session/cookie expiré ou invalide
+    // if (error.response?.status === 401) {
+    //   localStorage.removeItem("user"); // On nettoie l'état miroir de l'user
+    //   window.location.href = "/login";
+    // }
 
     return Promise.reject(new Error(message));
   }
