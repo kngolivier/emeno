@@ -32,10 +32,11 @@ export default function Sidebar({ isOpen, onClose }) {
   // Remplacez votre useEffect actuel par celui-ci
   useEffect(() => {
     if ("permissions" in navigator) {
-    navigator.permissions.query({ name: "notifications" }).then((result) => {
-      // Met à jour l'interface si l'utilisateur change la permission dans le cadenas du navigateur
-      result.onchange = () => setPushStatus(result.state);
-    });
+      navigator.permissions.query({ name: "notifications" }).then((result) => {
+        // Met à jour l'interface si l'utilisateur change la permission dans le cadenas du navigateur
+        result.onchange = () => setPushStatus(result.state);
+      });
+    }
     const checkPushStatus = async () => {
       if ("Notification" in window && "serviceWorker" in navigator) {
         // 1. Mise à jour initiale du statut de permission
