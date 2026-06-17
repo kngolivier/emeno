@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchDeliveryById, cancelDelivery } from "../../api/deliveries.api";
-import { fetchFeedbacksByDelivery } from "../../api/feedback.api";
+import { fetchFeedbacksByDelivery } from "../../api/feedback.api"; // Ajoutez cet import
 import { 
-  ChevronLeft, XCircle, Star, Copy, CheckCircle2, 
-  MapPin, Package, Clock, Loader2, AlertTriangle 
+  Truck, MapPin, Package, Clock, ShieldCheck, 
+  ChevronLeft, XCircle, AlertTriangle, Loader2, Star, Copy, CheckCircle2
 } from "lucide-react";
 import { notifySuccess, notifyError } from "../../utils/notify";
 import PageLoader from "../../components/ui/PageLoader";
@@ -19,7 +19,6 @@ export default function ClientOrderDetails() {
   const { id } = useParams();
   
   const [delivery, setDelivery] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -27,25 +26,32 @@ export default function ClientOrderDetails() {
 
   const loadDelivery = async () => {
     try {
-      setLoading(true);
       const res = await fetchDeliveryById(id);
       const deliveryData = res?.data;
       setDelivery(deliveryData);
 
+      // 2. Vérification si la livraison est terminée
       if (deliveryData?.status === "DELIVERED") {
         try {
+          // On récupère les feedbacks de cette livraison
           const feedbackRes = await fetchFeedbacksByDelivery(id);
           const feedbacks = feedbackRes?.data || [];
-          const hasAlreadyRated = feedbacks.some(f => f.authorId === user?._id);
-          if (!hasAlreadyRated) setShowFeedbackModal(true);
+          
+          // On vérifie si l'utilisateur actuel (le client) a déjà laissé un avis
+          // Note : Vous aurez besoin de l'ID de l'utilisateur connecté 
+          // (si vous l'avez dans un store ou contexte Auth)
+          const hasAlreadyRated = feedbacks.some(f => f.authorId === user._id);
+
+          if (!hasAlreadyRated) {
+            setShowFeedbackModal(true);
+          }
         } catch (err) {
-          console.log("Feedback check skipped");
+          // Si l'API retourne une erreur ou si aucun feedback n'existe, on ignore simplement
+          console.log("Aucun feedback trouvé ou erreur de vérification");
         }
       }
     } catch (err) {
       notifyError("Erreur lors du chargement de la commande");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -53,13 +59,14 @@ export default function ClientOrderDetails() {
     loadDelivery();
   }, [id]);
 
+  // Fonction restaurée
   const handleCancelOrder = async () => {
     try {
       setIsCancelling(true);
       await cancelDelivery(id);
       notifySuccess("Commande annulée avec succès");
       setShowCancelModal(false);
-      loadDelivery();
+      loadDelivery(); // Recharge les données pour mettre à jour le statut
     } catch (err) {
       notifyError(err?.response?.data?.message || "Erreur lors de l'annulation");
     } finally {
@@ -74,9 +81,8 @@ export default function ClientOrderDetails() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading) return <PageLoader />;
-  if (!delivery) return <div className="p-10 text-center">Commande introuvable.</div>;
-
+  if (!delivery) return <PageLoader />;
+  
   const steps = [
     { label: "Créée", time: delivery.createdAt },
     { label: "Assignée", time: delivery.timestampsLog?.assignedAt },
@@ -90,16 +96,16 @@ export default function ClientOrderDetails() {
   const canCancel = ["PENDING", "ASSIGNED"].includes(delivery.status);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-8 animate-in fade-in duration-500 font-sans">
       
-      {/* HEADER CARD */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <button onClick={() => navigate(-1)} className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+      {/* HEADER CARD - Inspiré style Admin */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-50 dark:border-slate-800 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-soft">
+        <div className="flex items-center gap-6">
+          <button onClick={() => navigate(-1)} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
             <ChevronLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl sm:text-3xl font-black italic tracking-tighter uppercase">
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase">
               Commande <span className="text-secondary">#{delivery.orderNumber}</span>
             </h1>
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-1">
@@ -108,68 +114,79 @@ export default function ClientOrderDetails() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-3">
           {delivery.status === "DELIVERED" && (
-            <button onClick={() => setShowFeedbackModal(true)} className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-secondary/10 text-secondary hover:bg-secondary hover:text-white transition-all">
-              <Star size={16} /> Notez
+            <button onClick={() => setShowFeedbackModal(true)} className="px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-secondary/10 text-secondary hover:bg-secondary hover:text-white transition-all flex items-center gap-2">
+              <Star size={14} /> Notez
             </button>
           )}
           {canCancel && (
-            <button onClick={() => setShowCancelModal(true)} className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-red-500 border border-red-100 dark:border-red-900/30 hover:bg-red-500 hover:text-white transition-all">
-              <XCircle size={16} /> Annuler
+            <button onClick={() => setShowCancelModal(true)} className="px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-red-500 border border-red-100 dark:border-red-900/30 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2">
+              <XCircle size={14} /> Annuler
             </button>
           )}
-          <span className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest ${STATUS_COLORS[delivery.status]}`}>
+          <span className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest ${STATUS_COLORS[delivery.status]}`}>
             {STATUS_LABELS[delivery.status] || delivery.status}
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* TIMELINE */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm">
-          <h2 className="font-black uppercase tracking-widest text-[10px] mb-8 text-slate-400">Suivi du colis</h2>
-          <div className="space-y-8 relative">
-            <div className={`absolute left-[9px] top-2 bottom-2 w-0.5 ${isCancelled ? 'bg-red-200' : 'bg-slate-100 dark:bg-slate-800'}`} />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* COLONNE GAUCHE: Détails Package & Adresses */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft">
+             <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 mb-6">Détails colis</h3>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Type</p>
+                    <p className="font-bold text-sm mt-1">{CATEGORY_LABELS[delivery.packageDetails?.category]}</p>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Poids</p>
+                    <p className="font-bold text-sm mt-1">{delivery.packageDetails?.weight || "_"} KG</p>
+                </div>
+             </div>
+          </div>
+
+          <AddressCard title="Départ" address={delivery.pickupLocation} contact={delivery.pickupContact} />
+          <AddressCard title="Arrivée" address={delivery.dropoffLocation} contact={delivery.dropoffContact} />
+        </div>
+
+        {/* COLONNE CENTRE: Timeline */}
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 shadow-soft">
+          <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 mb-10">Suivi du trajet</h3>
+          <div className="relative space-y-12">
+            <div className="absolute left-6 top-2 bottom-2 w-0.5 border-l-2 border-dashed border-slate-100 dark:border-slate-800" />
             {steps.map((step, index) => (
-              <div key={index} className="flex items-start gap-4 relative z-10">
-                <div className={`mt-1 w-5 h-5 rounded-full border-4 ${index <= activeStep ? (isCancelled ? "border-red-500 bg-white" : "border-secondary bg-white") : "border-slate-100 dark:border-slate-800 bg-white"}`} />
+              <div key={index} className="relative flex gap-8">
+                <div className={`w-12 h-12 bg-white dark:bg-slate-900 border-4 rounded-full z-10 flex items-center justify-center shadow-xl ${index <= activeStep ? "border-secondary" : "border-slate-100 dark:border-slate-800"}`}>
+                    <div className={`w-2 h-2 rounded-full ${index <= activeStep ? "bg-secondary" : "bg-slate-200"}`} />
+                </div>
                 <div>
-                  <p className={`text-sm font-black uppercase ${index <= activeStep ? "text-primary dark:text-slate-200" : "text-slate-300"}`}>{step.label}</p>
-                  <p className="text-[10px] font-bold text-slate-400">{step.time ? new Date(step.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "En attente"}</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${index <= activeStep ? "text-secondary" : "text-slate-400"}`}>{step.label}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{step.time ? new Date(step.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "En attente"}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* DETAILS */}
-        <div className="space-y-6 lg:col-span-2">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm">
-            <h2 className="font-black uppercase tracking-widest text-[10px] mb-6 text-slate-400">Détails de livraison</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-              <InfoBox label="Type" value={CATEGORY_LABELS[delivery.packageDetails?.category]} />
-              <InfoBox label="Poids" value={`${delivery.packageDetails?.weight || "_"} KG`} />
-              <InfoBox label="Fragile" value={delivery.packageDetails?.isFragile ? "OUI" : "NON"} isAlert={delivery.packageDetails?.isFragile} />
+        {/* COLONNE DROITE: Code de sécurité & Status */}
+        <div className="lg:col-span-3 space-y-6">
+          {delivery.verificationCode && !isCancelled && delivery.status !== 'DELIVERED' && (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border-2 border-dashed border-secondary/30 shadow-soft">
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Code de sécurité</h4>
+               <div className="flex items-center justify-center bg-slate-50 dark:bg-slate-800 py-6 rounded-2xl">
+                  <span className="text-3xl font-black tracking-[0.3em] text-secondary italic">
+                    {delivery.verificationCode}
+                  </span>
+                  <button onClick={() => copyToClipboard(delivery.verificationCode)} className="p-3 bg-white dark:bg-slate-800 rounded-xl hover:text-secondary transition-colors">
+                    {copied ? <CheckCircle2 size={20} className="text-green-500" /> : <Copy size={20} />}
+                  </button>
+               </div>
             </div>
-
-            {delivery.verificationCode && !isCancelled && delivery.status !== 'DELIVERED' && (
-              <div className="bg-secondary/5 border-2 border-secondary/20 rounded-[1.5rem] p-6 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary mb-1">Code de sécurité</p>
-                  <p className="text-3xl font-black tracking-[0.2em]">{delivery.verificationCode}</p>
-                </div>
-                <button onClick={() => copyToClipboard(delivery.verificationCode)} className="p-3 bg-white dark:bg-slate-800 rounded-xl hover:text-secondary transition-colors">
-                  {copied ? <CheckCircle2 size={20} className="text-green-500" /> : <Copy size={20} />}
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AddressCard title="Départ" address={delivery.pickupLocation} contact={delivery.pickupContact} />
-            <AddressCard title="Arrivée" address={delivery.dropoffLocation} contact={delivery.dropoffContact} />
-          </div>
+          )}
         </div>
       </div>
 
@@ -177,13 +194,13 @@ export default function ClientOrderDetails() {
       
       {/* MODAL ANNULATION */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 max-w-sm w-full shadow-2xl">
-            <h3 className="text-xl font-black uppercase tracking-tighter mb-4">Confirmer l'annulation ?</h3>
-            <p className="text-slate-500 text-sm mb-8">Cette action est irréversible et notifie le livreur.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowCancelModal(false)} className="flex-1 py-3 rounded-xl bg-slate-100 text-primary font-bold text-xs uppercase">Annuler</button>
-              <button onClick={handleCancelOrder} disabled={isCancelling} className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold text-xs uppercase">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-primary/40 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
+            <h3 className="text-xl font-black italic text-center uppercase mb-2">Confirmer ?</h3>
+            <p className="text-slate-500 text-center text-xs mb-8">Action irréversible.</p>
+            <div className="flex gap-4">
+              <button onClick={() => setShowCancelModal(false)} className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-xs font-black uppercase">Retour</button>
+              <button onClick={handleCancelOrder} disabled={isCancelling} className="flex-1 py-4 rounded-2xl bg-red-500 text-white text-xs font-black uppercase shadow-lg">
                  {isCancelling ? <Loader2 className="animate-spin mx-auto" size={16} /> : "Confirmer"}
               </button>
             </div>
