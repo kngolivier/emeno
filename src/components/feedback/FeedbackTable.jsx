@@ -1,6 +1,6 @@
 // FILE: src/components/feedback/FeedbackTable.jsx
 
-import { ShieldCheck, Clock, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Clock, CheckCircle2, MessageSquare } from "lucide-react";
 
 export default function FeedbackTable({ feedbacks, onStatusChange }) {
   return (
@@ -19,11 +19,17 @@ export default function FeedbackTable({ feedbacks, onStatusChange }) {
               <div className="text-xs font-bold text-slate-900 dark:text-white uppercase">{fb.authorId?.prenom} {fb.authorId?.nom}</div>
               <div className="text-[9px] font-black text-secondary uppercase italic">{fb.authorRole}</div>
             </td>
-            <td className="p-6 text-xs text-slate-500 max-w-[200px] italic leading-relaxed">"{fb.comment}"</td>
+            <td className="p-6 text-xs text-slate-500 max-w-[200px] italic leading-relaxed">
+              {fb.comment && fb.comment.trim() !== "" ? (
+                `"${fb.comment}"`
+              ) : (
+                <span className="flex items-center gap-1 text-[10px] text-slate-300 dark:text-slate-600 font-bold uppercase tracking-widest italic">
+                  <MessageSquare size={10} className="opacity-50" /> Aucun commentaire
+                </span>
+              )}
+            </td>
             <td className="p-6 text-center">
-              <span className="inline-flex items-center gap-1 font-black text-amber-500">
-                {fb.rating}.0
-              </span>
+              <span className="inline-flex items-center gap-1 font-black text-amber-500">{fb.rating}.0</span>
             </td>
             <td className="p-6">
               <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1 w-max ${
