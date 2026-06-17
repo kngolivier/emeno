@@ -24,17 +24,19 @@ export default function ServicesList() {
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Supprimer ce service ?")) return;
 
-    setDeletingId(id);
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    
     try {
-      await remove(id);
+      await remove(deletingId);
       notifySuccess("Service supprimé");
       refresh();
+      setShowDeleteModal(false);
     } catch {
-      notifyError("Erreur suppression");
+      notifyError("Erreur lors de la suppression");
     } finally {
       setDeletingId(null);
     }
@@ -149,11 +151,15 @@ export default function ServicesList() {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(s._id)}
+                    onClick={() => {
+                      setDeletingId(s._id);
+                      setShowDeleteModal(true);
+                    }}
                     disabled={deletingId === s._id}
-                    className="flex items-center justify-center p-3 rounded-xl bg-rose-500/10 text-rose-500"
+                    className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all disabled:opacity-40"
+                    title="Supprimer"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={18} />
                   </button>
 
                 </div>
@@ -228,7 +234,10 @@ export default function ServicesList() {
 
                         {/* DELETE */}
                         <button
-                          onClick={() => handleDelete(s._id)}
+                          onClick={() => {
+                            setDeletingId(s._id);
+                            setShowDeleteModal(true);
+                          }}
                           disabled={deletingId === s._id}
                           className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all disabled:opacity-40"
                           title="Supprimer"
@@ -245,6 +254,39 @@ export default function ServicesList() {
             </table>
           </div>
         </>
+      )}
+
+      {/* DELETE MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md p-0 md:p-4">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-sm text-center space-y-6 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95">
+            <div className="w-16 h-1 bg-slate-100 dark:bg-white/10 rounded-full mx-auto md:hidden -mt-4 mb-4" />
+            <div className="w-20 h-20 bg-red-50 dark:bg-rose-500/10 text-red-500 dark:text-rose-400 rounded-3xl flex items-center justify-center mx-auto rotate-3">
+              <Trash2 size={32} />
+            </div>
+            <div>
+              <h2 className="font-display font-black text-2xl italic text-slate-900 dark:text-white uppercase">Supprimer ?</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-2 px-4 italic leading-relaxed">
+                Cette action supprimera définitivement le service du système.
+              </p>
+            </div>
+            <div className="flex flex-col md:flex-row gap-3 pt-2">
+              <button 
+                onClick={handleDelete} 
+                disabled={!!deletingId} 
+                className="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+              >
+                {deletingId ? "Suppression..." : "Confirmer"}
+              </button>
+              <button 
+                onClick={() => { setShowDeleteModal(false); setDeletingId(null); }} 
+                className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 font-bold hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MODAL */}

@@ -118,7 +118,7 @@ export default function NewOrderForm({ onAdd, onClose }) {
   const labelClass = "text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5 block ml-1";
 
   return (
-    <div className="bg-white dark:bg-slate-900 w-full max-w-3xl md:rounded-[3rem] shadow-2xl dark:shadow-none border border-slate-100 dark:border-white/10 flex flex-col max-h-screen md:max-h-[90vh] overflow-hidden font-sans transition-colors">
+    <div className="bg-white dark:bg-slate-900 w-full max-w-3xl md:rounded-[3rem] shadow-2xl dark:shadow-none border border-slate-100 dark:border-white/10 flex flex-col max-h-[70vh] md:max-h-[90vh] overflow-hidden font-sans transition-colors">
       
       {/* HEADER */}
       <div className="p-5 md:p-10 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex justify-between items-center shrink-0">

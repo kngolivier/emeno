@@ -27,6 +27,8 @@ export default function PromotionDetails() {
   const [showForm, setShowForm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
 
   const loadData = async () => {
     setLoading(true);
@@ -69,9 +71,6 @@ export default function PromotionDetails() {
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(`Supprimer la promotion "${promo.title}" ?`);
-    if (!confirmed) return;
-
     setDeleting(true);
     try {
       await deletePromotion(promo._id, true);
@@ -79,6 +78,7 @@ export default function PromotionDetails() {
       navigate("/admin/promotions");
     } catch (err) {
       notifyError(err?.response?.data?.message || "Erreur de suppression");
+      setShowDeleteModal(false);
     } finally {
       setDeleting(false);
     }
@@ -143,7 +143,7 @@ export default function PromotionDetails() {
           <button onClick={handleWhatsAppPreview} className="px-4 md:px-6 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-xl dark:shadow-none hover:bg-emerald-600 transition-all flex items-center justify-center gap-2">
             <MessageCircle size={16} /> WhatsApp
           </button>
-          <button onClick={handleDelete} disabled={deleting} className="px-4 md:px-6 py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-xl dark:shadow-none hover:bg-red-600 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+          <button onClick={() => setShowDeleteModal(true)} disabled={deleting} className="px-4 md:px-6 py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-xl dark:shadow-none hover:bg-red-600 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
             <Trash2 size={16} /> Supprimer
           </button>
         </div>
@@ -207,6 +207,26 @@ export default function PromotionDetails() {
           </div>
         </div>
       )}
+
+      {showDeleteModal && (
+      <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md p-0 md:p-4">
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-sm text-center space-y-6 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95">
+          <div className="w-20 h-20 bg-red-50 dark:bg-rose-500/10 text-red-500 dark:text-rose-400 rounded-3xl flex items-center justify-center mx-auto rotate-3">
+            <Trash2 size={32} />
+          </div>
+          <div>
+            <h2 className="font-display font-black text-2xl italic text-slate-900 dark:text-white uppercase">Supprimer ?</h2>
+            <p className="text-slate-500 text-xs mt-2 italic">Action irréversible.</p>
+          </div>
+          <div className="flex flex-col md:flex-row gap-3">
+            <button onClick={handleDelete} disabled={deleting} className="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">
+              {deleting ? "Suppression..." : "Confirmer"}
+            </button>
+            <button onClick={() => setShowDeleteModal(false)} className="w-full py-4 text-[10px] font-black uppercase text-slate-400">Annuler</button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

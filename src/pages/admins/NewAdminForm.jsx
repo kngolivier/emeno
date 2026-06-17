@@ -54,7 +54,7 @@ export default function NewAdminForm({ onClose, onCreated }) {
   `;
 
   return (
-    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-none border border-slate-100 dark:border-white/10 overflow-hidden flex flex-col max-h-[85vh] transition-colors">
+    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-none border border-slate-100 dark:border-white/10 overflow-hidden flex flex-col max-h-[70vh] transition-colors">
       
       {/* HEADER FIXE */}
       <div className="p-6 border-b border-slate-50 dark:border-white/5 flex justify-between items-center bg-white dark:bg-slate-900 shrink-0">

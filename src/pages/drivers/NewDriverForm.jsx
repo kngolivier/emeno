@@ -40,7 +40,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
   const sectionTitleClass = "text-[10px] font-black uppercase text-secondary border-b border-border pb-1";
 
   return (
-    <div className="bg-primary w-full max-w-lg shadow-2xl border border-border flex flex-col max-h-[80vh] rounded-3xl overflow-hidden">
+    <div className="bg-primary w-full max-w-lg shadow-2xl border border-border flex flex-col max-h-[70vh] rounded-3xl overflow-hidden">
       
       {/* HEADER */}
       <div className="p-5 border-b border-border bg-primary-light/30 flex justify-between items-center shrink-0">

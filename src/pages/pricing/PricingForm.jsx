@@ -80,7 +80,7 @@ export default function PricingForm({ onSave, onCancel, pricing }) {
   const labelClass = "text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1 block ml-1";
 
   return (
-    <div className="bg-white dark:bg-slate-900 w-full max-w-lg md:rounded-[2rem] shadow-2xl flex flex-col max-h-[95vh] overflow-hidden border border-slate-100 dark:border-slate-800 transition-colors">
+    <div className="bg-white dark:bg-slate-900 w-full max-w-lg md:rounded-[2rem] shadow-2xl flex flex-col max-h-[70vh] overflow-hidden border border-slate-100 dark:border-slate-800 transition-colors">
       
       {/* HEADER */}
       <div className="p-4 border-b dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 flex justify-between items-center shrink-0">

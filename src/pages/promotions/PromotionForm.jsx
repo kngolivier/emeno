@@ -178,7 +178,7 @@ export default function PromotionForm({ promotion, onSave, onCancel }) {
     ) : null;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[1.75rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden w-full max-w-2xl mx-auto max-h-[92vh] flex flex-col">
+    <div className="bg-white dark:bg-slate-900 rounded-[1.75rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden w-full max-w-2xl mx-auto max-h-[70vh] flex flex-col">
       <div className="shrink-0 p-5 md:p-7 bg-slate-50/30 dark:bg-white/[0.02] border-b border-slate-100 dark:border-slate-800">
         <div className="flex justify-between items-start gap-4">
           <div className="flex items-center gap-3 md:gap-4 min-w-0">

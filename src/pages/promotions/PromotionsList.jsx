@@ -31,6 +31,9 @@ export default function PromotionsList() {
   const [showForm, setShowForm] = useState(false);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false); // <--- Ajoutez cette ligne
+
 
   const promotions = useMemo(() => normalizePromotions(response), [response]);
 
@@ -60,18 +63,18 @@ export default function PromotionsList() {
     }
   };
 
-  const handleDelete = async (promo) => {
-    const confirmed = window.confirm(`Supprimer la promotion "${promo.title}" ?`);
-    if (!confirmed) return;
-
-    setDeletingId(promo._id);
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    setIsDeleting(true); // Activez le chargement
     try {
-      await deletePromotion(promo._id, true);
+      await deletePromotion(deletingId, true);
       notifySuccess("Promotion supprimée");
       refresh();
+      setShowDeleteModal(false);
     } catch (err) {
-      notifyError(err?.response?.data?.message || "Erreur lors de la suppression");
+      notifyError("Erreur lors de la suppression");
     } finally {
+      setIsDeleting(false); // Désactivez le chargement
       setDeletingId(null);
     }
   };
@@ -184,7 +187,7 @@ export default function PromotionsList() {
                         <Link to={`/admin/promotions/${p._id}`} className="p-2.5 text-slate-400 hover:text-primary dark:hover:text-secondary hover:bg-primary/5 dark:hover:bg-secondary/5 rounded-xl transition-all" title="Voir les détails">
                           <Eye size={18} />
                         </Link>
-                        <button onClick={() => handleDelete(p)} disabled={deletingId === p._id} className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all disabled:opacity-40" title="Supprimer">
+                        <button onClick={handleDelete} disabled={isDeleting} className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all disabled:opacity-40" title="Supprimer">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -196,6 +199,25 @@ export default function PromotionsList() {
           </div>
 
           <Pagination meta={meta} setPage={setPage} />
+          {showDeleteModal && (
+          <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md p-0 md:p-4">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-sm text-center space-y-6 shadow-2xl animate-in slide-in-from-bottom md:zoom-in-95">
+              <div className="w-20 h-20 bg-red-50 dark:bg-rose-500/10 text-red-500 dark:text-rose-400 rounded-3xl flex items-center justify-center mx-auto rotate-3">
+                <Trash2 size={32} />
+              </div>
+              <div>
+                <h2 className="font-display font-black text-2xl italic text-slate-900 dark:text-white uppercase">Supprimer ?</h2>
+                <p className="text-slate-500 text-xs mt-2 italic">Action irréversible.</p>
+              </div>
+              <div className="flex flex-col md:flex-row gap-3">
+                <button onClick={handleDelete} disabled={deletingId} className="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  {deletingId ? "Suppression..." : "Confirmer"}
+                </button>
+                <button onClick={() => setShowDeleteModal(false)} className="w-full py-4 text-[10px] font-black uppercase text-slate-400">Annuler</button>
+              </div>
+            </div>
+          </div>
+        )}
         </>
       )}
 
