@@ -157,20 +157,19 @@ export default function AdminDashboard() {
 
   const loadComparison = async () => {
     try {
-      const { res } = await fetchComparisonStats(period);
-
-      const data = res?.data || res;
+      const res = await fetchComparisonStats(period);
+      // Ajuste selon la structure réelle de ton objet de réponse
+      const data = res.data || res; 
       
-      // On nettoie les données ici : si 'current' ou 'previous' est null/undefined, on met 0
-      const cleanedData = data.map((item, index) => ({
-        ...item,
-        current: item.current ?? 0,
-        previous: item.previous ?? 0,
-        // Ici on applique notre fonction de label
-        name: getLabelForRelativeDate(index, period)
-      }));
-      
-      setComparisonData(cleanedData);
+      if (Array.isArray(data)) {
+          const cleanedData = data.map((item, index) => ({
+            ...item,
+            current: item.current || 0,
+            previous: item.previous || 0,
+            name: getLabelForRelativeDate(index, period)
+          }));
+          setComparisonData(cleanedData);
+      }
     } catch (err) {
       console.error("Erreur chargement comparaison", err);
     }
@@ -227,7 +226,6 @@ export default function AdminDashboard() {
   const revenue = overview.totalRevenue || 0;
   const successRate = overview.successRate || "0%";
 
-  // Dans AdminDashboard.jsx
   const chartData = (deliveryStats.deliveriesOverTime || [])
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .map((d, index) => ({
@@ -251,6 +249,8 @@ export default function AdminDashboard() {
     return amount.toLocaleString() + ' F';
   };
 
+  console.log("DEBUG CHART - Actuel:", chartData);
+  console.log("DEBUG CHART - Comparaison:", comparisonData);
 
   return (
     <div className="space-y-8 pb-10 transition-colors duration-300">
@@ -354,8 +354,9 @@ export default function AdminDashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={isComparing ? comparisonData : chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
+                
                 <XAxis 
-                  dataKey="name" // Utilise 'name' pour les deux modes, c'est plus simple
+                  dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 10, fontWeight: '900', fill: COLORS.muted }} 
@@ -363,7 +364,7 @@ export default function AdminDashboard() {
                 <YAxis hide />
                 <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff' }} />
                 
-                {/* La ligne principale fonctionne maintenant car chartData contient bien 'current' */}
+                {/* LIGNE ACTUELLE */}
                 <Line 
                   type="monotone" 
                   dataKey="current" 
@@ -372,6 +373,7 @@ export default function AdminDashboard() {
                   connectNulls 
                 />
                 
+                {/* LIGNE PRÉCÉDENTE (Uniquement si isComparing est true) */}
                 {isComparing && (
                   <Line 
                     type="monotone" 
