@@ -203,6 +203,9 @@ export default function AdminDashboard() {
 
   const chartData = (deliveryStats.deliveriesOverTime || []).map(d => ({
     ...d,
+    // On renomme 'total' en 'current' pour que le graphique fonctionne en mode normal et comparatif
+    current: d.total || 0, 
+    name: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
     formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
   }));
 
@@ -322,25 +325,23 @@ export default function AdminDashboard() {
               <LineChart data={isComparing ? comparisonData : chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
                 <XAxis 
-                  dataKey={isComparing ? "name" : "formattedDate"} 
-                  axisLine={false} tickLine={false} 
+                  dataKey="name" // Utilise 'name' pour les deux modes, c'est plus simple
+                  axisLine={false} 
+                  tickLine={false} 
                   tick={{ fontSize: 10, fontWeight: '900', fill: COLORS.muted }} 
                 />
                 <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff' }} 
-                />
+                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff' }} />
                 
-                {/* Ligne principale */}
+                {/* La ligne principale fonctionne maintenant car chartData contient bien 'current' */}
                 <Line 
                   type="monotone" 
-                  dataKey="current" // On uniformise sur 'current' pour la comparaison
+                  dataKey="current" 
                   stroke={COLORS.secondary} 
                   strokeWidth={4} 
-                  connectNulls // <--- IMPORTANT pour ne pas couper la ligne
+                  connectNulls 
                 />
                 
-                {/* Ligne précédente (seulement si isComparing est vrai) */}
                 {isComparing && (
                   <Line 
                     type="monotone" 
