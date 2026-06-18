@@ -42,7 +42,13 @@ export default function ClientHome() {
 
       setStats(statsRes?.data || statsRes);
       const rawPartners = partnersRes.data?.data || partnersRes.data || [];
-      setPartners(rawPartners.map(normalizePartner).slice(0, 4));
+      // Filtrage ici : on ne garde que les actifs, puis on normalise et on slice
+      const activePartners = rawPartners
+        .filter(p => p.status === 'ACTIVE')
+        .map(normalizePartner)
+        .slice(0, 4);
+
+      setPartners(activePartners);
 
       const deliveries = deliveriesRes?.data?.data || deliveriesRes?.data || [];
       const active = deliveries.find((d) => ACTIVE_STATUS.includes(d.status));

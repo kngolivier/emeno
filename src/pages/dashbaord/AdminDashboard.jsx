@@ -13,7 +13,7 @@ import "leaflet/dist/leaflet.css";
 // APIs & Éléments partagés EMENO
 import API from "../../api/apiClient";
 import { ENDPOINTS } from "../../api/endpoints";
-import { fetchAdminStats } from "../../api/stats.api";
+import { fetchAdminStats, fetchComparisonStats } from "../../api/stats.api";
 import { fetchAdminDeliveries } from "../../api/deliveries.api";
 import { useAuth } from "../../context/AuthContext";
 import { useNotifications } from "../../hooks/useNotifications"; 
@@ -117,6 +117,8 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useNotifications(); 
   const navigate = useNavigate();
+  const [comparisonData, setComparisonData] = useState([]);
+  const [isComparing, setIsComparing] = useState(false);
 
   const isDark = document.documentElement.classList.contains('dark');
 
@@ -128,6 +130,25 @@ export default function AdminDashboard() {
   };
   
   const PIE_PALETTE = [COLORS.secondary, "#818CF8", "#64748b"];
+
+  const loadComparison = async () => {
+    try {
+      const { res } = await fetchComparisonStats(period);
+
+      const data = res?.data || res;
+      
+      // On nettoie les données ici : si 'current' ou 'previous' est null/undefined, on met 0
+      const cleanedData = data.map(item => ({
+        ...item,
+        current: item.current ?? 0,
+        previous: item.previous ?? 0
+      }));
+      
+      setComparisonData(cleanedData);
+    } catch (err) {
+      console.error("Erreur chargement comparaison", err);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -153,6 +174,11 @@ export default function AdminDashboard() {
       console.error("Erreur de synchronisation Dashboard:", err);
     }
   };
+
+  useEffect(() => {
+    loadData();
+    if (isComparing) loadComparison(); // Recharge la comparaison si elle est active
+  }, [period]);
 
   useEffect(() => {
     loadData();
@@ -229,7 +255,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex bg-slate-200/50 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 backdrop-blur-md shadow-sm">
-          {["TODAY", "WEEK", "MONTH"].map((p) => (
+          {["TODAY", "WEEK", "MONTH", "YEAR"].map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
@@ -239,10 +265,24 @@ export default function AdminDashboard() {
                   : "text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white"
               }`}
             >
-              {p === "TODAY" ? "AUJOURD'HUI" : p === "WEEK" ? "SEMAINE" : "MOIS"}
+              {p === "TODAY" ? "AUJOURD'HUI" : p === "WEEK" ? "SEMAINE" : p === "MONTH" ? "MOIS" : "ANNÉE"}
             </button>
           ))}
         </div>
+        {/* Dans le bloc flex qui contient tes boutons de période */}
+        <button
+          onClick={() => {
+            if (!isComparing) loadComparison();
+            setIsComparing(!isComparing);
+          }}
+          className={`px-4 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all border ${
+            isComparing 
+              ? "bg-secondary text-white border-secondary" 
+              : "bg-transparent border-slate-300 dark:border-white/10 text-slate-500 hover:border-secondary"
+          }`}
+        >
+          {isComparing ? "DÉSACTIVER COMPARAISON" : "COMPARER (N-1)"}
+        </button>
       </div>
 
       {/* KPI GRID AMÉLIORÉ (Intégration de la carte activePartners de l'API) */}
@@ -259,17 +299,52 @@ export default function AdminDashboard() {
       {/* BLOC SUPÉRIEUR : Graphique + Raccourcis */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
-          <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-8 italic">
-            <Activity size={16} className="text-secondary" /> Courbe des livraisons
-          </h3>
+          {/* TITRE ET LÉGENDE */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 italic">
+              <Activity size={16} className="text-secondary" /> Courbe des livraisons
+            </h3>
+            
+            {isComparing && (
+              <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest italic">
+                <div className="flex items-center gap-1.5 text-secondary">
+                  <span className="w-6 h-1 bg-secondary rounded-full" /> Période actuelle
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <span className="w-6 h-1 border-t-2 border-dashed border-slate-400" /> Période précédente
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <LineChart data={isComparing ? comparisonData : chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
-                <XAxis dataKey="formattedDate" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: '900', fill: COLORS.muted }} dy={10} />
+                <XAxis 
+                  dataKey={isComparing ? "name" : "formattedDate"} 
+                  axisLine={false} tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: '900', fill: COLORS.muted }} 
+                />
                 <YAxis hide />
-                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold', color: isDark ? '#fff' : '#000' }} />
-                <Line type="monotone" dataKey="total" stroke={COLORS.secondary} strokeWidth={4} dot={{ r: 4, fill: COLORS.secondary, strokeWidth: 2, stroke: 'transparent' }} activeDot={{ r: 7, strokeWidth: 0 }} />
+                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }} />
+                
+                <Line 
+                  type="monotone" 
+                  dataKey={isComparing ? "current" : "total"} 
+                  stroke={COLORS.secondary} 
+                  strokeWidth={4} 
+                />
+                
+                {isComparing && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="previous" 
+                    stroke="#94a3b8" 
+                    strokeWidth={3} 
+                    strokeDasharray="5 5" 
+                  />
+                )}
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -277,21 +352,21 @@ export default function AdminDashboard() {
 
         <div className="bg-primary p-8 rounded-[3xl] shadow-2xl shadow-primary/30 text-white flex flex-col relative overflow-hidden">
           <div className="absolute top-[-10%] right-[-10%] w-32 h-32 bg-secondary/10 blur-3xl rounded-full" />
-          <h3 className="font-black uppercase text-[10px] tracking-widest text-secondary mb-2 italic">Raccourcis</h3>
-          <p className="text-white/40 text-[10px] mb-8 font-black uppercase italic tracking-widest">Navigation rapide</p>
-          <div className="space-y-3 relative z-10">
-            <QuickAction label="Livraisons" icon={Truck} onClick={() => navigate("/admin/deliveries")} color={COLORS.secondary} />
-            <QuickAction label="Clients" icon={Users} onClick={() => navigate("/admin/clients")} color={COLORS.secondary} />
-            <QuickAction label="Livreurs" icon={Users} onClick={() => navigate("/admin/drivers")} color={COLORS.secondary} />
-            <QuickAction label="Tarifs" icon={CreditCard} onClick={() => navigate("/admin/pricing")} color={COLORS.secondary} />
-            <QuickAction label="Partenaires" icon={Store} onClick={() => navigate("/admin/partners")} color={COLORS.secondary} />
-            {user?.role === 'SUPER_ADMIN' && (
-              <QuickAction label="Gestion Staff" icon={Shield} onClick={() => navigate("/admin/admins")} color={COLORS.secondary} />
-            )}
-            <QuickAction label="Paramètres" icon={Settings} onClick={() => navigate("/admin/settings")} color={COLORS.secondary} />
+            <h3 className="font-black uppercase text-[10px] tracking-widest text-secondary mb-2 italic">Raccourcis</h3>
+            <p className="text-white/40 text-[10px] mb-8 font-black uppercase italic tracking-widest">Navigation rapide</p>
+            <div className="space-y-3 relative z-10">
+              <QuickAction label="Livraisons" icon={Truck} onClick={() => navigate("/admin/deliveries")} color={COLORS.secondary} />
+              <QuickAction label="Clients" icon={Users} onClick={() => navigate("/admin/clients")} color={COLORS.secondary} />
+              <QuickAction label="Livreurs" icon={Users} onClick={() => navigate("/admin/drivers")} color={COLORS.secondary} />
+              <QuickAction label="Tarifs" icon={CreditCard} onClick={() => navigate("/admin/pricing")} color={COLORS.secondary} />
+              <QuickAction label="Partenaires" icon={Store} onClick={() => navigate("/admin/partners")} color={COLORS.secondary} />
+              {user?.role === 'SUPER_ADMIN' && (
+                <QuickAction label="Gestion Staff" icon={Shield} onClick={() => navigate("/admin/admins")} color={COLORS.secondary} />
+              )}
+              <QuickAction label="Paramètres" icon={Settings} onClick={() => navigate("/admin/settings")} color={COLORS.secondary} />
+            </div>
           </div>
         </div>
-      </div>
 
       {/* BLOC MILIEU : ALERTES OPÉRATIONNELLES LIVE */}
       <div className="grid grid-cols-1 gap-8">

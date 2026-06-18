@@ -36,3 +36,8 @@ export const getWhatsappLink = async (id) => {
     const res = await API.get(ENDPOINTS.SERVICE_WHATSAPP(id));
     return res;
 };
+
+export const getStats = async() => {
+    const res = await API.get(ENDPOINTS.SERVICES_STATS);
+    return res
+}

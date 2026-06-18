@@ -8,6 +8,22 @@ import { fetchPartners } from "../api/partners.api";
 import PartnerCard from "../components/client-home/PartnerCard";
 import PartnerModal from "../components/client-home/PartnerModal";
 import { normalizePartner } from "../utils/dataMapper";
+import { 
+  Utensils, ShoppingBasket, Pill, Shirt, Sparkles, Briefcase, Grid, HelpCircle 
+} from "lucide-react";
+
+const CATEGORY_ICONS = {
+  'Tout': Grid,
+  'RESTAURANT': Utensils,
+  'EPICERIE': ShoppingBasket,
+  'PHARMACIE': Pill,
+  'MODE': Shirt,
+  'BEAUTE': Sparkles,
+  'SERVICES': Briefcase,
+  'AUTRE': HelpCircle
+};
+
+const CATEGORY_ORDER = ['Tout', 'RESTAURANT', 'EPICERIE', 'PHARMACIE', 'MODE', 'BEAUTE', 'SERVICES', 'AUTRE'];
 
 export default function PartnersPage() {
   const { user } = useAuth();
@@ -26,7 +42,10 @@ export default function PartnersPage() {
         setLoading(true);
         const res = await fetchPartners();
         const rawPartners = res.data?.data || res.data || [];
-        setPartners(rawPartners.map(normalizePartner));
+
+        // Filtrage ici : on ne garde que les partenaires avec status: 'ACTIVE'
+        const activePartners = rawPartners.filter(p => p.status === 'ACTIVE');
+        setPartners(activePartners.map(normalizePartner));
       } catch (err) {
         console.error("Erreur chargement partenaires", err);
       } finally {
@@ -43,7 +62,10 @@ export default function PartnersPage() {
   };
 
   const categories = useMemo(() => {
-    return ["Tout", ...new Set(partners.map((p) => p.category || "Autre"))];
+    const uniqueCats = [...new Set(partners.map((p) => p.category || "AUTRE"))];
+    
+    // Tri selon CATEGORY_ORDER pour une expérience utilisateur cohérente
+    return CATEGORY_ORDER.filter(c => c === 'Tout' || uniqueCats.includes(c));
   }, [partners]);
 
   const filteredPartners = useMemo(() => {
@@ -94,27 +116,33 @@ export default function PartnersPage() {
           </div>
           
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 ${
-                  activeCategory === cat 
-                  ? "bg-secondary text-white shadow-lg shadow-secondary/20" 
-                  : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10 hover:border-secondary"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const Icon = CATEGORY_ICONS[cat] || CATEGORY_ICONS['AUTRE'];
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 ${
+                    activeCategory === cat 
+                    ? "bg-secondary text-white shadow-lg shadow-secondary/20" 
+                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10 hover:border-secondary"
+                  }`}
+                >
+                  <Icon size={14} />
+                  {cat}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* GRILLE */}
       {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="animate-spin text-secondary" size={40} /></div>
-      ) : (
+        <div className="flex justify-center py-20">
+          <Loader2 className="animate-spin text-secondary" size={40} />
+        </div>
+      ) : filteredPartners.length > 0 ? (
         <motion.div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
           <AnimatePresence mode="popLayout">
             {filteredPartners.map((partner) => (
@@ -123,6 +151,29 @@ export default function PartnersPage() {
               </motion.div>
             ))}
           </AnimatePresence>
+        </motion.div>
+      ) : (
+        // Empty State
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center py-20 text-center"
+        >
+          <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-white/[0.03] flex items-center justify-center mb-6">
+            <Search size={32} className="text-slate-400" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Aucun partenaire trouvé</h3>
+          <p className="text-slate-500 mt-2 max-w-sm">
+            {searchTerm 
+              ? `Nous n'avons trouvé aucun résultat pour "${searchTerm}". Essayez une autre recherche.` 
+              : "Il n'y a pas encore de partenaires disponibles dans cette catégorie."}
+          </p>
+          <button 
+            onClick={() => { setSearchTerm(""); setActiveCategory("Tout"); }}
+            className="mt-6 px-6 py-2 bg-secondary text-white rounded-full font-bold hover:bg-secondary/90 transition-colors"
+          >
+            Réinitialiser les filtres
+          </button>
         </motion.div>
       )}
 

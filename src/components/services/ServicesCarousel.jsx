@@ -84,33 +84,36 @@ export default function ServicesCarousel() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => handleClick(s)}
-            className="min-w-[260px] md:min-w-[300px] cursor-pointer rounded-[2rem] overflow-hidden border border-slate-200 dark:border-white/10 bg-white dark:bg-[#071120] shadow-sm"
+            // AJOUT DE max-h-[420px] (ou la valeur souhaitée)
+            className="min-w-[260px] md:min-w-[300px] max-h-[420px] cursor-pointer rounded-[2rem] overflow-hidden border border-slate-200 dark:border-white/10 bg-white dark:bg-[#071120] shadow-sm flex flex-col"
           >
 
             <img
               src={s.image?.url || fallbackImage}
               onError={(e) => (e.target.src = fallbackImage)}
               alt={s.title}
-              className="h-40 w-full object-cover"
+              className="h-40 w-full object-cover shrink-0"
             />
 
-            <div className="p-5 space-y-2">
+            {/* Ajout de flex-1 et flex flex-col pour que le texte occupe l'espace restant */}
+            <div className="p-5 flex flex-col flex-1 overflow-hidden">
 
-              <h3 className="font-black text-primary dark:text-white uppercase italic">
+              <h3 className="font-black text-primary dark:text-white uppercase italic truncate">
                 {s.title}
               </h3>
 
-              <p className="text-sm text-slate-500 dark:text-white/40 line-clamp-2">
+              {/* La classe line-clamp-3 (ou 2) tronque le texte proprement */}
+              <p className="text-sm text-slate-500 dark:text-white/40 line-clamp-3 mt-2 mb-4 flex-1">
                 {s.description}
               </p>
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-between pt-2 mt-auto border-t border-slate-100 dark:border-white/5">
                 <span className="text-[10px] font-black uppercase text-secondary">
                   {s.pricingMode === "WHATSAPP_ONLY"
                     ? "Commander sur WhatsApp"
                     : user?.role === "CLIENT"
-                      ? "Créer une commande"
-                      : "Voir les détails"}
+                    ? "Créer une commande"
+                    : "Voir les détails"}
                 </span>
                 <ArrowRight size={16} className="text-secondary" />
               </div>

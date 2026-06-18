@@ -48,3 +48,13 @@ export const fetchMyPartnerStats = async (period = "MONTH") => {
     params: { period }
   });
 };
+
+/**
+ * fetchComparisonStats
+ * Récupère les données de comparaison N vs N-1
+ */
+export const fetchComparisonStats = async (period = "WEEK") => {
+  return API.get(`/api/stats/comparison`, {
+    params: { period }
+  });
+};

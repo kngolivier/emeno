@@ -150,6 +150,7 @@ export const ENDPOINTS = {
 // SERVICES
 // ======================
   SERVICES: "/api/services",
+  SERVICES_STATS: "/api/services/stats",
 
   SERVICE_BY_ID: (id) => `/api/services/${id}`,
 

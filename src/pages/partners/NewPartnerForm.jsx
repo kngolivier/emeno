@@ -21,6 +21,7 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
     name: "",
     email: "",
     telephone: "",
+    category: "SERVICES",
     address: {
       text: "",
       commune: "",
@@ -48,6 +49,7 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
         name: partnerData.name || "",
         email: partnerData.email || "",
         telephone: partnerData.telephone || "",
+        category: partnerData.category || "SERVICES",
         address: {
           text: partnerData.address?.text || "",
           commune: partnerData.address?.commune?._id || partnerData.address?.commune || "",
@@ -90,6 +92,7 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
       formData.append("name", partner.name);
       formData.append("email", partner.email);
       formData.append("telephone", partner.telephone);
+      formData.append("category", partner.category);
       formData.append("address[text]", partner.address.text);
       formData.append("address[commune]", partner.address.commune);
       formData.append("address[coordinates][lat]", partner.address.coordinates.lat);
@@ -162,16 +165,31 @@ export default function NewPartnerForm({ partnerData, onSave, onCancel }) {
         </div>
 
         {/* INFO COMMERCIALE */}
-        <div className="space-y-1">
-          <label className={labelClass}>Nom Commercial <span className={asteriskClass}>*</span></label>
-          <input 
-            required
-            className={`${inputClass} ${errors.name ? "border-rose-100 dark:border-rose-900/50" : ""}`}
-            placeholder="Ex: La Fourchette Libreville"
-            value={partner.name}
-            onChange={e => setPartner({...partner, name: e.target.value})} 
-          />
-          {errors.name && <p className="text-rose-500 text-[8px] font-black uppercase mt-1 ml-2 italic tracking-widest">{errors.name}</p>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* NOM COMMERCIAL */}
+          <div className="space-y-1">
+            <label className={labelClass}>Nom Commercial <span className={asteriskClass}>*</span></label>
+            <input 
+              required
+              className={`${inputClass} ${errors.name ? "border-rose-100" : ""}`}
+              value={partner.name}
+              onChange={e => setPartner({...partner, name: e.target.value})} 
+            />
+          </div>
+
+          {/* CATÉGORIE */}
+          <div className="space-y-1">
+            <label className={labelClass}>Secteur d'Activité <span className={asteriskClass}>*</span></label>
+            <select
+              className={selectClass}
+              value={partner.category}
+              onChange={e => setPartner({...partner, category: e.target.value})}
+            >
+              {['RESTAURANT', 'EPICERIE', 'PHARMACIE', 'MODE', 'BEAUTE', 'SERVICES', 'AUTRE'].map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
