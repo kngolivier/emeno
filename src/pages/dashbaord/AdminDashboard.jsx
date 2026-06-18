@@ -227,14 +227,16 @@ export default function AdminDashboard() {
   const successRate = overview.successRate || "0%";
 
   const chartData = (deliveryStats.deliveriesOverTime || [])
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .map((d, index) => ({
-      ...d,
-      current: d.total || 0,
-      // On utilise la même logique que comparisonData
-      name: getLabelForRelativeDate(index, period), 
-      formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
-    }));
+  // On s'assure de trier par date croissante
+  .sort((a, b) => new Date(a.date) - new Date(b.date)) 
+  .map((d, index) => ({
+    ...d,
+    current: d.total || 0,
+    // IMPORTANT : Si tu veux que ça corresponde à la comparaison, 
+    // l'index 0 doit être le jour le plus ancien.
+    name: getLabelForRelativeDate(index, period), 
+    formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+  }));
 
   const statusData = [
     { name: "Livrées", value: deliveryStats.completed || 0 },
@@ -636,10 +638,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* TOP 5 CLIENTS B2C */}
+        {/* TOP 5 CLIENTS  */}
         <div className="bg-white dark:bg-white/[0.02] p-8 rounded-[3xl] border border-slate-200 dark:border-white/5 shadow-soft">
           <h3 className="font-black text-slate-900 dark:text-white uppercase text-[10px] tracking-widest flex items-center gap-2 mb-6 italic">
-            <Star size={16} className="text-secondary" /> Top 5 Clients B2C
+            <Star size={16} className="text-secondary" /> Top 5 Clients
           </h3>
           <div className="space-y-4">
             {(userStats.topClients || []).map((client, index) => (
