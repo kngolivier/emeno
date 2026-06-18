@@ -29,8 +29,17 @@ export default function ServicesList() {
 
   // Charger les stats
   useEffect(() => {
-    getStats().then(res => setStats(res?.data?.data || res?.data || res)).catch(() => {});
-  }, [services]);
+    const loadStats = async () => {
+      try {
+        const res = await getStats();
+        setStats(res?.data?.data || res?.data || res);
+      } catch (err) {
+        console.error("Erreur chargement stats services:", err);
+      }
+    };
+
+    loadStats();
+  }, [services]); // Se déclenche quand la liste des services change
 
   const handleDelete = async () => {
     if (!deletingId) return;
@@ -86,7 +95,7 @@ export default function ServicesList() {
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs font-bold outline-none border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            <button onClick={openCreate} className="bg-primary text-white font-black text-xs uppercase px-6 py-4 rounded-2xl hover:bg-primary/90 transition-all">
+            <button onClick={openCreate} className="bg-secondary text-white font-black text-xs uppercase px-6 py-4 rounded-2xl hover:bg-primary/90 transition-all">
               + Nouveau
             </button>
           </div>
@@ -117,7 +126,7 @@ export default function ServicesList() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-6">
               {services.map((s) => (
-                <div key={s._id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] p-6 hover:shadow-xl transition-all">
+                <div key={s._id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] p-6  transition-all">
                   <span className="absolute top-4 right-4 text-[8px] font-black uppercase bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">{s.type}</span>
                   <h3 className="font-black text-lg uppercase italic">{s.title}</h3>
                   <p className="text-xs text-slate-500 mt-2 line-clamp-2">{s.description}</p>

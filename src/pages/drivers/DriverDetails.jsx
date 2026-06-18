@@ -181,13 +181,13 @@ export default function DriverDetails() {
           </p>
         </div>
 
-        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl ...">
+        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner w-full sm:w-auto">
           {["TODAY", "WEEK", "MONTH", "YEAR"].map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               disabled={statsLoading}
-              className={`flex-1 sm:flex-none ... ${
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black tracking-widest transition-all ${
                 period === p
                   ? "bg-primary dark:bg-secondary text-white shadow-md"
                   : "text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white"

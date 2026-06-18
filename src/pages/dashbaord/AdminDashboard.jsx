@@ -327,15 +327,20 @@ export default function AdminDashboard() {
                   tick={{ fontSize: 10, fontWeight: '900', fill: COLORS.muted }} 
                 />
                 <YAxis hide />
-                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }} />
-                
-                <Line 
-                  type="monotone" 
-                  dataKey={isComparing ? "current" : "total"} 
-                  stroke={COLORS.secondary} 
-                  strokeWidth={4} 
+                <Tooltip 
+                  contentStyle={{ borderRadius: '20px', border: 'none', backgroundColor: isDark ? '#1e293b' : '#ffffff' }} 
                 />
                 
+                {/* Ligne principale */}
+                <Line 
+                  type="monotone" 
+                  dataKey="current" // On uniformise sur 'current' pour la comparaison
+                  stroke={COLORS.secondary} 
+                  strokeWidth={4} 
+                  connectNulls // <--- IMPORTANT pour ne pas couper la ligne
+                />
+                
+                {/* Ligne précédente (seulement si isComparing est vrai) */}
                 {isComparing && (
                   <Line 
                     type="monotone" 
@@ -343,6 +348,7 @@ export default function AdminDashboard() {
                     stroke="#94a3b8" 
                     strokeWidth={3} 
                     strokeDasharray="5 5" 
+                    connectNulls
                   />
                 )}
               </LineChart>
