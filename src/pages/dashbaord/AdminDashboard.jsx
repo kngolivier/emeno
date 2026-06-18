@@ -131,6 +131,30 @@ export default function AdminDashboard() {
   
   const PIE_PALETTE = [COLORS.secondary, "#818CF8", "#64748b"];
 
+  
+  const getLabelForRelativeDate = (index, period) => {
+    // const now = new Date();
+    
+    if (period === 'WEEK') {
+      // Crée une date correspondant au jour (index 0 = aujourd'hui)
+      const date = new Date();
+      date.setDate(date.getDate() - index);
+      return date.toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase(); // "LUN", "MAR"...
+    }
+    
+    if (period === 'MONTH') {
+      return `J-${index + 1}`; // Garde J-1, J-2 pour le mois
+    }
+    
+    if (period === 'YEAR') {
+      const date = new Date();
+      date.setMonth(date.getMonth() - index);
+      return date.toLocaleDateString('fr-FR', { month: 'short' }).toUpperCase(); // "JAN", "FÉV"...
+    }
+    
+    return index;
+  };
+
   const loadComparison = async () => {
     try {
       const { res } = await fetchComparisonStats(period);
@@ -138,10 +162,12 @@ export default function AdminDashboard() {
       const data = res?.data || res;
       
       // On nettoie les données ici : si 'current' ou 'previous' est null/undefined, on met 0
-      const cleanedData = data.map(item => ({
+      const cleanedData = data.map((item, index) => ({
         ...item,
         current: item.current ?? 0,
-        previous: item.previous ?? 0
+        previous: item.previous ?? 0,
+        // Ici on applique notre fonction de label
+        name: getLabelForRelativeDate(index, period)
       }));
       
       setComparisonData(cleanedData);
@@ -201,11 +227,12 @@ export default function AdminDashboard() {
   const revenue = overview.totalRevenue || 0;
   const successRate = overview.successRate || "0%";
 
-  const chartData = (deliveryStats.deliveriesOverTime || []).map(d => ({
+  const chartData = (deliveryStats.deliveriesOverTime || []).map((d,index) => ({
     ...d,
     // On renomme 'total' en 'current' pour que le graphique fonctionne en mode normal et comparatif
     current: d.total || 0, 
-    name: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+    // Utilise la même fonction ici pour que le graphique normal ait aussi des labels "LUN", "MAR" etc.
+    name: getLabelForRelativeDate(index, period),
     formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
   }));
 
@@ -221,6 +248,7 @@ export default function AdminDashboard() {
     if (amount >= 1000) return (amount / 1000).toFixed(1) + ' K F';
     return amount.toLocaleString() + ' F';
   };
+
 
   return (
     <div className="space-y-8 pb-10 transition-colors duration-300">
