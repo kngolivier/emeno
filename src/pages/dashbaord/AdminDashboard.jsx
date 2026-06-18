@@ -166,7 +166,7 @@ export default function AdminDashboard() {
             ...item,
             current: item.current || 0,
             previous: item.previous || 0,
-            name: getLabelForRelativeDate(index, period)
+            // name: getLabelForRelativeDate(index, period)
           }));
           setComparisonData(cleanedData);
       }
@@ -226,17 +226,15 @@ export default function AdminDashboard() {
   const revenue = overview.totalRevenue || 0;
   const successRate = overview.successRate || "0%";
 
+  // Utilise ta fonction existante en lui passant les bons paramètres
   const chartData = (deliveryStats.deliveriesOverTime || [])
-  // On s'assure de trier par date croissante
-  .sort((a, b) => new Date(a.date) - new Date(b.date)) 
-  .map((d, index) => ({
-    ...d,
-    current: d.total || 0,
-    // IMPORTANT : Si tu veux que ça corresponde à la comparaison, 
-    // l'index 0 doit être le jour le plus ancien.
-    name: getLabelForRelativeDate(index, period), 
-    formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
-  }));
+    .sort((a, b) => new Date(a.date) - new Date(b.date)) // Assure l'ordre croissant
+    .map((d) => ({
+      ...d,
+      current: d.total || 0,
+      // Utilise soit le 'name' fourni par l'API, soit une date formatée propre
+      name: new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase()
+    }));
 
   const statusData = [
     { name: "Livrées", value: deliveryStats.completed || 0 },
@@ -250,9 +248,6 @@ export default function AdminDashboard() {
     if (amount >= 1000) return (amount / 1000).toFixed(1) + ' K F';
     return amount.toLocaleString() + ' F';
   };
-
-  console.log("DEBUG CHART - Actuel:", chartData);
-  console.log("DEBUG CHART - Comparaison:", comparisonData);
 
   return (
     <div className="space-y-8 pb-10 transition-colors duration-300">
