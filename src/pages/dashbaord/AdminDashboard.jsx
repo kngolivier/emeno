@@ -227,14 +227,16 @@ export default function AdminDashboard() {
   const revenue = overview.totalRevenue || 0;
   const successRate = overview.successRate || "0%";
 
-  const chartData = (deliveryStats.deliveriesOverTime || []).map((d,index) => ({
-    ...d,
-    // On renomme 'total' en 'current' pour que le graphique fonctionne en mode normal et comparatif
-    current: d.total || 0, 
-    // Utilise la même fonction ici pour que le graphique normal ait aussi des labels "LUN", "MAR" etc.
-    name: getLabelForRelativeDate(index, period),
-    formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
-  }));
+  // Dans AdminDashboard.jsx
+  const chartData = (deliveryStats.deliveriesOverTime || [])
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .map((d, index) => ({
+      ...d,
+      current: d.total || 0,
+      // On utilise la même logique que comparisonData
+      name: getLabelForRelativeDate(index, period), 
+      formattedDate: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+    }));
 
   const statusData = [
     { name: "Livrées", value: deliveryStats.completed || 0 },
