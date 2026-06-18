@@ -287,7 +287,7 @@ export default function AdminDashboard() {
             </button>
           ))}
         </div>
-        {/* Dans le bloc flex qui contient tes boutons de période */}
+        {/* Dans le bloc flex qui contient tes boutons de période
         <button
           onClick={() => {
             if (!isComparing) loadComparison();
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
           }`}
         >
           {isComparing ? "DÉSACTIVER COMPARAISON" : "COMPARER (N-1)"}
-        </button>
+        </button> */}
       </div>
 
       {/* KPI GRID AMÉLIORÉ (Intégration de la carte activePartners de l'API) */}
