@@ -158,23 +158,12 @@ export default function AdminDashboard() {
   const loadComparison = async () => {
     try {
       const res = await fetchComparisonStats(period);
-      // Ajuste selon la structure réelle de ton objet de réponse
-      const data = res.data || res; 
-      
-      if (Array.isArray(data)) {
-          const cleanedData = data.map((item, index) => ({
-            ...item,
-            current: item.current || 0,
-            previous: item.previous || 0,
-            // name: getLabelForRelativeDate(index, period)
-          }));
-          setComparisonData(cleanedData);
-      }
+      // Supposons que res soit directement le tableau d'objets
+      setComparisonData(res.data || res); 
     } catch (err) {
       console.error("Erreur chargement comparaison", err);
     }
   };
-
   const loadData = async () => {
     try {
       const [statsRes, deliveriesRes, driversRes] = await Promise.all([
@@ -228,12 +217,11 @@ export default function AdminDashboard() {
 
   // Utilise ta fonction existante en lui passant les bons paramètres
   const chartData = (deliveryStats.deliveriesOverTime || [])
-    .sort((a, b) => new Date(a.date) - new Date(b.date)) // Assure l'ordre croissant
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
     .map((d) => ({
-      ...d,
+      name: new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase(),
       current: d.total || 0,
-      // Utilise soit le 'name' fourni par l'API, soit une date formatée propre
-      name: new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase()
+      previous: 0 // On met 0 car il n'y a pas de comparaison en mode standard
     }));
 
   const statusData = [
