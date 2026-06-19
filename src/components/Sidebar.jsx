@@ -135,7 +135,7 @@ export default function Sidebar({ isOpen, onClose }) {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       groups.push(
         { title: "Principal", items: [
-          { to: "/admin", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
+          { to: "/admin", label: "Tableau de bord", icon: <LayoutDashboard size={18} /> },
           { to: "/admin/deliveries", label: "Livraisons", icon: <ShoppingCart size={18} /> },
         ]},
         { title: "Opérations", items: [
@@ -149,13 +149,13 @@ export default function Sidebar({ isOpen, onClose }) {
           { to: "/admin/promotions", label: "Promotions", icon: <Gift size={18} /> },
           { to: "/admin/services", label: "Services", icon: <Layers2 size={18} /> },
           { to: "/admin/feedbacks", label: "Avis", icon: <MessageSquareHeart size={18} /> },
+          { to: "/admin/settings", label: "Paramètres", icon: <Settings size={18} /> }
         ]}
       );
       if (role === "SUPER_ADMIN") {
         groups.push({ title: "Système", items: [
           { to: "/admin/admins", label: "Équipe", icon: <Shield size={18} /> },
           { to: "/admin/audit-logs", label: "Logs", icon: <Clock size={18} /> },
-          { to: "/admin/settings", label: "Paramètres", icon: <Settings size={18} /> },
         ]});
       }
     }

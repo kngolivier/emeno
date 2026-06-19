@@ -2,7 +2,7 @@ import { useState } from "react";
 import { login as loginApi } from "../../api/auth.api";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Eye, EyeOff, Lock, User, ArrowRight, Sun, Moon, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Lock, User, ArrowRight, Sun, Moon, Loader2, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../context/Theme/ThemeContext";
 import { notifyError } from "../../utils/notify"; // Import de ton utilitaire de notif
@@ -49,7 +49,15 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-[400px] bg-[var(--bg-card)] backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border border-[var(--border-color)] relative z-10"
       >
-        <div className="flex justify-between items-center mb-8">
+        {/* --- BOUTON RETOUR ACCUEIL AJOUTÉ ICI --- */}
+        <Link 
+          to="/" 
+          className="absolute top-8 left-8 text-slate-400 hover:text-[var(--color-secondary)] transition-all font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-1 group"
+        >
+          <ChevronLeft size={16} /> Accueil
+        </Link>
+        {/* -------------------------------------- */}
+        <div className="flex justify-between items-center mb-8 mt-4">
             <h2 className="text-xl font-black uppercase tracking-tighter text-[var(--text-title)]">Connexion</h2>
             <button onClick={toggleTheme} className="p-3 bg-[var(--bg-app)] rounded-xl text-[var(--color-secondary)] hover:opacity-80 transition-all">
                 {isDarkMode ? <Sun size={18}/> : <Moon size={18}/>}
@@ -78,6 +86,14 @@ export default function Login() {
                 <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-4 top-4 text-[var(--text-main)] hover:text-[var(--text-title)] transition-colors">
                   {showPwd ? <EyeOff size={18}/> : <Eye size={18}/>}
                 </button>
+            </div>
+            <div className="flex justify-end px-2">
+              <Link 
+                to="/forgot-password" 
+                className="text-[9px] font-black text-slate-400 hover:text-[var(--color-secondary)] uppercase tracking-widest transition-colors"
+              >
+                Mot de passe oublié ?
+              </Link>
             </div>
           </div>
 

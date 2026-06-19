@@ -47,3 +47,20 @@ export const changePassword = async (data) => {
 
   return res
 };
+
+/**
+ * DEMANDE DE RÉINITIALISATION (Envoie l'OTP)
+ */
+export const forgotPassword = async (telephone) => {
+  const res = await API.post(ENDPOINTS.FORGOT_PASSWORD, { telephone });
+  return res;
+};
+
+/**
+ * CONFIRMATION DE RÉINITIALISATION (Vérifie OTP + Nouveau mot de passe)
+ */
+export const resetPassword = async (data) => {
+  // data doit contenir: { telephone, otpCode, newPassword }
+  const res = await API.post(ENDPOINTS.RESET_PASSWORD, data);
+  return res;
+};

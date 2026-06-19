@@ -71,6 +71,8 @@ import TrackingPage from "../pages/TrackingPage";
 import FAQPage from "../pages/FAQPage";
 import SettingsPage from "../pages/companySettings/SettingsPage";
 import FeedbackManagement from "../pages/feedbacks/FeedbackManagement";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 export default function AppRoutes() {
   // const { user } = useAuth();
@@ -100,6 +102,8 @@ export default function AppRoutes() {
         {/* ===================== */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
         
         {/* Route accessible pour changer le mot de passe */}
