@@ -1,6 +1,6 @@
 // FILE: src/hooks/usePaginatedFetch.js
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 
 export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}) => {
@@ -10,6 +10,9 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}) => {
   const limit = Number(searchParams.get("limit") ?? initialLimit);
   const status = searchParams.get("status") || "ALL";
   const search = searchParams.get("search") || "";
+
+  // Utilisation de useRef pour le debounce afin d'éviter les re-renders inutiles
+  const debounceTimer = useRef(null);
 
   const [data, setData] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -37,12 +40,23 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}) => {
   const setPage = (newPage) => updateParams({ page: newPage });
   const setStatus = (newStatus) => updateParams({ status: newStatus, page: 1 });
 
-  const updateParams = (newParams) => {
+  // Fonction de mise à jour avec debounce pour la recherche
+  const updateParams = (newParams, useDebounce = false) => {
+    if (useDebounce && newParams.search !== undefined) {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        applyParams(newParams);
+      }, 500); // 500ms d'attente avant de lancer la recherche
+    } else {
+      applyParams(newParams);
+    }
+  };
+  const applyParams = (newParams) => {
     setSearchParams((prev) => {
       const current = Object.fromEntries(prev.entries());
       return { ...current, ...newParams };
     });
   };
 
-  return { data, meta, loading, page, limit, setPage, setStatus, refresh: fetchData };
+  return { data, meta, loading, page, limit, setPage, setStatus, search, updateParams, refresh: fetchData };
 };

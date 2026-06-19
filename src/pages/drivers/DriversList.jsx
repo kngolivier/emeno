@@ -1,6 +1,6 @@
 // FILE: src/pages/drivers/DriversList.jsx
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   Plus, Edit, Phone, ShieldCheck, ExternalLink, UserX, 
@@ -34,6 +34,11 @@ export default function DriversList() {
   const [activeTab, setActiveTab] = useState("list"); // "list" ou "map"
   const [showForm, setShowForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
+  const [inputValue, setInputValue] = useState(search); // État local pour fluidité
+
+  useEffect(() => {
+    setInputValue(search);
+  }, [search]);
 
   const getStatusStyle = (s) => {
     switch (s) {
@@ -93,7 +98,10 @@ export default function DriversList() {
               type="text"
               placeholder="Rechercher par nom ou téléphone..."
               value={search}
-              onChange={(e) => updateParams({ search: e.target.value, page: 1 })}
+              onChange={(e) => {
+                updateParams({ search: e.target.value, page: 1 }, true);
+                setInputValue(e.target.value);
+                }}
               className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>

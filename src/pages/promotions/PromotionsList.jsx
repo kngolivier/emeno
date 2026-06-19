@@ -1,6 +1,6 @@
 // FILE: src/pages/promotions/PromotionsList.jsx
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Edit3, Eye, Plus, Power, Trash2, TicketPercent, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../components/Pagination";
@@ -39,6 +39,12 @@ export default function PromotionsList() {
 
 
   const promotions = useMemo(() => normalizePromotions(response), [response]);
+  const [inputValue, setInputValue] = useState(search); // État local pour fluidité
+
+  // Dans le useEffect, synchronisez si l'URL change via un autre bouton
+  useEffect(() => {
+    setInputValue(search);
+  }, [search]);
 
   const openCreateForm = () => {
     setSelectedPromotion(null);
@@ -108,7 +114,10 @@ export default function PromotionsList() {
               type="text"
               placeholder="Rechercher code, titre..."
               value={search || ""}
-              onChange={(e) => updateParams({ search: e.target.value, page: 1 })}
+              onChange={(e) => {
+                updateParams({ search: e.target.value, page: 1 }, true);
+                setInputValue(e.target.value);
+                }}
               className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
@@ -122,7 +131,7 @@ export default function PromotionsList() {
         {[ { label: "Actives", val: true }, { label: "Inactives", val: false } ].map((tab) => (
           <button
             key={tab.label}
-            onClick={() => updateParams({ isActive: tab.val, page: 1 })}
+            onClick={() => updateParams({ isActive: tab.val, page: 1 }, true)}
             className={`px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all
               ${isActive === tab.val 
                 ? "bg-primary dark:bg-secondary text-white border-primary dark:border-secondary" 

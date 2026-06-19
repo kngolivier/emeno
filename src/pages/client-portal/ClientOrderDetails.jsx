@@ -178,7 +178,7 @@ export default function ClientOrderDetails() {
             <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border-2 border-dashed border-secondary/30 shadow-soft">
                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Code de sécurité</h4>
                <div className="flex items-center justify-center bg-slate-50 dark:bg-slate-800 py-6 rounded-2xl">
-                  <span className="text-3xl font-black tracking-[0.3em] text-secondary italic">
+                  <span className="text-2xl font-black tracking-[0.3em] text-secondary italic">
                     {delivery.verificationCode}
                   </span>
                   <button onClick={() => copyToClipboard(delivery.verificationCode)} className="p-3 bg-white dark:bg-slate-800 rounded-xl hover:text-secondary transition-colors">

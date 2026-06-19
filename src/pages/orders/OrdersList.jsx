@@ -1,5 +1,5 @@
 // FILE: src/pages/orders/OrdersList.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Plus, MapPin, User, PackageOpen, SearchX, Search } from "lucide-react";
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
@@ -12,6 +12,12 @@ import { notifySuccess, notifyError } from "../../utils/notify";
 
 export default function OrdersList() {
   const [showForm, setShowForm] = useState(false);
+  const [inputValue, setInputValue] = useState(search); // État local pour fluidité
+
+  // Dans le useEffect, synchronisez si l'URL change via un autre bouton
+  useEffect(() => {
+    setInputValue(search);
+  }, [search]);
 
   const { 
     data: orders = [], 
@@ -81,7 +87,10 @@ export default function OrdersList() {
               type="text"
               placeholder="Rechercher par #Ref ou nom..."
               value={search} // 'search' est déjà fourni par usePaginatedFetch
-              onChange={(e) => updateParams({ search: e.target.value, page: 1 })}
+              onChange={(e) => {
+                updateParams({ search: e.target.value, page: 1 }, true);
+                setInputValue(e.target.value);
+                }}
               className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
