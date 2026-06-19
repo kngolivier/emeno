@@ -11,15 +11,7 @@ import NewOrderForm from "./NewOrderForm";
 import { notifySuccess, notifyError } from "../../utils/notify";
 
 export default function OrdersList() {
-  const [showForm, setShowForm] = useState(false);
-  const [inputValue, setInputValue] = useState(search); // État local pour fluidité
-
-  // Dans le useEffect, synchronisez si l'URL change via un autre bouton
-  useEffect(() => {
-    setInputValue(search);
-  }, [search]);
-
-  const { 
+    const { 
     data: orders = [], 
     meta, 
     loading, 
@@ -30,6 +22,14 @@ export default function OrdersList() {
     search,
     updateParams
   } = usePaginatedFetch(fetchAdminDeliveries, 10);
+  const [showForm, setShowForm] = useState(false);
+  const [inputValue, setInputValue] = useState(search); // État local pour fluidité
+
+  // Dans le useEffect, synchronisez si l'URL change via un autre bouton
+  useEffect(() => {
+    setInputValue(search);
+  }, [search]);
+
   const statusTranslations = {
     PENDING: "Créée",
     ASSIGNED: "Assignée",
@@ -92,7 +92,7 @@ export default function OrdersList() {
                 setInputValue(newValue); // Met à jour instantanément le champ visuellement
                 updateParams({ search: newValue, page: 1 }, true); // Debounce pour l'URL
               }}
-                          className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
         </div>

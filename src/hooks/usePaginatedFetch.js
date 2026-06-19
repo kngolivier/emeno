@@ -46,7 +46,7 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}) => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
       debounceTimer.current = setTimeout(() => {
         applyParams(newParams);
-      }, 500); // 500ms d'attente avant de lancer la recherche
+      }, 250); // 500ms d'attente avant de lancer la recherche
     } else {
       applyParams(newParams);
     }
