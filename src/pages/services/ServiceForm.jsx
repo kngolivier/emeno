@@ -184,6 +184,9 @@ export default function ServiceForm({ service, onClose, onSuccess }) {
             <label className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400"><Smartphone size={12}/> WhatsApp</label>
             <PhoneInput value={form.whatsappNumber} onChange={(v) => setForm(p => ({ ...p, whatsappNumber: v }))} />
             <textarea name="whatsappTemplate" value={form.whatsappTemplate} onChange={handleChange} className={inputClass} rows={2} placeholder="Template message..." />
+            <p className="text-[10px] text-slate-400 italic">
+              Aperçu du message : "{form.whatsappTemplate.replace("{{serviceName}}", form.title || "Nom du service")}"
+            </p>
           </div>
 
           {/* SECTION 4: AVANTAGES */}

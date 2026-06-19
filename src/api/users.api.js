@@ -23,17 +23,30 @@ export const fetchUsers = (params = {}) => {
 export const fetchAdmins = (params = {}) => {
   return fetchUsers({ ...params, role: "ADMIN" });
 };
-/**
- * GET all drivers
- */
+
 export const fetchDrivers = (params = {}) => {
-  return fetchUsers({ ...params, role: "DRIVER" });
+  const { page = 1, limit = 10, role = "DRIVER", status, search } = params;
+
+  let url = `${ENDPOINTS.USERS}?page=${page}&limit=${limit}&role=${role}`;
+
+  if (status && status !== "ALL") url += `&status=${status}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`; // Ajout du paramètre de recherche
+
+  return API.get(url);
 };
+
 /**
  * GET all customers
  */
 export const fetchClients = (params = {}) => {
-  return fetchUsers({ ...params, role: "CLIENT" });
+  const { page = 1, limit = 10, role = "CLIENT", status, search } = params;
+
+  let url = `${ENDPOINTS.USERS}?page=${page}&limit=${limit}&role=${role}`;
+
+  if (status && status !== "ALL") url += `&status=${status}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`; 
+
+  return API.get(url);
 };
 
 /**

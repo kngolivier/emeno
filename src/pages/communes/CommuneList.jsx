@@ -117,7 +117,7 @@ export default function CommuneList() {
           <div className="hidden sm:block">
             <TotalCard 
               title="Zones" 
-              value={allCommunes.length} 
+              value={filteredCommunes.length}
               subtitle={statusFilter === "ALL" ? "Total" : `Filtre: ${statusFilter}`} 
             />
           </div>

@@ -1,7 +1,7 @@
 // FILE: src/pages/promotions/PromotionsList.jsx
 
 import { useMemo, useState } from "react";
-import { Edit3, Eye, Plus, Power, Trash2, TicketPercent } from "lucide-react";
+import { Edit3, Eye, Plus, Power, Trash2, TicketPercent, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../components/Pagination";
 import { deletePromotion, fetchPromotions, togglePromotionStatus } from "../../api/promotions.api";
@@ -27,7 +27,10 @@ const formatDate = (value) => {
 };
 
 export default function PromotionsList() {
-  const { data: response = {}, meta, loading, setPage, refresh } = usePaginatedFetch(fetchPromotions, 10);
+  const { 
+    data: response = {}, meta, loading, setPage, refresh, updateParams, isActive, search
+  } = usePaginatedFetch(fetchPromotions, 10);
+
   const [showForm, setShowForm] = useState(false);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -99,11 +102,35 @@ export default function PromotionsList() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white font-display italic tracking-tighter">Promotions</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black mt-1 uppercase tracking-[0.2em]">Gestion des campagnes marketing</p>
+          <div className="relative mt-4 w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="Rechercher code, titre..."
+              value={search || ""}
+              onChange={(e) => updateParams({ search: e.target.value, page: 1 })}
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
         </div>
         <button onClick={openCreateForm} className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-primary dark:bg-secondary text-white hover:opacity-90 transition-all shadow-xl dark:shadow-secondary/20 text-[10px] font-black uppercase tracking-widest">
           <Plus size={16} strokeWidth={3} /> Créer une promo
         </button>
+      </div>
+      {/* FILTRES D'ÉTAT */}
+      <div className="flex gap-2 overflow-x-auto pb-4">
+        {[ { label: "Actives", val: true }, { label: "Inactives", val: false } ].map((tab) => (
+          <button
+            key={tab.label}
+            onClick={() => updateParams({ isActive: tab.val, page: 1 })}
+            className={`px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all
+              ${isActive === tab.val 
+                ? "bg-primary dark:bg-secondary text-white border-primary dark:border-secondary" 
+                : "bg-white dark:bg-white/5 text-slate-400 border-slate-200 dark:border-white/5"}`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {promotions.length === 0 ? (

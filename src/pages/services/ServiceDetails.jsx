@@ -135,9 +135,17 @@ export default function ServiceDetails() {
       <div className="p-8 space-y-6">
         {isEditing ? (
           <div className="space-y-4">
+
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">Titre du service</label>
             <input className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl font-bold" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Titre" />
+
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">Description du service</label>
             <textarea className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">Numéro Whatsapp</label>
             <input className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" value={formData.whatsappNumber} onChange={e => setFormData({...formData, whatsappNumber: e.target.value})} placeholder="Numéro WhatsApp" />
+
+            <label className="text-[10px] font-black uppercase text-slate-400 mb-3 block">Message whatsapp</label>
             <textarea className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl" rows={2} value={formData.whatsappTemplate} onChange={e => setFormData({...formData, whatsappTemplate: e.target.value})} placeholder="Template WhatsApp" />
             
             <div className="grid grid-cols-2 gap-4">

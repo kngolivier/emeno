@@ -1,7 +1,7 @@
 // FILE: src/pages/orders/OrdersList.jsx
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Plus, MapPin, User, PackageOpen, SearchX } from "lucide-react";
+import { Eye, Plus, MapPin, User, PackageOpen, SearchX, Search } from "lucide-react";
 import { usePaginatedFetch } from "../../hooks/usePaginatedFetch";
 import { Pagination } from "../../components/Pagination";
 import { fetchAdminDeliveries, createDelivery } from "../../api/deliveries.api";
@@ -12,9 +12,18 @@ import { notifySuccess, notifyError } from "../../utils/notify";
 
 export default function OrdersList() {
   const [showForm, setShowForm] = useState(false);
-  
-  const { data: orders = [], meta, loading, setPage, setStatus, status, refresh } = usePaginatedFetch(fetchAdminDeliveries, 10);
 
+  const { 
+    data: orders = [], 
+    meta, 
+    loading, 
+    setPage, 
+    setStatus, 
+    status, 
+    refresh,
+    search,
+    updateParams
+  } = usePaginatedFetch(fetchAdminDeliveries, 10);
   const statusTranslations = {
     PENDING: "Créée",
     ASSIGNED: "Assignée",
@@ -64,9 +73,18 @@ export default function OrdersList() {
           <h1 className="text-3xl lg:text-4xl font-black text-primary dark:text-white font-display italic tracking-tighter uppercase leading-none">
             Livraisons
           </h1>
-          <p className="text-slate-400 dark:text-slate-500 text-[10px] font-black mt-2 uppercase tracking-[0.2em]">
-            Flux opérationnel • Temps réel
-          </p>
+
+          {/* AJOUT DE LA BARRE DE RECHERCHE */}
+          <div className="relative mt-4 w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="Rechercher par #Ref ou nom..."
+              value={search} // 'search' est déjà fourni par usePaginatedFetch
+              onChange={(e) => updateParams({ search: e.target.value, page: 1 })}
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

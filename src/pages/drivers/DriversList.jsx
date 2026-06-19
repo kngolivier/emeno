@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   Plus, Edit, Phone, ShieldCheck, ExternalLink, UserX, 
-  Map as MapIcon, List 
+  Map as MapIcon, List, Search
 } from "lucide-react";
 
 // Importation de la carte globale optimisée
@@ -28,7 +28,9 @@ const STATUS_LABELS = {
 };
 
 export default function DriversList() {
-  const { data: drivers = [], meta, loading, setPage, setStatus, status, refresh } = usePaginatedFetch(fetchDrivers, 10);
+  const { 
+      data: drivers = [], meta, loading, setPage, setStatus, status, refresh, search, updateParams 
+    } = usePaginatedFetch(fetchDrivers, 10);
   const [activeTab, setActiveTab] = useState("list"); // "list" ou "map"
   const [showForm, setShowForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
@@ -83,9 +85,18 @@ export default function DriversList() {
           <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white font-display italic tracking-tighter">
             Livreurs
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black mt-1 uppercase tracking-[0.2em]">
-            Gestion de la flotte logistique
-          </p>
+
+          {/* 3. Ajout de la barre de recherche */}
+          <div className="relative mt-4 w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="Rechercher par nom ou téléphone..."
+              value={search}
+              onChange={(e) => updateParams({ search: e.target.value, page: 1 })}
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">

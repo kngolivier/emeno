@@ -1,7 +1,7 @@
 // FILE: src/pages/clients/ClientsList.jsx
 
 import { useState } from "react";
-import { Plus, Eye, Phone, Mail, UserCheck, UserMinus } from "lucide-react";
+import { Plus, Eye, Phone, Mail, UserCheck, UserMinus, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../components/Pagination";
 import { createClient, updateUserStatus, fetchClients } from "../../api/users.api";
@@ -21,7 +21,10 @@ import { STATUS_USER_LABELS } from "../../constants/constants";
 // };
 
 export default function ClientsList() {
-  const { data: clients = [], meta, loading, setPage, refresh, status, setStatus } = usePaginatedFetch(fetchClients, 10);
+  const { 
+      data: clients = [], meta, loading, setPage, refresh, status, setStatus, search, updateParams 
+    } = usePaginatedFetch(fetchClients, 10);
+    
   const [showForm, setShowForm] = useState(false);
 
   const getStatusStyle = (s) => {
@@ -66,9 +69,18 @@ export default function ClientsList() {
           <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white font-display italic tracking-tighter">
             Clients
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black mt-1 uppercase tracking-[0.2em]">
-            Base de données utilisateurs
-          </p>
+
+          {/* 3. Ajout de la barre de recherche */}
+          <div className="relative mt-4 w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="Rechercher par nom ou téléphone..."
+              value={search}
+              onChange={(e) => updateParams({ search: e.target.value, page: 1 })}
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
