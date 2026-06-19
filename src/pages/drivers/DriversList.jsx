@@ -99,9 +99,10 @@ export default function DriversList() {
               placeholder="Rechercher par nom ou téléphone..."
               value={search}
               onChange={(e) => {
-                updateParams({ search: e.target.value, page: 1 }, true);
-                setInputValue(e.target.value);
-                }}
+                const newValue = e.target.value;
+                setInputValue(newValue); // Met à jour instantanément le champ visuellement
+                updateParams({ search: newValue, page: 1 }, true); // Debounce pour l'URL
+              }}
               className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>

@@ -88,10 +88,11 @@ export default function OrdersList() {
               placeholder="Rechercher par #Ref ou nom..."
               value={search} // 'search' est déjà fourni par usePaginatedFetch
               onChange={(e) => {
-                updateParams({ search: e.target.value, page: 1 }, true);
-                setInputValue(e.target.value);
-                }}
-              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                const newValue = e.target.value;
+                setInputValue(newValue); // Met à jour instantanément le champ visuellement
+                updateParams({ search: newValue, page: 1 }, true); // Debounce pour l'URL
+              }}
+                          className="w-full pl-11 pr-4 py-3 bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
         </div>
