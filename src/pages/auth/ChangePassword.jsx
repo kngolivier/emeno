@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { changePassword } from "../../api/auth.api";
 import { useNavigate } from "react-router-dom";
-import { Lock, ArrowLeft, CheckCircle2, Loader2, KeyRound, AlertCircle } from "lucide-react";
+import { Lock, ArrowLeft, CheckCircle2, Loader2, KeyRound, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 
@@ -24,7 +24,12 @@ export default function ChangePassword() {
     setLoading(true);
     try {
       await changePassword({ oldPassword: formData.oldPassword, newPassword: formData.newPassword });
-      logout();
+      // 1. Déconnexion
+      await logout(); 
+      
+      // 2. Redirection forcée
+      // Utiliser window.location permet de réinitialiser l'état de l'application
+      window.location.href = "/login";
       navigate("/login", { replace: true, state: { message: "Mot de passe mis à jour." } });
     } catch (err) {
       setError(err.response?.data?.message || "Une erreur est survenue");
@@ -80,9 +85,23 @@ export default function ChangePassword() {
 }
 
 function InputGroup({ label, ...props }) {
+    const [show, setShow] = useState(false);
+
   return (
     <div className="relative group">
-      <input {...props} placeholder={label} className="w-full px-6 py-4 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-secondary/30 rounded-2xl outline-none text-sm font-bold text-slate-800 dark:text-white transition-all placeholder:text-slate-400" />
+      <input 
+        {...props} 
+        type={show ? "text" : props.type} 
+        placeholder={label} 
+        className="w-full px-6 py-4 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-secondary/30 rounded-2xl outline-none text-sm font-bold text-slate-800 dark:text-white transition-all placeholder:text-slate-400" 
+      />
+      <button 
+        type="button" 
+        onClick={() => setShow(!show)}
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-secondary transition-colors"
+      >
+        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
     </div>
   );
 }

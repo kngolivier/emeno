@@ -32,6 +32,7 @@ export default function ServicesList() {
     const loadStats = async () => {
       try {
         const res = await getStats();
+        console.log("Statistiques des services : ", res)
         setStats(res?.data?.data || res?.data || res);
       } catch (err) {
         console.error("Erreur chargement stats services:", err);
