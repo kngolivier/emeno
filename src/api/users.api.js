@@ -89,7 +89,9 @@ export const fetchAvailableDrivers = () => {
  * CREATE driver
  */
 export const createDriver = (payload) => {
-  return API.post(ENDPOINTS.USERS, payload);
+  return API.post(ENDPOINTS.USERS, {
+    ...payload,
+    role: "DRIVER"});
 };
 
 /**

@@ -30,7 +30,7 @@ export default function NewClientForm({ onSave, onCancel }) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden w-full max-w-lg mx-auto animate-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden w-full max-w-lg max-h-[70vh] mx-auto animate-in slide-in-from-bottom-4 duration-500">
       
       {/* HEADER DU FORMULAIRE */}
       <div className="p-6 md:p-8 bg-slate-50/30 dark:bg-white/[0.02] border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
