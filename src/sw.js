@@ -32,11 +32,11 @@ self.addEventListener('push', (event) => {
   const options = {
     body: data.body,
     icon: '/pwa-192x192.png',
-    badge: '/favicon.ico', 
+    // badge: '/favicon.ico', 
     vibrate: [200, 100, 200], // Vibration chic pour tes livreurs
-    data: {
-      url: data.url || '/' 
-    }
+    // data: {
+    //   url: data.url || '/' 
+    // }
   };
 
   event.waitUntil(
