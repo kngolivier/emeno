@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle } from "lucide-react";
 import { SupportNav } from "../components/SupportNav"; // Si vous avez créé ce composant
+import { motion, AnimatePresence } from "framer-motion";
+
 
 export default function FAQPage() {
   const faqs = [
