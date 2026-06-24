@@ -26,9 +26,9 @@ export default function SupportPage() {
           <Link to="/faq">
             <SupportCard icon={HelpCircle} title="FAQ & Aide" desc="Consultez nos questions fréquentes." />
           </Link>
-          <Link to="/guides">
+          {/* <Link to="/guides">
             <SupportCard icon={FileText} title="Guides d'utilisation" desc="Apprenez à utiliser EMENO." />
-          </Link>
+          </Link> */}
           <a href={`https://wa.me/${settings.contact?.whatsapp}`} target="_blank" rel="noopener noreferrer">
             <SupportCard icon={MessageCircle} title="Support WhatsApp" desc="Discutez en direct avec un agent." />
           </a>
