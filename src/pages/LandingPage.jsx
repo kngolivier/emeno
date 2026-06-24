@@ -8,9 +8,26 @@ import Footer from "../components/landing/Footer";
 import { Zap, ShieldCheck, BellRing, ArrowRight, Wallet, MapPin, Star } from "lucide-react";
 import ServicesCarousel from "../components/services/ServicesCarousel";
 import PartnersCarousel from "../components/landing/PartnersCarousel";
+import CTASection from "../components/landing/CTASection";
+import { fetchRandomPricing } from "../api/pricing.api"; // Créez cette fonction dans votre fichier API
+import { useEffect, useState } from "react";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+
+  const [randomPrices, setRandomPrices] = useState([]);
+
+  useEffect(() => {
+    const loadPrices = async () => {
+      try {
+        const response = await fetchRandomPricing();
+        setRandomPrices(response?.data?.data || response?.data || response);
+      } catch (err) {
+        console.error("Erreur chargement tarifs", err);
+      }
+    };
+    loadPrices();
+  }, []);
   // Animation de groupe pour les éléments
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -100,11 +117,26 @@ export default function LandingPage() {
               </Link>
             </div>
             <div className="flex-1 grid grid-cols-2 gap-4 w-full">
-              <MiniPriceCard zone="Libreville" prix="1 500" />
-              <MiniPriceCard zone="Akanda" prix="2 500" />
+              {randomPrices.length > 0 ? (
+                randomPrices.map((p) => (
+                  <MiniPriceCard 
+                    key={p._id} 
+                    zone={`${p.from.name} ➔ ${p.to.name}`} 
+                    prix={p.basePrice?.toLocaleString()} 
+                  />
+                ))
+              ) : (
+                // Skeleton ou fallback si chargement
+                <>
+                  <div className="animate-pulse bg-slate-200 dark:bg-slate-800 rounded-2xl h-24" />
+                  <div className="animate-pulse bg-slate-200 dark:bg-slate-800 rounded-2xl h-24" />
+                </>
+              )}
             </div>
           </div>
         </section>
+        {/* NOUVEAU CTA AJOUTÉ ICI */}
+        <CTASection onNavigate={() => navigate("/login")} />
 
         <Footer />
       </main>

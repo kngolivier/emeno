@@ -10,6 +10,11 @@ export const fetchPricing = async (params) => {
   const response = await API.get(ENDPOINTS.PRICING, { params });
   return response;
 };
+
+export const fetchRandomPricing = async() => {
+  const response = await API.get(`${ENDPOINTS.PRICING}/random`);
+  return response;
+}
 // ======================
 // CREATE PRICING RULE
 // ======================
