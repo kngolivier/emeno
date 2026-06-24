@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 
-export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}) => {
+export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}, isInfinite = false) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Number(searchParams.get("page") ?? 1);
@@ -21,19 +21,33 @@ export const usePaginatedFetch = (fetchFn, initialLimit = 10, filters = {}) => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fusion des paramètres URL et des filtres complexes
       const res = await fetchFn({ page, limit, status, search, ...filters });
-      setData(res?.data?.data ?? res?.data ?? []);
-      setMeta(res?.data?.meta ?? res?.meta ?? null);
+      const newData = res?.data?.data ?? res?.data ?? [];
+      const newMeta = res?.data?.meta ?? res?.meta ?? null;
+
+      setData((prevData) => {
+        // Si isInfinite est true ET qu'on est pas sur la page 1, on ajoute
+        if (isInfinite && page > 1) {
+          return [...prevData, ...newData];
+        }
+        // Sinon, on remplace (comportement par défaut)
+        return newData;
+      });
+      
+      setMeta(newMeta);
     } catch (err) {
       console.error("Erreur fetch paginé:", err);
     } finally {
       setLoading(false);
     }
-  // Dépendance sur JSON.stringify(filters) pour détecter les changements d'objet
-  }, [fetchFn, page, limit, status, search, JSON.stringify(filters)]);
+  }, [fetchFn, page, limit, status, search, JSON.stringify(filters), isInfinite]);
 
   useEffect(() => {
+    // Si la page est 1 (qu'on vient de lancer une recherche ou de charger la page), 
+    // on peut vider les données pour éviter un effet de "flash" ou de concaténation erronée
+    if (page === 1) {
+        setData([]); 
+    }
     fetchData();
   }, [fetchData]);
 

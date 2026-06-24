@@ -203,7 +203,7 @@ export default function ServiceForm({ service, onClose, onSuccess }) {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   key={i} 
-                  className="pl-3 pr-2 py-1.5 bg-primary/10 text-primary rounded-xl text-[11px] font-bold uppercase flex items-center gap-2 border border-primary/20"
+                  className="pl-3 pr-2 py-1.5 bg-primary/10 text-secondary rounded-xl text-[11px] font-bold uppercase flex items-center gap-2 border border-primary/20"
                 >
                   {b} 
                   <button type="button" onClick={() => setForm(p => ({...p, benefits: p.benefits.filter((_,idx) => idx !== i)}))} className="hover:bg-primary/20 rounded-full p-0.5">

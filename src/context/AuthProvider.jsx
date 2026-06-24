@@ -54,7 +54,8 @@ export default function AuthProvider({ children }) {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
-          await subscription.unsubscribe();
+          // await subscription.unsubscribe();
+          await API.delete(ENDPOINTS.NOTIFICATIONS_UNSUBSCRIBE);
         }
       }
 

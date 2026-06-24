@@ -6,6 +6,8 @@ import { Pagination } from "../components/Pagination";
 import { usePaginatedFetch } from "../hooks/usePaginatedFetch";
 import { fetchPricing } from "../api/pricing.api";
 import { MapPin, HelpCircle, ArrowUpDown, Info, LayoutGrid, Search, X } from "lucide-react";
+import { useSettings } from "../context/Settings/SettingsContext";
+
 
 export default function PricingPage() {
   // Hook de pagination et recherche côté serveur
@@ -15,8 +17,19 @@ export default function PricingPage() {
     loading, 
     search, 
     setSearch, 
-    setPage 
-  } = usePaginatedFetch(fetchPricing);
+    page,
+    setPage,
+    updateParams
+  } = usePaginatedFetch(fetchPricing, 10, {}, true);
+  const { settings } = useSettings();
+
+  // Fonction pour charger la suite
+  const loadMore = () => {
+    if (meta?.hasNextPage) {
+      setPage(page + 1);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0B1120] text-slate-600 dark:text-slate-200 transition-colors duration-500 overflow-x-hidden">
@@ -51,13 +64,14 @@ export default function PricingPage() {
               type="text" 
               placeholder="Rechercher une zone (ex: Akanda...)"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              // Utilisation de updateParams avec debounce pour ne pas surcharger le serveur
+              onChange={(e) => updateParams({ search: e.target.value, page: 1 }, true)} 
               className="w-full bg-slate-100 dark:bg-white/5 border-2 border-transparent focus:border-secondary/20 rounded-full py-4 pl-12 pr-4 text-sm font-bold placeholder:text-slate-400 outline-none transition-all"
             />
             <Search className="absolute left-4 top-4 text-slate-400" size={18} />
             {search && (
               <button 
-                onClick={() => setSearch("")} 
+                onClick={() => updateParams({ search: "", page: 1 })} 
                 className="absolute right-4 top-4 text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
               >
                 <X size={18} />
@@ -85,6 +99,18 @@ export default function PricingPage() {
             </motion.div>
           ) : (
             <EmptyPricing />
+          )}
+          {/* Bouton "Charger plus" qui apparaît si meta existe et qu'il reste des pages */}
+          {meta?.hasNextPage && (
+            <div className="text-center mt-12">
+                <button 
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="px-8 py-3 bg-slate-100 dark:bg-white/5 hover:bg-secondary hover:text-white transition-all font-black text-xs uppercase tracking-widest rounded-full"
+                >
+                  {loading ? "Chargement..." : "Voir plus de zones"}
+                </button>
+            </div>
           )}
         </section>
 
@@ -132,9 +158,14 @@ export default function PricingPage() {
                     <p className="opacity-80 text-xs lg:text-sm font-bold uppercase tracking-widest mt-1">Tarifs dégressifs pour les entreprises et e-commerçants.</p>
                 </div>
             </div>
-            <button className="px-10 py-5 bg-white dark:bg-primary-dark text-primary dark:text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:scale-105 transition-transform active:scale-95 shadow-xl">
+            <a 
+              href={`https://wa.me/${settings?.contact?.whatsapp}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="px-10 py-5 bg-white dark:bg-primary-dark text-primary dark:text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:scale-105 transition-transform active:scale-95 shadow-xl block text-center"
+            >
                 Contacter le service commercial
-            </button>
+            </a>
         </div>
       </main>
 
