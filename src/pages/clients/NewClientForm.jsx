@@ -32,15 +32,24 @@ export default function NewClientForm({ onSave, onCancel }) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-50 dark:border-slate-800 w-full max-w-lg max-h-[70vh] mx-auto animate-in slide-in-from-bottom-4 duration-500 flex flex-col overflow-hidden">      
       {/* 1. HEADER : Fixe */}
-      <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 shrink-0">        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary dark:bg-white/[0.05] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20 dark:shadow-none rotate-3 border border-transparent dark:border-white/10">
+      <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0 bg-white dark:bg-slate-900">
+        
+        {/* Partie Gauche : Icône + Titre */}
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-primary dark:bg-white/[0.05] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20 dark:shadow-none rotate-3 border border-transparent dark:border-white/10 shrink-0">
             <UserPlus size={22} className="text-white dark:text-secondary" />
           </div>
-          <div>
-            <h2 className="text-xl md:text-2xl font-black text-primary dark:text-white italic font-display leading-none uppercase">Nouveau Client</h2>
-            <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1 text-secondary">Base de données EMENO</p>
+          <div className="flex flex-col justify-center">
+            <h2 className="text-xl md:text-2xl font-black text-primary dark:text-white italic font-display leading-none uppercase">
+              Nouveau Client
+            </h2>
+            <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1 text-secondary">
+              Base de données EMENO
+            </p>
           </div>
         </div>
+
+        {/* Partie Droite : Bouton fermer */}
         <button 
           onClick={onCancel} 
           className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-400 hover:text-rose-500 transition-all active:scale-90"
