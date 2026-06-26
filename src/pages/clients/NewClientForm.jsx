@@ -32,8 +32,8 @@ export default function NewClientForm({ onSave, onCancel }) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden w-full max-w-lg max-h-[70vh] mx-auto animate-in slide-in-from-bottom-4 duration-500">
       
-      {/* HEADER DU FORMULAIRE */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 w-full max-w-lg max-h-[70vh] mx-auto animate-in slide-in-from-bottom-4 duration-500 flex flex-col overflow-hidden">
+      {/* 1. HEADER : Fixe */}
+      <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-primary dark:bg-white/[0.05] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20 dark:shadow-none rotate-3 border border-transparent dark:border-white/10">
             <UserPlus size={22} className="text-white dark:text-secondary" />
@@ -45,35 +45,30 @@ export default function NewClientForm({ onSave, onCancel }) {
         </div>
         <button 
           onClick={onCancel} 
-          className="p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:border-rose-100 dark:hover:border-rose-900/30 transition-all active:scale-90"
+          className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-400 hover:text-rose-500 transition-all active:scale-90"
         >
           <X size={20} />
         </button>
       </div>
 
+      {/* 2. FORMULAIRE : Scrollable */}
       <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 md:space-y-6 overflow-y-auto flex-1">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* NOM */}
           <div className="space-y-1">
             <label className={labelClass}>Nom <span className={asteriskClass}>*</span></label>
-            <div className="relative">
-              <User size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 hidden md:block" />
-              <input 
-                required
-                className={`${inputClass} md:pl-11 ${errors.nom ? "border-rose-100 dark:border-rose-900/50" : ""}`}
-                placeholder="Mba"
-                value={client.nom}
-                onChange={e => setClient({...client, nom: e.target.value.toUpperCase()})} 
-              />
-            </div>
+            <input 
+              required
+              className={`${inputClass} ${errors.nom ? "border-rose-100" : ""}`}
+              placeholder="Mba"
+              value={client.nom}
+              onChange={e => setClient({...client, nom: e.target.value.toUpperCase()})} 
+            />
           </div>
-          
-          {/* PRÉNOM */}
           <div className="space-y-1">
             <label className={labelClass}>Prénom <span className={asteriskClass}>*</span></label>
             <input 
               required
-              className={`${inputClass} ${errors.prenom ? "border-rose-100 dark:border-rose-900/50" : ""}`} 
+              className={`${inputClass} ${errors.prenom ? "border-rose-100" : ""}`} 
               placeholder="Jean"
               value={client.prenom}
               onChange={e => setClient({...client, prenom: e.target.value})} 
@@ -81,7 +76,6 @@ export default function NewClientForm({ onSave, onCancel }) {
           </div>
         </div>
 
-        {/* TÉLÉPHONE */}
         <div className="space-y-1">
           <label className={labelClass}>Téléphone <span className={asteriskClass}>*</span></label>
           <PhoneInput 
@@ -89,36 +83,29 @@ export default function NewClientForm({ onSave, onCancel }) {
             onChange={(val) => setClient({...client, telephone: val})} 
             error={errors.telephone}
           />
-          {errors.telephone && <p className="text-rose-500 text-[8px] font-black uppercase mt-1 ml-2 italic tracking-widest">{errors.telephone}</p>}
         </div>
 
-        {/* ADRESSE / QUARTIER */}
         <div className="space-y-1">
           <label className={labelClass}>Quartier de résidence</label>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                <MapPin size={16} className="text-slate-300 dark:text-slate-600" />
-            </div>
-            <input 
-              className={inputClass + " pl-12 font-medium"} 
-              placeholder="Ex: Angondjé, Libreville" 
-              value={client.adresse}
-              onChange={e => setClient({...client, adresse: e.target.value})} 
-            />
-          </div>
-        </div>
-
-        {/* ACTIONS & FOOTER */}
-        <div className="p-6 md:p-8 border-t border-slate-100 dark:border-slate-800 shrink-0">
-          <button 
-            type="submit"
-            onClick={handleSubmit} // Appelé depuis le footer
-            className="w-full py-5 bg-primary dark:bg-secondary text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 shadow-xl shadow-primary/10 dark:shadow-none hover:bg-secondary dark:hover:bg-secondary/80 active:scale-[0.98] transition-all"
-          >
-            <Check size={18} strokeWidth={3} /> Créer le profil client
-          </button>
+          <input 
+            className={inputClass} 
+            placeholder="Ex: Angondjé, Libreville" 
+            value={client.adresse}
+            onChange={e => setClient({...client, adresse: e.target.value})} 
+          />
         </div>
       </form>
+
+      {/* 3. FOOTER : Fixe */}
+      <div className="p-6 md:p-8 border-t border-slate-100 dark:border-slate-800 shrink-0 bg-slate-50/30 dark:bg-white/[0.02]">
+        <button 
+          type="submit"
+          onClick={handleSubmit}
+          className="w-full py-5 bg-primary dark:bg-secondary text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 shadow-xl hover:opacity-90 active:scale-[0.98] transition-all"
+        >
+          <Check size={18} strokeWidth={3} /> Créer le profil client
+        </button>
+      </div>
     </div>
   );
 }

@@ -136,7 +136,7 @@ export default function Header({
         {/* LOGO - Modifié pour être visible partout */}
         <div className="flex items-center">
           <img 
-            src={isDarkMode ? "/logo.png" : "/logo-dark.png"} 
+            src="/logo.png"
             alt="EMENO" 
             // h-8 sur mobile, h-10 sur desktop pour ne pas briser la mise en page
             className="h-8 md:h-10 w-auto object-contain" 
