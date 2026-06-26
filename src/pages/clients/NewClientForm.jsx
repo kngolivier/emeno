@@ -30,10 +30,10 @@ export default function NewClientForm({ onSave, onCancel }) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 w-full max-w-lg max-h-[70vh] mx-auto animate-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 overflow-hidden w-full max-w-lg max-h-[70vh] mx-auto animate-in slide-in-from-bottom-4 duration-500">
       
       {/* HEADER DU FORMULAIRE */}
-      <div className="p-6 md:p-8 bg-slate-50/30 dark:bg-white/[0.02] border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 w-full max-w-lg max-h-[70vh] mx-auto animate-in slide-in-from-bottom-4 duration-500 flex flex-col overflow-hidden">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-primary dark:bg-white/[0.05] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20 dark:shadow-none rotate-3 border border-transparent dark:border-white/10">
             <UserPlus size={22} className="text-white dark:text-secondary" />
@@ -51,7 +51,7 @@ export default function NewClientForm({ onSave, onCancel }) {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 md:space-y-6">
+      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5 md:space-y-6 overflow-y-auto flex-1">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* NOM */}
           <div className="space-y-1">
@@ -109,16 +109,14 @@ export default function NewClientForm({ onSave, onCancel }) {
         </div>
 
         {/* ACTIONS & FOOTER */}
-        <div className="flex flex-col gap-3 pt-2">
-            <button 
-              type="submit"
-              className="w-full py-5 bg-primary dark:bg-secondary text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 shadow-xl shadow-primary/10 dark:shadow-none hover:bg-secondary dark:hover:bg-secondary/80 active:scale-[0.98] transition-all"
-            >
-              <Check size={18} strokeWidth={3} /> Créer le profil client
-            </button>
-            <p className="text-[9px] text-center text-slate-300 dark:text-slate-600 font-bold uppercase tracking-widest">
-                Gabon • Libreville • Akanda • Owendo
-            </p>
+        <div className="p-6 md:p-8 border-t border-slate-100 dark:border-slate-800 shrink-0">
+          <button 
+            type="submit"
+            onClick={handleSubmit} // Appelé depuis le footer
+            className="w-full py-5 bg-primary dark:bg-secondary text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 shadow-xl shadow-primary/10 dark:shadow-none hover:bg-secondary dark:hover:bg-secondary/80 active:scale-[0.98] transition-all"
+          >
+            <Check size={18} strokeWidth={3} /> Créer le profil client
+          </button>
         </div>
       </form>
     </div>

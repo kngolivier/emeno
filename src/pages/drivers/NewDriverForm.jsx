@@ -123,7 +123,7 @@ export default function NewDriverForm({ onSave, onCancel, driver }) {
       {/* FOOTER */}
       <div className="p-6 border-t border-border bg-primary-light/10 shrink-0">
         <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-secondary text-primary-dark py-4 rounded-xl font-black uppercase text-xs shadow-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-          {loading ? <Loader2 className="animate-spin" size={16} /> : "Enregistrer les modifications"}
+          {loading ? <Loader2 className="animate-spin" size={16} /> : driver ?  "Enregistrer les modifications" : "Créer le livreur"}
         </button>
       </div>
     </div>
