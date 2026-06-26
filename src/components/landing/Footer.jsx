@@ -79,8 +79,8 @@ export default function Footer() {
             {settings.socialMedia?.facebook && (
               <a href={settings.socialMedia.facebook} target="_blank" rel="noreferrer" className="text-[9px] font-black text-slate-400 dark:text-slate-600 hover:text-secondary transition-colors uppercase tracking-[0.2em] italic">Facebook</a>
             )}
-            {settings.socialMedia?.twitter && (
-              <a href={settings.socialMedia.twitter} target="_blank" rel="noreferrer" className="text-[9px] font-black text-slate-400 dark:text-slate-600 hover:text-secondary transition-colors uppercase tracking-[0.2em] italic">Twitter</a>
+            {settings.socialMedia?.tiktok && (
+              <a href={settings.socialMedia.tiktok} target="_blank" rel="noreferrer" className="text-[9px] font-black text-slate-400 dark:text-slate-600 hover:text-secondary transition-colors uppercase tracking-[0.2em] italic">TikTok</a>
             )}
           </div>
         </div>

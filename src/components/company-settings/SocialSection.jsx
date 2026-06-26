@@ -25,11 +25,11 @@ export default function SocialSection({ formData, handleChange }) {
           placeholder="Lien de votre compte Instagram"
         />
         <InputField 
-          label="Twitter (X)" 
-          name="socialMedia.twitter" 
-          value={formData.socialMedia?.twitter} 
+          label="TikTok" 
+          name="socialMedia.tiktok" 
+          value={formData.socialMedia?.tiktok} 
           onChange={handleChange} 
-          placeholder="Lien de votre compte Twitter"
+          placeholder="Lien de votre compte TikTok"
         />
       </div>
     </div>
